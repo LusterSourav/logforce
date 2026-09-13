@@ -40,7 +40,7 @@ path: output/normalized/perimeter-%Y-%m-%d.ndjson or output/parquet/year=…/cla
 source format: paloalto_syslog | cisco_asa | fortinet_fortigate | cef | leef | suricata_eve | zeek_tsv | generic_syslog | csv | xml | ulpf_ocsf
  future: android_logcat | android_crash | windows_eventlog | macos_diagnostics | linux_journald | ios_sysdiagnose | outer_tune
 ingest path: Vector tail OR POST /api/classify → POST /api/ingest?format=
- future also: POST /capture (any device, 4096 cap via WireGuard 10.0.0.1:8002) → logs/auto_captured.log → miner → same OCSF
+ future also: POST /capture (any device, 4096 cap via WireGuard 10.0.0.1) → logs/auto_captured.log → miner → same OCSF
 hash: sha256(trim(raw)) plus capture.py dedup sha16 window200
 class: class_uid 4001 type_uid 400101
 vendor/source: metadata.product.vendor_name → vendor → type fallback → ?format= → source (phone/laptop/firewall) + device + app tags
@@ -51,7 +51,7 @@ Keep `output/normalized` and `output/parquet` + `logs/auto_captured.log` separat
 ## 4. Data Quality
 
 Validate:
-- NDJSON line validity (tolerate `unexpected end of JSON raw_len:14` by skipping, logging `lastErr`);
+- NDJSON line validity (tolerate `unexpected end of JSON raw_len` by skipping, logging `lastErr`);
 - `time` vs `timestamp` (RFC3339 vs RFC3339Nano) with file mtime fallback for bucketing;
 - `class_uid` presence (OCSF) else lumber shape `{type,category,confidence}`;
 - bufio limit 10 MB per scanner line;
@@ -66,12 +66,12 @@ Flag `UNCLASSIFIED` (confidence ~0.2) rather than invent category.
 3. Disk buffer `max_size=2147483648 when_full=block` (forensic block).
 4. VRL `drop_on_abort=true drop_on_error=true`.
 5. Phase 1 is the only device regex; Phase 0 hash + Phase 2 filter + Phase 3 OCSF stay generic.
-6. Sinks: file NDJSON + HTTP `ulpf-server:8081/api/ingest` (retry 5, backoff 2s).
+6. Sinks: file NDJSON + HTTP `ulpf-server/api/ingest` (retry 5, backoff 2s).
 
 ## 6. Edge Engine Rules
 
 Expose:
-- `taxonomyLeaves:42`, `threshold:0.5`, `embedDim:1024`, `latencyMs`.
+- `taxonomyLeaves`, `threshold.5`, `embedDim`, `latencyMs`.
 
 Never:
 - call low confidence a guaranteed prediction;
@@ -100,7 +100,7 @@ Validate every `POST`:
 - **Future device pod `POST /capture` (:8002 via WireGuard, NOT public):** `{log≤4096, source, device, app}` with `4096` cap + `sha16 dedup window200` + `10 MB` image cap; returns `{hint, fix_endpoint, curl}` (the midnight fix). No heavy work on phone, VM validates.
 - **Future `GET /report` + `POST /parse` (miner 8001)**: read-only tail+clusters; `POST /parse` uses `add_log_message` + `exact_matching`.
 
-Rate-limit/auth: prototype none (localhost/air-gapped); pod `:8002` behind WireGuard `10.0.0.0/24`, not public, auth is `wg` key + short JWT for `/report` in final.
+Rate-limit/auth: prototype none (localhost/air-gapped); pod `` behind WireGuard `10.0.0.0/24`, not public, auth is `wg` key + short JWT for `/report` in final.
 
 ## 9. Error Handling
 
@@ -136,7 +136,7 @@ Everything else → `maincode/` (including `auto_capture/` thin device + `ai_sol
 ## 12a. VPN / Tile Rule (Rethink-style)
 
 - QS tile (`TileService`, `BIND_QUICK_SETTINGS_TILE`) is a `VpnService` that only routes `10.0.0.0/24` (pod), not `0.0.0.0/0` (unlike Rethink which filters all). Handshake on tap, no always-on drain.
-- Fallbacks documented: `adb reverse tcp:8002` for USB lab, `Syncthing` for `logs/auto_captured.log` if no VPN.
+- Fallbacks documented: `adb reverse tcp` for USB lab, `Syncthing` for `logs/auto_captured.log` if no VPN.
 
 ## 13. Definition of Done
 
@@ -145,7 +145,7 @@ Prototype done (today) when:
 - `GET /api/stats` counters correct; `POST /api/query` prune; `parquet_writer` Hive; `ulpf_ocsf.py` `raw` intact; `vector test` 21 pass.
 
 Device done (next) when:
-- Android APK tap on QS tile beside Rethink (your screenshot) → WireGuard → `POST /capture` → `{fix_endpoint,curl}` toast from `qwen2.5:0.5b` on Azure B1s;
+- Android APK tap on QS tile beside Rethink (your screenshot) → WireGuard → `POST /capture` → `{fix_endpoint,curl}` toast from `qwen2.5.5b` on Azure B1s;
 - Same `logs/auto_captured.log` appears as OCSF `source=phone` in `GET /api/stats` vendor counts;
 - Image share `POST /capture/image` OCR path also returns fix; `GET /report` tail visible;
 - Laptop agent (Win/macOS/Linux) same `POST` works without phone.
@@ -154,14 +154,14 @@ Device done (next) when:
 
 ## 14. Ground Reality, Rules 2-6 + Custom ONNX Rules
 
-**Rule 2 Technology (ground truth):** `lumber v0.10.6` Go 1.24 + `onnxruntime_go` + Vector 0.38 + PG 16 are pinned (`go.mod`, `offline/image-list.txt:1`). Future `ulpf-onnx-hyper` adds: `onnxruntime-gpu 1.18`, `TensorRT 8.6`, `faiss-hnsw`, `quant awq int4`, but prototype stays CPU `23 MB`, no forced GPU for demo.
+**Rule 2 Technology (ground truth):** `lumber v0.10.6` Go 1.24 + `onnxruntime_go` + Vector 0.38 + PG 16 are pinned (`go.mod`, `offline/image-list.txt`). Future `ulpf-onnx-hyper` adds: `onnxruntime-gpu 1.18`, `TensorRT 8.6`, `faiss-hnsw`, `quant awq int4`, but prototype stays CPU `23 MB`, no forced GPU for demo.
 
-**Rule 3 Data (ground truth):** Source enum now includes `android_logcat | windows_eventlog | outer_tune`, fingerprint in `normalize_outertune.vrl:74` will be added, not yet live. Ingest path `POST /capture` already live (`server.py:39`).
+**Rule 3 Data (ground truth):** Source enum now includes `android_logcat | windows_eventlog | outer_tune`, fingerprint in `normalize_outertune.vrl` will be added, not yet live. Ingest path `POST /capture` already live (`server.py`).
 
-**Rule 4 Quality:** NDJSON validity, `bufio 10 MB`, dupe hash, all enforced (`server.go:214`). `UNCLASSIFIED 0.2` fallback real.
+**Rule 4 Quality:** NDJSON validity, `bufio 10 MB`, dupe hash, all enforced (`server.go`). `UNCLASSIFIED 0.2` fallback real.
 
-**Rule 5 Ingestion:** File source + disk 2 GB `block` + VRL phases 0-3 real (`vector.toml:56`), but for 1B/sec, Rule 5 gains: `Kafka 1000 partitions, batch 10k, compression zstd, replication 3`, not file tail.
+**Rule 5 Ingestion:** File source + disk 2 GB `block` + VRL phases 0-3 real (`vector.toml`), but for 1B/sec, Rule 5 gains: `Kafka 1000 partitions, batch 10k, compression zstd, replication 3`, not file tail.
 
-**Rule 6 Edge Engine (ground truth + Hyper):** Prototype exposes `taxonomyLeaves:42` + `latencyMs`. Hyper will expose `model: ulpf-onnx-hyper-4L-256d, leaves:400, dim:256, seq:64, quant:int4, leaves_hnsw: pq64, batch:512`. Never hide `confidence`, Hyper still returns it per leaf (HNSW distance → softmax).
+**Rule 6 Edge Engine (ground truth + Hyper):** Prototype exposes `taxonomyLeaves` + `latencyMs`. Hyper will expose `model: ulpf-onnx-hyper-4L-256d, leaves, dim, seq, quant:int4, leaves_hnsw: pq64, batch`. Never hide `confidence`, Hyper still returns it per leaf (HNSW distance → softmax).
 
 **Custom ONNX Rule:** Hyper model lives in `maincode/vector/onnx-hyper/` + `lumber-master/models-hyper/` (new). Training: teacher `bge-large` → student 4L, 5M logs (perimeter+app), loss = MSE(hidden) + KL(logits) + contrastive (leaf desc). Quant: dynamic int8 for CPU pod, AWQ int4 for GPU fleet. Validation: same `corpus.json` 153 + new `ulpf-hyper-corpus.json` 5k. Storage of 1B burst must be sampled: keep 100% `vendor_counts` + `category_counts` in `stats`, 1% `raw` in ClickHouse, Rule 3 already allows `1% raw`.
