@@ -1,0 +1,5 @@
+2a3541f3f156bc420d593fe8bcde37597980f0780035e6d0fb9b6a2f949d8855  model_quantized.onnx
+65dc11dae54946d5c18390e52b0f92ed04215d0965b7f0ea6fef71cf4bfce907  model_quantized.onnx_data
+07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3  vocab.txt
+dfe95933b75110ca0c1650dc0a78f06d0a05a028892ac74ffc5aa3644283f16f  2_Dense/model.safetensors
+# libonnxruntime.dylib is platform-specific; pin per arch in CI
