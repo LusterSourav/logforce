@@ -66,4 +66,3 @@ Focus before next demo: T-01 (one extra VRL TC per device) + S-01 (keep sanitize
 ## 7. Risk Principle
 
 > **Sample the raw at 1B/sec, never sample the truth about the cost.**
-
