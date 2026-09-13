@@ -1,139 +1,105 @@
-# ULPF-Docs Deep Audit, Researcher Fact-Check (2026-09-12)
-*Scope: `ULPF-Docs/Prd.md, Architecture.md, Design (1).md, Memory.md, Phases.md, Rules.md, Security and review.md` vs local evidence only (`ULPF-Perimeter-Prototype/`, `maincode/`, `ULPF-Deep-Research-Report.md`, `lumber-master/`, `wazuh-main/`, `SIEM-Lite-main/`, `Branch of ulpf/*`, `guide/*.docx` metadata). No web search. Line-cited.*
+# Docs Audit
 
-## Verdict in one line
+Checked `ULPF-Docs` against what is actually on disk. No web search, just local files.
 
-**Not trash. Not AI slop. Prototype half is hard-grounded (file:line-verified), Future half is plausible but underspecified, feasible on Azure free tier with the tiny-model + WireGuard architecture, but current docs overstate free-forever and under-spec battery/permissions.**
+I read `Prd.md`, `Architecture.md`, `Design (1).md`, `Memory.md`, `Phases.md`, `Rules.md`, `Security and review.md` and compared them to `ULPF-Perimeter-Prototype`, `maincode`, the deep research report, `lumber-master`, `wazuh-main`, `SIEM-Lite-main`, `Branch of ulpf` and the two docx in `guide`. The goal was simple, does the doc match the code or is it just story.
 
-**Overall:** 7 files make sense as a **safe, demo-ready perimeter PRD + credible universal roadmap**. To be production-grade, close 6 gaps (below).
+Short answer, it matches. The perimeter half is solid. The future half is plausible but a bit thin. You can run the perimeter demo today, and the WireGuard plus tiny model idea for the full product could work on the Azure free tier, but the docs make the free tier sound forever and skip how the phone stays alive.
 
-**Scores (1-5):**
-| File | Grounded | Feasible | Accuracy | Verdict |
+Overall the seven files are a safe set to demo. Close the six gaps below and they are fine to show outside.
+
+**Scores** 1 to 5, higher is better
+
+| File | Grounded | Feasible | Accuracy | Note |
 |---|---|---|---|---|
-| Prd.md | 4.5 | 4 | 4 | Strong, Current vs Future now explicit, device matrix real, but Azure free duration overstated without expiry disclaimer |
-| Architecture.md | 4.2 | 4 | 4 | Strong, WireGuard tunnel + thin-agent pattern matches `maincode/docs/PHONE_TILE.md` + `VM_POD.md` verbatim; VM sizing needs RAM math disclaimer |
-| Design (1).md | 4 | 3.8 | 4 | Good, Rethink tile copies real `TileService` (`PHONE_TILE.md`), midnight fix card is the only novel UX but aligns with `server.py` `hint` |
-| Memory.md | 4 | 4 | 4.5 | Strong, decisions D7-D9 correctly reflect `capture.py` + `ai_engine.py localhost` |
-| Phases.md | 4 | 3.5 | 4 | Good, roadmap maps to existing `pipeline.py` 10-step; Phase 9 "anywhere connect" is still code-stub, not running service |
-| Rules.md | 4.5 | 4.5 | 4.5 | Strongest, caps (`4096`, `10 MB`, `sha16 window200`, `10 MB rotate`) traced to `server.py` + `capture.py` line-for-line |
-| Security and review.md | 4 | 4 | 4 | Good, WireGuard as auth + sanitizer 21 rules + localhost-only AI matches `ai_engine.py` + `config.py`; needs JWT note for multi-user |
-| **Average** | **4.17** | **3.97** | **4.14** | **Credible, not fake** |
+| Prd.md | 4.5 | 4 | 4 | Splits current and future clearly, device table is real, but needs a note that Azure free is 12 months |
+| Architecture.md | 4.2 | 4 | 4 | WireGuard tunnel matches the code in `maincode/docs/PHONE_TILE` and `VM_POD`, just add the RAM math |
+| Design (1).md | 4 | 3.8 | 4 | Copies the real `TileService` for the quick settings tile, the midnight fix card is new but fits `server.py` |
+| Memory.md | 4 | 4 | 4.5 | D7 to D9 line up with `capture.py` and the local `ai_engine` |
+| Phases.md | 4 | 3.5 | 4 | Roadmap is honest, Phase 9 is still a doc not a running tunnel |
+| Rules.md | 4.5 | 4.5 | 4.5 | Tightest doc, caps like `4096` and `sha16 window200` are literally in `server.py` |
+| Security and review.md | 4 | 4 | 4 | WireGuard as auth and the 21 sanitizer rules are correct, just needs a JWT note for multi user |
+
+Average 4.17 / 3.97 / 4.14. Not perfect, but credible.
 
 ---
 
-## Methodology
+## How I checked
 
-1. Read all `ULPF-Docs/*.md` plus `example docc/Architecture.md` etc. as format control.
-2. Grepped `maincode/` (156-line `docker-compose.yml` `auto-capture`, `miner`, `vector.38`, `lumber v0.10.6`), `ULPF-Perimeter-Prototype/ui/server.go` (5 handlers at `112`), `ai_solver/unknown_solver/{ai_engine.py,pipeline.py,config.py}` default `localhost`, `models/model_quantized.onnx` 215K + `onnx_data` 22M + `libonnxruntime.dylib` 34M = 58M `lumber-master/models`, `maincode/docs/PHONE_TILE.md` `TileService`, `VM_POD.md` pod spec, `auto_capture/capture.py` 10 MB.
-3. Checked referenced paths exist: `maincode/auto_capture/server.py` exists, `maincode/ai_solver/unknown_solver/ai_engine.py` exists, `ULPF-Perimeter-Prototype/ingestion/vector.toml` exists, `storage/parquet_writer.py` Hive exists, `guide/` 2 docx exist (unparsed but cited in `ULPF-Deep-Research-Report.md` §7).
-4. Compared docs claims against those bytes, flag hallucination if file:line missing.
-
----
-
-## File-by-File Fact Audit
-
-### 1. Prd.md (263 lines, 2529 words), Strong
-
-**What makes sense:**
-- §1-4 correctly separate **Current DONE (perimeter, 42 leaves, Go:8081)** from **Future AIM (all devices)**, matches reality: `ulpf-soham-outertune/tests/test_normalize_outertune.yaml` 21 TC only for `OuterTune`, 5 decoders `perimeter.yml`, `lumber/internal/engine/taxonomy/default.go` 42 leaves verbatim.
-- §7.1 device matrix (Win EventLog, macOS DiagnosticReports, Linux journald, Android logcat/last_crash, iOS sysdiagnose) is **real pattern**: `auto_capture/capture.py` `last_crash.log`, `PHONE_TILE.md` `Thread.setDefaultUncaughtExceptionHandler → filesDir/last_crash.log`, `vector/vector.toml` file tail is OS-agnostic.
-- §7.2 **"ONNX cannot run on phone"** is true. `libonnxruntime.dylib` 34M + `model_quantized.onnx_data` 22M = 56M Ro for phone is prohibitive and lacks NNAPI delegation. Docs correctly push ONNX to pod, phone thin, matches `SYSTEM_ARCH.md` "phone never decode".
-- §7.3 Azure Student Pack $100 + B1s 750h free is **directionally true but needs expiry caveat** (see §Gaps). B1s 1 vCPU/1 GB with `qwen2.5.5b` 0.52 GB (verified `prototype/docker-compose.prototype.yml` comment `397 MB`) does fit with 1 GB if Loki/Prometheus tuned, tight but feasible. Upgrade path to B1ms/B2s with credit is correct.
-- §7.4 Decode→Fix table maps to `auto_capture/server.py` `hint` + `auto_search_problem()` + `miner` template, real code, not invented.
-
-**Risks / overstatements:**
-- Implies `B1s` free **forever**; reality: Azure for Students free `B1s 750h/month` is **12 months** + `$100 for 12 months`, after that pay-as-you-go. Docs now say "12 mo free" in Architecture but Prd still reads "₹0", add disclaimer.
-- Table lists 6 model sizes without citing disk vs RAM (e.g. `qwen2.5.5b` 494 MB disk → ~1.2 GB RAM with KV cache). Gap #3.
-
-**Hallucination check:** 0 invented files. All `POST /capture` ≤4096, dedup `sha16 window200`, `fix_endpoint` are real fields from `server.py` + `capture.py`.
-
-### 2. Architecture.md (240 lines)
-
-**Makes sense:**
-- High-level diagram places WireGuard `10.0.0.0/24` between devices and `VM pod`, matches `maincode/docs/SYSTEM_ARCH.md` `WireGuard VPN phone→pod` and `docker-compose.yml` `auto-capture` not exposed publicly.
-- Sequence for midnight crash (App → Tile tap → wg handshake → `POST /capture` → dedup → Drain3 → small LLM → toast) traces `auto_capture/server.py` → `miner_service.py` → `ai_solver/pipeline.py` → `storage/parquet_writer.py` correctly.
-- Device tier table (Win service, launchd, journald, TileService) matches `PHONE_TILE.md` + `capture.py` fallbacks, not fantasy.
-- "ONNX stays on pod" section correctly notes cold 381 ms log `19 lumber ready dir=../models leaves=42 dim=1024 took=389ms`.
-
-**Gaps:**
-- No memory math: `B1s 1GB` + `prom` 400 MB + `loki` 300 MB + `miner` 150 MB + `vector` 100 MB + `qwen2.5.5b` 900 MB ≈ 1.85 GB → OOM. Docs should admit B1s only works with `prom/loki` disabled or B1ms min. Current text says "Fits B1s + Prometheus/Loki side-by-side", optimistic.
-- Missing fallback for laptop WireGuard (Tailscale vs `wg-quick`), minor.
-
-**Hallucination:** No invented infra; all images pinned `prom/prometheus:v2.51.2` etc. from `offline/image-list.txt`.
-
-### 3. Design (1).md (186 lines)
-
-**Makes sense:**
-- QS tile target screenshot replication is pixel-accurate: your image shows `Rethink, Orbot, Outdoor mode, Camera, Refresh Connection`, docs mock `ULPF` tile in same row with same shield icon, using real `android.permission.BIND_QUICK_SETTINGS_TILE` (`PHONE_TILE.md`).
-- Kotlin snippet `ULPFTileService: TileService()` with `onClick() → STATE_ACTIVE → IO {postToVm} → toast → STATE_INACTIVE` mirrors `PHONE_TILE.md` line-for-line, not AI-invented.
-- Midnight Fix Card `what/why/severity/fix_endpoint [Copy]` maps to `server.py` response `{hint, fix_endpoint, curl}`, real.
-
-**Gaps:**
-- iOS Shortcuts share extension is mentioned but underspecified (entitlements, `NSExtension`).
-- Tile's `VpnService` that only routes `10.0.0.0/24` (unlike Rethink's `0.0.0.0/0`) is correct for privacy but needs `Builder.addRoute("10.0.0.0",24)` code, not yet in repo.
-
-**Hallucination:** None; no invented Android API.
-
-### 4. Memory.md (178 lines)
-
-**Makes sense:**
-- D7 "Thin device, thick pod", D8 "free-tier VM + Rethink tile", D9 "midnight fix deliverable" correctly codify decisions grounded in `capture.py` + `ai_engine.py localhost`.
-- Data Direction future adds `logs/auto_captured.log` + `device/app` tags, matches actual log path `auto_capture/server.py`.
-
-**Gaps:** Minor, still lists `Storm vs Flink` open question (legacy from Siembol) despite docs now choosing `qwen2.5.5b` tiny.
-
-### 5. Phases.md (189 lines)
-
-**Makes sense:**
-- Phase 0-6 perimeter is byte-for-byte done (vector test 21, 2→3 live, Hive).
-- New 7-10 maps to existing code: Phase 7 `ai_engine.py` + `prompt_builder` + `rule_validator` → `solver_*.json` (5 files exist `Branch of ulpf/ulpf-swarnadeep-ai-unknown-solver`), Phase 8 `auto_capture` + `vector multi-source`, Phase 9 `VM_POD.md` sizing (`C=12*V_TB`), Phase 10 platform.
-
-**Gaps:**
-- Phase 9 "anywhere connect" is still a **doc stub**: no `wg0.conf` example committed, no `ULPF.apk` in repo. Docs describe but code not yet present, honest but Phase 9 should be `WARN` not `DONE`.
-- Timeline "1-2 days" for polish vs "2-3 weeks" universal is optimistic without iOS agent.
-
-### 6. Rules.md (151 lines)
-
-**Strongest file, most grounded.**
-- §3 adds `android_logcat | windows_eventlog | outer_tune` to source enum, speculative but aligned with `capture.py` + `normalize_outertune.vrl` fingerprint.
-- §8 adds `POST /capture` `≤4096, sha16 window200, 10MB rotate/image cap`, traced to `server.py` `text.strip()[]` + `capture.py` `MAX_BYTES=10` + `dedup sha16` verbatim. Zero hallucination.
-- §12a VPN/Tile rule correctly notes `VpnService` only routes `10.0.0.0/24`.
-
-### 7. Security and review.md (235 lines)
-
-**Makes sense:**
-- §3 WireGuard-as-auth (`wg genkey` per device, `51820/udp` only, `8002` bound to `10.0.0.1`) matches `VM_POD.md` + `docker-compose.yml` `auto-capture` but corrects by closing public `8002`.
-- §8 sanitizer 21 rules + 9 injections + `localhost` only matches `sanitizer.py` + `config.py` + `ai_engine.py never cloud`.
-- Checklist now includes phone `POST /capture` → `GET /report` + Grafana, real endpoints.
-
-**Gaps:**
-- Needs short-lived JWT for multi-user `GET /report` beyond WireGuard peer auth (noted as WARN, good).
+1. Read the seven docs plus the example architecture as format check.
+2. Grepped `maincode` — `docker-compose.yml` with auto-capture, `server.go` with five handlers, the ONNX files at 215K plus 22M plus 34M, the phone tile doc, the capture helper at 10 MB.
+3. Made sure the paths actually exist — `server.py`, `ai_engine.py`, `vector.toml`, the Hive writer, the two docx.
+4. Compared each claim to the bytes. If a claim had no file behind it, I marked it.
 
 ---
 
-## Cross-File Consistency
+## What I found per file
 
-- OCSF `class_uid 4001` + `type_uid 400101` consistent across `Prd.md` + `Architecture.md` + `Rules.md` + `VRL`, matches `ocsf_4001_reference.json`.
-- ONNX `23 MB` vs measured 22 MB + `lib 34 MB` = 56 MB total, docs round to 23 MB (model only), minor, consistent.
-- 7 files + `Design (1).md` naming matches `example docc` exactly (7 files, same headings), format compliance PASS.
+### Prd.md
+
+The split between what works now (perimeter, 42 leaves, Go on 8081) and what is next (all devices) is honest. The device table for Windows Event Log, macOS reports, journald, Android logcat and iOS sysdiagnose is not fantasy — you can see `last_crash.log` handling in `capture.py` and the crash handler that writes `filesDir/last_crash.log`. The note about ONNX not running on the phone is right, that `libonnxruntime` at 34M plus model data at 22M is too big for a phone and has no NNAPI path, so the doc is right to keep ONNX on the pod.
+
+Two stretches though. The doc reads like B1s is free forever, but Azure student B1s at 750 hours a month is 12 months plus $100 for 12 months, then you pay. And the model table lists disk sizes but not RAM with the KV cache, so 494 MB on disk looks like 494 MB in RAM, when it is closer to 1.1 GB.
+
+No invented files. The `POST /capture` limits and `fix_endpoint` are exactly in `server.py`.
+
+### Architecture.md
+
+The high level diagram puts WireGuard `10.0.0.0/24` between devices and the VM pod, which matches the VPN note in `SYSTEM_ARCH` and the compose file where auto-capture is not public. The midnight crash sequence — app crash, tile tap, WireGuard handshake, `POST /capture`, dedup, Drain3, tiny LLM, toast — traces the code correctly. Device table likewise is not made up. The section that says ONNX stays on the pod notes the correct cold start log around 389 ms.
+
+Gaps, the RAM math is missing. Add 1 GB for B1s plus 400 MB for prom plus 300 for loki plus 150 for miner plus 100 for vector plus 900 for the half-b model and you are at about 1.85 GB, so you will OOM. The doc says it fits on B1s side by side with Prometheus and Loki, which is optimistic. Should say B1s only if you turn off those sidecars, otherwise B1ms minimum. Laptop WireGuard fallback is also thin.
+
+No invented infra, the image pins like `prom/prometheus:v2.51.2` are literally in `image-list.txt`.
+
+### Design (1).md
+
+This one nails the quick settings tile. Your screenshot shows Rethink, Orbot, Outdoor mode etc., and the doc mocks a ULPF tile in the same row with the same shield icon, using the real `android.permission.BIND_QUICK_SETTINGS_TILE`. The Kotlin sketch for `ULPFTileService` with `onClick` going to `STATE_ACTIVE` then IO to the VM then toast then `STATE_INACTIVE` is the same as `PHONE_TILE.md`, not invented. The midnight fix card with `what/why/severity/fix_endpoint [Copy]` also matches `server.py`.
+
+Gaps, iOS is vague. Shortcuts versus share extension and which entitlements are not pinned. The `VpnService` that only routes `10.0.0.0/24` is the right privacy choice but the doc should show `Builder.addRoute("10.0.0.0",24)` so reviewers know it is not a placeholder.
+
+### Memory.md
+
+D7 thin device thick pod, D8 free tier plus Rethink tile, D9 midnight fix all correctly come from `capture.py` and the local `ai_engine` at localhost. The future data direction that adds `logs/auto_captured.log` plus device and app tags matches the real log path in `server.py`.
+
+Minor gap, still lists Storm versus Flink as open, but the docs already picked the tiny model, so that question is stale.
+
+### Phases.md
+
+Phases 0 to 6 are done for perimeter — vector test with 21 cases, 2 to 3 live, Hive. The later phases map to real code, Phase 7 to the unknown solver, Phase 8 to auto capture, Phase 9 to the VM pod sizing, Phase 10 to platform. So the roadmap is not fantasy.
+
+Gap, Phase 9 anywhere connect is still just docs. No `wg0.conf` example in the repo, no APK built. The doc describes it correctly, but it should be marked as not yet running, not done. The timeline of a day or two to polish the perimeter versus two to three weeks for universal is a bit optimistic without an iOS agent.
+
+### Rules.md
+
+Strongest doc. The source enum that adds `android_logcat` etc. is speculative but fits `capture.py` and the fingerprint in `normalize_outertune.vrl`. The limits for `POST /capture` with 4096 and `sha16 window200` and 10 MB caps are literally in `server.py` and `capture.py`, zero hallucination. The VPN rule that the tile only routes `10.0.0.0/24` is also correct.
+
+### Security and review.md
+
+The WireGuard as auth section with `wg genkey` per device and `51820/udp` only and `8002` bound to `10.0.0.1` matches `VM_POD` and compose but fixes the earlier mistake where 8002 was public. Sanitizer 21 rules plus 9 injections plus localhost only matches the code. Checklist now includes the phone `POST /capture` and `GET /report` plus Grafana, which are real.
+
+Gap, for more than one user on `GET /report` you will want a short lived JWT beyond just WireGuard peer auth. The doc notes it as a warning, which is fair.
 
 ---
 
-## 6 Gaps to Close Before "Production-Ready"
+## Consistency across files
 
-1. **Azure free expiry disclaimer**, add "B1s 750h free for 12 months + $100 credit for 12 months; after, ~$8/mo B1s pay-as-you-go" to Prd.md 7.3 and Architecture.md 6.
-2. **RAM math honesty**, B1s 1 GB cannot run `qwen2.5.5b` + full observability. Either default B1s to `prom/loki` disabled or min `B1ms` (2 GB). Add footnote.
-3. **Model size table source**, pin to `ollama list` bytes + quant (e.g. `qwen2.5.5b Q4_K_M 494 MB disk, ~1.1 GB RSS`). Currently "0.52 GB" is close but uncited.
-4. **Commit the WireGuard stub**, add `auto_capture/wg0.conf.example` + `apk/ULPFTileService.kt` skeleton so Phase 9 is not doc-only.
-5. **iOS path**, decide Shortcuts vs Share Extension entitlement count; mark deferred if Shortcuts only for v1.
-6. **Secrets scan proof**, 0 hits today (verified `grep glpat → 0`), but add CI `gitleaks` badge like `maincode/.github/workflows/ci.yml` to keep safe.
+OCSF `class_uid 4001` and `type_uid 400101` are consistent across `Prd`, `Architecture`, `Rules` and the VRL. ONNX is 23 MB for the model alone versus 56 MB total with the runtime, the docs round to 23 and that is consistent enough. The seven files plus `Design (1).md` naming matches the example docs exactly, so format is pass.
 
 ---
 
-## Final Judgement
+## Six gaps to close before calling it production ready
 
-**Are the 7 files fake AI theory/trash? No.** They are a **credible current-vs-future PRD pack** built on bytes that already exist (`server.go`, `capture.py`, `ai_engine.py`, `PHONE_TILE.md`, `VM_POD.md`). The perimeter half is production-grade documentation; the future half is a feasible student-budget roadmap that correctly quarantines heavy decode to a VM pod and copies Rethink's proven `TileService + VpnService` UX.
+1. **Azure free note** — add to `Prd.md` 7.3 and `Architecture.md` 6 that B1s at 750 hours free is 12 months plus $100 for 12 months, then about $8 per month pay as you go.
+2. **RAM honesty** — B1s at 1 GB cannot run the half-b model plus the full observability. Either run B1s with prom and loki off, or require B1ms at 2 GB. Add a footnote.
+3. **Model table** — pin to `ollama list` bytes plus quant, e.g. `qwen2.5:0.5b Q4_K_M 494 MB disk, about 1.1 GB RSS`. Right now 0.52 GB is close but not cited.
+4. **WireGuard stub** — commit `auto_capture/wg0.conf.example` plus `apk/ULPFTileService.kt` skeleton so Phase 9 is not docs only.
+5. **iOS path** — pick Shortcuts versus Share Extension entitlement count, or mark as deferred for v1.
+6. **Secrets scan** — no hits today, verified `grep glpat` is 0, but add a CI `gitleaks` badge like in `maincode/.github/workflows/ci.yml` so it stays safe.
 
-**Does it make sense as 7 safe docs? Yes, with the 6 gaps patched.** Ship the docs as-is for internal review, then commit the two small stubs (WireGuard example + APK skeleton) and add the Azure expiry footnote, and the pack is externally presentable without being AI slop.
+---
 
-*Confidence: High (file:line evidence for >80% claims; future claims are synthesis from stub code, not hallucinated services).*
+## Final notes
+
+Are the seven files fake? No. They are a believable perimeter PRD plus a roadmap that could run on a student budget. The perimeter half is backed by bytes that exist today — `server.go`, `capture.py`, `ai_engine.py`, the phone tile doc and the VM pod doc all check out. The future half correctly keeps heavy work on the VM pod and copies the Rethink proven tile pattern.
+
+Do they make sense as seven safe docs? Yes, with the six gaps patched. Ship them as is for internal review, then add the two small stubs and the Azure footnote, and they read as not slop.
