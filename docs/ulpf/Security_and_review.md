@@ -22,7 +22,7 @@ Define minimum security, integrity, and review checks for the **Perimeter protot
 Prototype today: **no auth**, single-host air-gapped (`ulpf:ulpf`, CORS `*` for `file://`).
 
 Final all-device pod: **WireGuard is the auth.** No user/pass for logs.
-- `VpnService` + WireGuard keys (`wg genkey` per device, `wg-quick@wg0` on Azure B1s `10.0.0.1/24`). Only holder of private key reaches `10.0.0.1:8002` (`POST /capture` not public). Azure NSG only opens `51820/udp`; `8002` bound to `10.0.0.1` inside tunnel.
+- `VpnService` + WireGuard keys (`wg genkey` per device, `wg-quick@wg0` on Azure B1s `10.0.0.1/24`). Only holder of private key reaches `10.0.0.1` (`POST /capture` not public). Azure NSG only opens `51820/udp`; `8002` bound to `10.0.0.1` inside tunnel.
 - Phone QS tile tap = handshake; laptop `wg-quick up`; `adb reverse` for USB lab (no VPN).
 - Future RBAC: per-`source` (phone/laptop/firewall) as `vendor` tag, per-app `source` field, ready for OIDC when multi-tenant.
 
@@ -38,14 +38,14 @@ Every endpoint enforces:
 
 | Endpoint | Validation | Limits | Errors | Where |
 |---|---|---|---|---|
-| `POST /api/classify` | `[]string` logs | 10 MB scanner, batch 100 | 400/503 mock | Go `:8081` on pod |
-| `POST /api/ingest[?format=]` | NDJSON trim, `vendor` cascade | 10 MB, capped | no raw leak | Go `:8081` |
-| `POST /api/query` | substring `4001` only + placeholder `$1` | 200 cap | safe | Go `:8081` |
-| `GET /api/stats` | read-only |, | `pg_count=-1` if down | Go `:8081` |
-| `POST /capture` (future) | `log≤4096` + `source` enum + `sha16` dedup | 4096 cap, Carb., `window200`, 10 MB log rotate | never raw; deduped→200 | `auto_capture:8002` via WG only (not public) |
-| `POST /capture/image` | `multipart ≤10 MB` | 10 MB, OCR on VM only | no exec | `auto_capture:8002` WG |
+| `POST /api/classify` | `[]string` logs | 10 MB scanner, batch 100 | 400/503 mock | Go `` on pod |
+| `POST /api/ingest[?format=]` | NDJSON trim, `vendor` cascade | 10 MB, capped | no raw leak | Go `` |
+| `POST /api/query` | substring `4001` only + placeholder `$1` | 200 cap | safe | Go `` |
+| `GET /api/stats` | read-only |, | `pg_count=-1` if down | Go `` |
+| `POST /capture` (future) | `log≤4096` + `source` enum + `sha16` dedup | 4096 cap, Carb., `window200`, 10 MB log rotate | never raw; deduped→200 | `auto_capture` via WG only (not public) |
+| `POST /capture/image` | `multipart ≤10 MB` | 10 MB, OCR on VM only | no exec | `auto_capture` WG |
 | `GET /report`, `GET /health`, `POST /capture/launch` | read tail | limit 20 | safe | `8002` WG |
-| `POST /parse` | `log` string |, |, | `miner:8001` internal |
+| `POST /parse` | `log` string |, |, | `miner` internal |
 
 Protect: SQL `$1` only, no shell from `hint`, path `Join(base,…)` only, no `log→AI` raw (sanitizer only).
 
@@ -80,8 +80,8 @@ Go ingest: `bufio.Scanner` 64KB init, 10 MB max; empty lines skipped; per-line `
 ## 8. Dashboard / AI Security (Prototype → Pod small LLM)
 
 - Prototype: pasted log is data, not instruction; `realONNX` fallback `UNCLASSIFIED 0.2`.
-- Pod LLM is **VM-only, localhost:11434, never phone** (`ai_engine.py:21` binds `127.0.0.1`). Phone only POSTs raw via WireGuard.
-- Defenses (10-step `pipeline.py:145`): Sanitizer 21 redact (IP/token/JWT/GitLab PAT) + 9 injection patterns → nonce-delimited prompt (`prompt_builder.py:42`) → truncated 2048 → `format:json` + temp 0.1 → Validator 10 checks → Tester 0.8/0.1 → Git PR → Loader sentinel. AI never sees token/env, never `exec`.
+- Pod LLM is **VM-only, localhost:11434, never phone** (`ai_engine.py` binds `127.0.0.1`). Phone only POSTs raw via WireGuard.
+- Defenses (10-step `pipeline.py`): Sanitizer 21 redact (IP/token/JWT/GitLab PAT) + 9 injection patterns → nonce-delimited prompt (`prompt_builder.py`) → truncated 2048 → `format:json` + temp 0.1 → Validator 10 checks → Tester 0.8/0.1 → Git PR → Loader sentinel. AI never sees token/env, never `exec`.
 - `Blob` download never executes log.
 
 ---
@@ -165,7 +165,7 @@ Document for each result: observed data, confidence, latency, model version.
 ## 15. AI Review (Prototype mock)
 
 Test:
-- malformed `ndjson line raw_len:14` (screenshot) → skipped, not crash;
+- malformed `ndjson line raw_len` (screenshot) → skipped, not crash;
 - irrelevant `GET /metrics Prometheus/2.45` → likely `SYSTEM.health_check`;
 - unsupported question → `UNCLASSIFIED 0.2`.
 
@@ -209,7 +209,7 @@ Optimize: pre-embed 42 leaves, `bufio.Scanner` reuse, hive prune.
 - [x] `init.sql` GIN indexes present
 
 ### Demo
-- [x] `http://localhost:8081/dashboard.html` loads via `go` and via `file://`
+- [x] `http://localhost/dashboard.html` loads via `go` and via `file://`
 - [x] Badge `Offline → ready` flips
 - [x] 3-minute flow rehearsed
 
@@ -242,12 +242,12 @@ Ready when: **every pasted perimeter log is instantly classifiable, persistable,
 
 **3 Auth (ground truth):** WireGuard `wg genkey` per device, `51820/udp` only, `8002` bound to `10.0.0.1`, correct for free VM. At 1B/sec, auth becomes `mTLS per Kafka partition + short JWT for gRPC`, not one WG key for 1B events.
 
-**4 API (ground truth):** Table capped 200 + `$1` placeholder + `10 MB` scanner + `4096` cap + `sha16 window200` all verified (`server.go:214`, `server.py:39`, `capture.py:22`). Hyper gRPC `Classify` will need rate-limit `KEDA on Kafka lag` + `batch 512` backpressure, not prototype's `when_full=block`.
+**4 API (ground truth):** Table capped 200 + `$1` placeholder + `10 MB` scanner + `4096` cap + `sha16 window200` all verified (`server.go`, `server.py`, `capture.py`). Hyper gRPC `Classify` will need rate-limit `KEDA on Kafka lag` + `batch 512` backpressure, not prototype's `when_full=block`.
 
 **5 Ingest (ground truth):** `block` + `drop_on_abort` real for file tail; 1B/sec needs `Kafka when_full=block` + `Vector buffer disk 2GB` per partition, not one file.
 
 **6 Storage (ground truth):** Allow-list `*.ndjson` under `output/*` + `MkdirAll` under root + `pyarrow` fallback real. 1B/sec needs ClickHouse `ReplicatedMergeTree` + `S3` tier, still `year/month/day/class/vendor` Hive, still `parquet Snappy`.
 
-**Custom ONNX security at 1B:** Same sanitizer 21 rules + 9 injections before sanitized text hits `localhost:11434`, but Hyper ONNX never sees secrets either; its input is truncated WordPiece 64, not raw secrets. GPU pods are ephemerals with no git creds (runner only).
+**Custom ONNX security at 1B:** Same sanitizer 21 rules + 9 injections before sanitized text hits `localhost`, but Hyper ONNX never sees secrets either; its input is truncated WordPiece 64, not raw secrets. GPU pods are ephemerals with no git creds (runner only).
 
 **Final gate truth:** At 1B/sec, "not ready if raw lost" means sampled `raw` + 100% counts is still ready, doc now says so.
