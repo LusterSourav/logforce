@@ -71,14 +71,14 @@ class ULPFTileService: TileService() {
  CoroutineScope(Dispatchers.IO).launch {
  try {
  val tail = captureLogcatTail(500) // Shizuku if granted else filesDir/last_crash.log 4096 cap
- val (hint, curl) = postToVm(tail) // POST https://10.0.0.1:8002/capture via WireGuard
+ val (hint, curl) = postToVm(tail) // POST https://10.0.0.1/capture via WireGuard
  showToast(hint + "\n" + curl) // "Source Error 2000, check token\nCopy: curl …"
  } finally { t.state = Tile.STATE_INACTIVE; t.updateTile() }
  }
  }
 }
 ```
-Manifest `BIND_QUICK_SETTINGS_TILE`, `android.permission.INTERNET`, no `READ_LOGS` (Shizuku optional). WireGuard tunnel `wg-quick@wg0` (`10.0.0.0/24`) is a `VpnService` like Rethink, but our tunnel only carries `10.0.0.1:8002` (no full-device VPN, unlike Rethink which filters all).
+Manifest `BIND_QUICK_SETTINGS_TILE`, `android.permission.INTERNET`, no `READ_LOGS` (Shizuku optional). WireGuard tunnel `wg-quick@wg0` (`10.0.0.0/24`) is a `VpnService` like Rethink, but our tunnel only carries `10.0.0.1` (no full-device VPN, unlike Rethink which filters all).
 
 **Non-Android (future):**
 - iOS: Shortcuts action `ULPF Capture` + Share Extension `Send to ULPF`; same `POST` via WireGuard App.
@@ -98,7 +98,7 @@ Replaces the chip-only insight with a fix card:
 │ Source: phone pixel-7 / app outer_tune │ ← auto tag
 ├─────────────────────────────────────────┤
 │ FIX, copy and run: │
-│ curl -X POST https://10.0.0.1:8002/… │ [Copy], the endpoint to fix
+│ curl -X POST https://10.0.0.1/… │ [Copy], the endpoint to fix
 │ or: POST /api/token/refresh on pod │ [Open fix]
 │ Fallback: check logs/outertune/ │ [Open Grafana]
 └─────────────────────────────────────────┘
@@ -119,7 +119,7 @@ Phone toast shows first line + `Copy`; full card lives at `GET /report` and Graf
 ## 4. AI Insight Panel (Prototype vs Future)
 
 - Prototype: chip + NDJSON confidence.
-- Future (vm pod): `auto_capture/server.py:8002` returns `{template, hint, fix_endpoint, curl}` from Drain3 + `qwen2.5:0.5b` decode, validated, not raw LLM. `GET /report` shows recent tails + clusters for toast; Grafana shows full.
+- Future (vm pod): `auto_capture/server.py` returns `{template, hint, fix_endpoint, curl}` from Drain3 + `qwen2.5.5b` decode, validated, not raw LLM. `GET /report` shows recent tails + clusters for toast; Grafana shows full.
 
 ---
 
@@ -178,7 +178,7 @@ Avoid: raw log wall without decode.
 Day: 1. Open dashboard → health 42 leaves
  2. Paste CEF → Classify → chip + 2→3 live
  3. Drop file → same; Query prune; Parquet Hive
-Night:4. Android: QS → Add tile ULPF beside Rethink (your screenshot)
+Night. Android: QS → Add tile ULPF beside Rethink (your screenshot)
  5. Trigger crash → tap ULPF → WireGuard → toast "Error 2000, token, FIX Copy curl"
  6. Paste curl → fixed → Grafana shows 0 new clusters
 ```
@@ -189,13 +189,12 @@ Night:4. Android: QS → Add tile ULPF beside Rethink (your screenshot)
 
 ## 12. Ground Reality, Sections 2-6 (honest UX)
 
-**2 Core UX:** Prototype `paste → Classify → 2→3` is real (measured 60 ms/100 lines). Future `any device auto → WireGuard → pod → fix` is not yet fully wired, `auto_capture/server.py:8002` + `PHONE_TILE.md:23 TileService` exist, but no `ULPF.apk` built yet. Design shows intent, not shipped APK.
+**2 Core UX:** Prototype `paste → Classify → 2→3` is real (measured 60 ms/100 lines). Future `any device auto → WireGuard → pod → fix` is not yet fully wired, `auto_capture/server.py` + `PHONE_TILE.md TileService` exist, but no `ULPF.apk` built yet. Design shows intent, not shipped APK.
 
 **3 Main Screens:** Pipeline hero card is shipped (`ui/dashboard.html:1215` exact). QS tile row `ULPF beside Rethink` is a **mock in the design image**, real Rethink screenshot shows Refresh/Rethink/Orbot, ULPF tile will appear there only after APK install + `BIND_QUICK_SETTINGS_TILE`. Not fake, but not installed on your phone today.
 
-**4 AI Insight:** Prototype chip confidence is deterministic cosine, not LLM. Future `fix_endpoint` panel will be powered by `qwen2.5:0.5b` on pod (0.52 GB), ~0.8s, not on phone. Phone never runs Ollama (`ai_engine.py:21` binds `127.0.0.1` only).
+**4 AI Insight:** Prototype chip confidence is deterministic cosine, not LLM. Future `fix_endpoint` panel will be powered by `qwen2.5:0.5b` on pod (0.52 GB), ~0.8s, not on phone. Phone never runs Ollama (`ai_engine.py` binds `127.0.0.1` only).
 
 **5 Visual Language / 6 Typography:** Tailwind dark is real (prototype). Future midnight `red chip F6` will use same `severity` → color map, not invented.
 
 **Custom ONNX impact on Design:** To keep 1B/sec, Design must show a **sharded progress UX**: `Shards: 12/83 healthy • Throughput: 118k/sec/GPU • Dropped: 0% sampled 1% raw` instead of pretending one VM does 1B. The fix card for 1B burst will show `Fix applies to template <X> (1.2M occurrences sampled)` not per-line.
-
