@@ -80,3 +80,8 @@ output/
 vector_data/
 
 !ingestion/sample.log
+
+# ULPF prototype
+__pycache__/
+*.pyc
+models/*.onnx_data
