@@ -1,4 +1,4 @@
-# tests/test_normalize_perimeter.yaml — 6 cases for perimeter VRL (see ingestion/transforms/normalize_perimeter.vrl)
+# tests/test_normalize_perimeter.yaml ,  6 cases for perimeter VRL (see ingestion/transforms/normalize_perimeter.vrl)
 # Run: vector validate --no-environment ingestion/vector.toml
 #      vector test ingestion/vector.toml tests/test_normalize_perimeter.yaml
 tests:
