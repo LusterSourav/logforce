@@ -125,20 +125,20 @@ WireGuard tunnel auto-connects on Tile tap (like Rethink in your screenshot)
  ↓ POST /capture {log, source:"phone", device:"pixel-7", app:"outer_tune"} ≤4096 chars, dedup sha16
 
 VM Pod decodes (NOT phone):
- auto_capture/server.py:8002 → miner/miner_service.py:8001 → Drain3 template
+ auto_capture/server.py → miner/miner_service.py → Drain3 template
  → auto_search_problem() keyword hint
- → ai_solver (Ollama localhost:11434) small GB model (see §7.2) → OCSF mapping → rule synthesis
+ → ai_solver (Ollama localhost) small GB model (see §7.2) → OCSF mapping → rule synthesis
  → Response: {what, why, severity, fix_endpoint, one_liner_curl}
 
  ↓
 
-Phone toast + Dashboard: "OuterTune Source Error 2000, Auth token expired, FIX: POST /api/token/refresh on pod 10.0.0.5:8002 → [Copy curl] [Open fix]"
+Phone toast + Dashboard: "OuterTune Source Error 2000, Auth token expired, FIX: POST /api/token/refresh on pod 10.0.0.5 → [Copy curl] [Open fix]"
 At 2 AM you tap Copy, it hits the endpoint, DONE. No panic.
 ```
 
 ## 6. MVP Success Criteria (today)
 
-1. `go run./ui/server.go`, open `dashboard.html`, `GET /api/health` shows `leaves:42`.
+1. `go run./ui/server.go`, open `dashboard.html`, `GET /api/health` shows `leaves`.
 2. Paste CEF → `REQUEST.success`, ASA → `ERROR.connection_failure`, see `2→3` live.
 3. `POST /api/query` prune, Parquet promotion, `vector test` pass.
 
@@ -174,21 +174,21 @@ runtime) and an LLM at the same time.
 - ONNX stays on the pod: `mdbr-leaf-mt` answers `POST /api/classify` in
  about 5 ms, just over the tunnel instead of locally.
 - unknown handling moves to the pod: `ai_engine.py` calls
- `http://localhost:11434` (Ollama, never cloud).
+ `http://localhost` (Ollama, never cloud).
 
 Small models that work locally (disk, then RAM about 1.3x):
 
 | Model | Disk | RAM | When to use it |
 |---|---|---|---|
-| `qwen2.5:0.5b-instruct` | 0.52 GB | ~1 GB | Default on a 2 GB student VM. Fast, valid JSON, 32k context. |
-| `llama3.2:1b-instruct` | 1.32 GB | ~2 GB | B1ms or B2s, better reasoning |
-| `gemma2:2b-it` | 1.64 GB | ~3 GB | VM 4 GB or more |
-| `phi3:3.8b-mini-4k` | 2.18 GB | ~4 GB | 8 GB pod, best at writing VRL |
+| `qwen2.5.5b-instruct` | 0.52 GB | ~1 GB | Default on a 2 GB student VM. Fast, valid JSON, 32k context. |
+| `llama3.2b-instruct` | 1.32 GB | ~2 GB | B1ms or B2s, better reasoning |
+| `gemma2b-it` | 1.64 GB | ~3 GB | VM 4 GB or more |
+| `phi3.8b-mini-4k` | 2.18 GB | ~4 GB | 8 GB pod, best at writing VRL |
 
-Default is `qwen2.5:0.5b` (add `ollama/ollama:0.5.7` in
+Default is `qwen2.5.5b` (add `ollama/ollama.5.7` in
 `offline/image-list.txt`). Swap with `SOLVER_OLLAMA_MODEL`, no code change.
 
-Validated path (10 steps) `pipeline.py:145`: sampler dedup, sanitizer (21
+Validated path (10 steps) `pipeline.py`: sampler dedup, sanitizer (21
 redact rules plus 9 injection patterns, nonce-split), then sanitized text
 only to the model, OCSF 4001 mapper, 10 validator checks, tester
 (match at least 0.8, false positives at most 0.1), Git PR, loader sentinel.
@@ -200,13 +200,13 @@ Raw and secrets never reach the model.
 
 **Azure for ₹0 (GitHub Student Pack):**
 - Claim `education.github.com/pack` → Azure for Students **$100 credit (no CC for $100)** + 12 months free.
-- Create **B1s (1 vCPU, 1 GB RAM, 750 hrs/month free for 12 mo)** or **B1ms (1 vCPU, 2 GB)**, enough for `qwen2.5:0.5b` + Vector + Miner + Loki stack (tuned to ~1.4 GB idle). Upgrade to B2s (2 vCPU/4 GB) with credit if using 2B+ model.
+- Create **B1s (1 vCPU, 1 GB RAM, 750 hrs/month free for 12 mo)** or **B1ms (1 vCPU, 2 GB)**, enough for `qwen2.5.5b` + Vector + Miner + Loki stack (tuned to ~1.4 GB idle). Upgrade to B2s (2 vCPU/4 GB) with credit if using 2B+ model.
 - Assign static public IP (free while VM running), NSG inbound `51820/udp (WireGuard)`, `8002/tcp (auto_capture via tunnel, not public)`; outbound 443 for GitHub mirror only.
 
 **WireGuard tunnel (Rethink-style, no manual VPN app):**
 - VM runs `wg-quick@wg0` (10.0.0.1/24). Android APK embeds `wireguard-android` tunnel, tile tap = `wg-quick up` handshake (handshake <100 ms). iOS uses WireGuard App config.
 - Laptops run `wg-quick` or Tailscale sidecar. Firewall Vector can also use mTLS.
-- Result: device gets `10.0.0.x` inside pod network, `POST https://10.0.0.1:8002/capture` works from hostel/metro/4G, **no public ingress for logs**, no port-forward, no domain.
+- Result: device gets `10.0.0.x` inside pod network, `POST https://10.0.0.1/capture` works from hostel/metro/4G, **no public ingress for logs**, no port-forward, no domain.
 
 **Setup one-liner (student):**
 ```bash
@@ -226,7 +226,7 @@ Alternatives: Oracle Always Free `VM.Standard.E2.1.Micro` (1 OCPU, 1 GB, forever
 | **Template** | `E OuterTune Source Error <NUM>` (Drain3 `cluster_id`) | `GET /report → template` |
 | **What** | `Source token expired`, `sanitizer` + AI summary | `GET /report` or Grafana Loki |
 | **Why** | `Auth failure 2000, firewall allow-list missing` | `auto_search_problem()` hint → Ollama cause |
-| **Fix** | `POST /capture/launch hint: check token and allow-list` + copyable `curl -X POST http://10.0.0.1:8002/capture -d '{"log":"refresh"}'` or firewall `POST /api/allow` | **Fix endpoint** rendered as button: `[Copy fix curl]` `[Open Grafana]` `[Create Git PR for rule]` |
+| **Fix** | `POST /capture/launch hint: check token and allow-list` + copyable `curl -X POST http://10.0.0.1/capture -d '{"log":"refresh"}'` or firewall `POST /api/allow` | **Fix endpoint** rendered as button: `[Copy fix curl]` `[Open Grafana]` `[Create Git PR for rule]` |
 | **Proof** | `integrity.sha256` + `unmapped.raw_event` + `Stored as NDJSON Hive` | `POST /api/query` |
 
 The phone toast shows truncated fix; full report has the exact curl/URL to paste. No SSH at 3 AM.
@@ -239,9 +239,9 @@ The phone toast shows truncated fix; full report has the exact curl/URL to paste
 
 - Air-gap capable: baked `models/*` + `SHA256SUMS` + `offline/offline-prepare.sh` tar + skipped HF pull.
 - Latency (prototype): warm single ~5 ms; batch 100 → 50-80 ms (~1.6k/sec per instance), measured `health.latencyMs`.
-- Latency (future Hyper): single GPU `qwen2.5:0.5b` decode 0.8-2 s, but classify path `ULPF-ONNX-Hyper` 4L/256d/int4 + HNSW → ~45k/sec (A10G) / 120k/sec (H100) per GPU, dynamic batch 512, seq 64.
+- Latency (future Hyper): single GPU `qwen2.5.5b` decode 0.8-2 s, but classify path `ULPF-ONNX-Hyper` 4L/256d/int4 + HNSW → ~45k/sec (A10G) / 120k/sec (H100) per GPU, dynamic batch 512, seq 64.
 - Lossless + dedup: `sha256(canonical)` + `auto_capture/capture.py: dedup sha16 window 200` + 10 MB rotate.
-- Offline decode budget: `qwen2.5:0.5b` <1 GB RAM; Hyper ONNX 9-11 MB (int4/int8), runs on VM pod, never on phone.
+- Offline decode budget: `qwen2.5.5b` <1 GB RAM; Hyper ONNX 9-11 MB (int4/int8), runs on VM pod, never on phone.
 - Battery: tile tap on-demand, Shizuku non-polling, cap 4096 chars.
 
 ### 9a. Throughput, Ground Reality (2-6 honest)
@@ -269,20 +269,20 @@ The phone toast shows truncated fix; full report has the exact curl/URL to paste
 
 | Method | Path | Request | Response |
 |---|---|---|---|
-| GET | `/api/health` |, | `{"status":"ok","model":"mdbr-leaf-mt","taxonomyLeaves":42,"latencyMs":float}` |
+| GET | `/api/health` |, | `{"status":"ok","model":"mdbr-leaf-mt","taxonomyLeaves","latencyMs":float}` |
 | POST | `/api/classify` | `{"logs":[...]}` | `{"events":[{type,category,severity,timestamp,summary,confidence,raw}],"latencyMs":float}`, Hyper will add `model:"ulpf-onnx-hyper-4L-256d"` + `gpu:true` |
 | POST | `/api/ingest[?format=]` | NDJSON | `{"ingested":int,"file":str}` |
 | POST | `/api/query` | `{"sql":"…WHERE class_uid=4001"}` | `{"prune":{…},"rows":[…]}` |
 | GET | `/api/stats` |, | `{"total_events","normalized","rate","sources","buckets",…}` |
-| gRPC | `ulpf-onnx-hyper:50051/Classify` | `ClassifyRequest{logs, batch:512, seq_bucket:64}` | `stream ClassifyResponse`, Hyper only, 45k/sec (A10G) / 120k/sec (H100), dynamic batching |
+| gRPC | `ulpf-onnx-hyper/Classify` | `ClassifyRequest{logs, batch, seq_bucket}` | `stream ClassifyResponse`, Hyper only, 45k/sec (A10G) / 120k/sec (H100), dynamic batching |
 
-> **Custom Hyper endpoint** is not in prototype `server.go:154`; it lives in `maincode/vector/onnx-hyper/server.go` (future) with ORT CUDA/TensorRT EP, HNSW 400 leaves, PQ-64.
+> **Custom Hyper endpoint** is not in prototype `server.go`; it lives in `maincode/vector/onnx-hyper/server.go` (future) with ORT CUDA/TensorRT EP, HNSW 400 leaves, PQ-64.
 
-### Future auto-capture (`maincode/auto_capture/server.py:8002`, via WireGuard)
+### Future auto-capture (`maincode/auto_capture/server.py`, via WireGuard)
 
 | Method | Path | Request | Response | Device |
 |---|---|---|---|---|
-| GET | `/health` |, | `{"status":"ok","capture":"ready","vm":"offline-ai localhost:11434"}` | all |
+| GET | `/health` |, | `{"status":"ok","capture":"ready","vm":"offline-ai localhost"}` | all |
 | POST | `/capture` | `{"log":"…≤4096","source":"phone"/"laptop"/"firewall","device":"pixel-7","app":"outer_tune"}` | `{"status":"captured|deduped","template":str,"change":str,"hint":str, "fix_endpoint"?:string, "curl"?:string}`, **the midnight fix** | any |
 | POST | `/capture/image` | `multipart image ≤10 MB` | `{"status":"captured","ocr":str}`, VM OCR via `pytesseract` (phone never OCRs) | phone screenshot |
 | POST | `/capture/launch` | `{"log":"launch","source":"phone"}` | `{"status":"launch","recent":str}`, tails `logs/outertune/outertune.log` | phone open |
@@ -293,11 +293,11 @@ The phone toast shows truncated fix; full report has the exact curl/URL to paste
 **Midnight smoke:**
 ```bash
 # on Azure free VM (after pack claim):
-docker compose -f maincode/docker-compose.yml up -d && ollama pull qwen2.5:0.5b
+docker compose -f maincode/docker-compose.yml up -d && ollama pull qwen2.5.5b
 # on phone (anywhere):
-curl -k https://10.0.0.1:8002/capture -H 'Content-Type: application/json' \
+curl -k https://10.0.0.1/capture -H 'Content-Type: application/json' \
  -d '{"log":"E OuterTune Source Error 2000","source":"phone"}' | python -m json.tool
 # → {"hint":"Auth failure 2000, check token and firewall allow list",
-# "fix_endpoint":"POST https://10.0.0.1:8002/capture/launch",
-# "curl":"curl -X POST https://10.0.0.1:8002/capture -d '{\"log\":\"refresh\"}'"}
+# "fix_endpoint":"POST https://10.0.0.1/capture/launch",
+# "curl":"curl -X POST https://10.0.0.1/capture -d '{\"log\":\"refresh\"}'"}
 ```
