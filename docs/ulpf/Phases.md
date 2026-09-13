@@ -71,7 +71,7 @@ Normalized data usable by existing detection stacks without rewrite.
 ### Tasks
 - `parsing/ulpf_ocsf.py` lift OCSF 4001 + lumber shape to `NormalizedEvent`;
 - `parsing/decoders/perimeter.yml` 5 hot-swap decoders;
-- `init.sql` indexes; `docker-compose.yml` `ulpf-server` + `postgres:16-alpine`;
+- `init.sql` indexes; `docker-compose.yml` `ulpf-server` + `postgres-alpine`;
 - Vector `search_indexer` HTTP sink → Go ingest; optional ES mirror commented.
 
 ### Deliverable
@@ -149,13 +149,13 @@ Security and review report (this doc set's Security and review.md PASS/WARN/FAIL
 
 - Drain3 `miner/` sim `0.5`;
 - `unknown_solver/ai_engine.py` localhost:11434 + `prompt_builder` nonce + `rule_validator` → `rules/generated/solver_*.json`;
-- **New:** pin small model for Azure free VM: default `qwen2.5:0.5b` 0.52GB (B1s), alternatives `llama3.2:1b`/`gemma2:2b`/`phi3:3.8b` via `SOLVER_OLLAMA_MODEL` env; none on phone.
+- **New:** pin small model for Azure free VM: default `qwen2.5.5b` 0.52GB (B1s), alternatives `llama3.2b`/`gemma2b`/`phi3.8b` via `SOLVER_OLLAMA_MODEL` env; none on phone.
 - Validate `match≥0.8 fp≤0.1` before Git PR.
 
 ## Phase 8, Universal Auto-Catch (Every App, Every Device)
 
 - `auto_capture/capture.py` bounded 10MB rotate + `dedup sha16 window 200` + `4096 cap`;
-- `auto_capture/server.py:8002` `/capture` `/capture/image` `/capture/launch` `/report`;
+- `auto_capture/server.py` `/capture` `/capture/image` `/capture/launch` `/report`;
 - Per-device agents (no per-app config):
  - Android APK `TileService` (Rethink-style) + crash file `filesDir/last_crash.log` + Shizuku `logcat` fallback
  - iOS Shortcuts + Share Extension → same `POST`
@@ -192,9 +192,9 @@ Highest risks:
 
 ## 11. Ground Reality, Phases 2-6 & Custom ONNX Scale Phases
 
-**Phase 2 Edge Classify (ground truth):** `ui/server.go:154` `ClassifyBatch` is real, measured 60 ms/100 lines → 1.6k/sec/instance. Not 1B/sec.
+**Phase 2 Edge Classify (ground truth):** `ui/server.go` `ClassifyBatch` is real, measured 60 ms/100 lines → 1.6k/sec/instance. Not 1B/sec.
 
-**Phase 3 Bridge (ground truth):** `ulpf_ocsf.py:15` 5 decoders hot-swap real. Not 400 leaves yet.
+**Phase 3 Bridge (ground truth):** `ulpf_ocsf.py` 5 decoders hot-swap real. Not 400 leaves yet.
 
 **Phase 4 Query (ground truth):** Hive prune 90% is real for `class=4001`, but on 4 NDJSON files, not on 1B/sec (needs ClickHouse).
 
