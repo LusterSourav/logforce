@@ -1,99 +1,50 @@
-<img src="logo.svg" width="360" alt="ULPF" />
+# ULPF Perimeter Prototype
 
-# Status: Prototype
+Perimeter logs in, OCSF out. Keeps the raw, works offline, runs in a container.
 
-![status: prototype](https://img.shields.io/badge/status-prototype-green.svg)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue)](https://www.apache.org/licenses/LICENSE-2.0)
-
-> [!NOTE]
-> Prototype for evaluation. Core pipeline is ready for offline demos while device agents and scale out remain in design.
-
-# ULPF
-
-Universal Log Pre Processing Framework provides a fast offline pipeline that normalizes heterogeneous perimeter logs to OCSF 4001. It keeps raw bytes, hashes the canonical form, and makes every event searchable for SIEM and ML. Teams can add a new firewall with one regex and run the whole stack air gapped with a single compose file.
-
-Introduction
-------------
-
-ULPF is an open source log pre processing framework built in house for perimeter visibility. It ingests raw syslog, CEF, LEEF, JSON and vendor key value formats, normalizes them with Vector and VRL, classifies with a local ONNX model, and lands everything as Hive partitioned NDJSON and Postgres GIN.
-
-ULPF use cases:
-
-* **Perimeter Log Normalization With Open Source Stack**
-
-ULPF can centralize logs from Palo Alto, Cisco ASA, FortiGate, Suricata and Zeek into one OCSF schema without losing raw.
-
-* **Lossless Forensics and Search**
-
-Every normalized event keeps `integrity.hash` and `unmapped.raw_event` so analysts can verify and rehydrate the original line.
-
-* **Offline Edge Classification**
-
-The Go API classifies with a quantized 23 MB ONNX model in about 5 ms per log and falls back to a keyword mock if the model is missing, so demos never fail.
-
-For more introduction, visit: [System Design](docs/SYSTEM_DESIGN.md).
-
-For evaluation, visit: [Evaluation](docs/EVALUATION.md), [Setup](docs/SETUP.md) and [Architecture 2Page](docs/ARCHITECTURE_2PAGE.md).
-
-Installation
-------------
-
-To run the prototype locally, visit: [Quickstart](docs/SYSTEM_DESIGN.md#how-to-run).
-
-For setup instructions, visit: [Setup](docs/SETUP.md).
-
-Quickstart:
+## Quick start
 
 ```bash
-go run ./ui/server.go
-open http://localhost:8081/dashboard.html
+# 1. models are already baked; re-download only if you wiped the folder
+make download-models
+
+# 2. run the API and open the dashboard
+go run./ui/server.go
+open http://localhost/dashboard.html
+# also works as file:// open, dashboard falls back to mock if the Go server is not running
+
+# 3. try Vector ingestion
+export PERIMETER_LOG_PATH=./ingestion/sample.log
+export PERIMETER_SINK_PATH=./output/normalized/perimeter-%Y-%m-%d.ndjson
+vector --config ingestion/vector.toml --dangerously-allow-env-var-interpolation
+
+# 4. watch NDJSON become Hive
+python storage/parquet_writer.py --watch
 ```
 
-How to contribute
------------------
+## Folder tour
 
-If you wish to contribute to ULPF, first read: [Contributing Guide](CONTRIBUTING.md).
+* `ui` ,  `dashboard.html` and `server.go`. One HTML file, no build step. Serves on:8081 with a real 23 MB ONNX model and a mock fallback.
+* `models` ,  quantized ONNX (`model_quantized.onnx` + `onnx_data`), `vocab.txt`, `2_Dense/model.safetensors`, plus `SHA256SUMS` pin.
+* `ingestion` ,  Vector config and VRL. Phase 1 regex is the only line you change per device.
+* `parsing` ,  SIEM-Lite bridge `ulpf_ocsf.py` and Wazuh decoders `perimeter.yml` (5 hot-swap decoders).
+* `storage` ,  Hive writer `year/month/day/class/vendor` with a 30s watcher. Drops to NDJSON under the hive path if pyarrow is missing.
+* `docs` ,  `wiring-vector-to-wazuh.md` and `offline-bundle.md`.
 
-#### Code of Conduct
+## Design docs
 
-ULPF has adopted a Code of Conduct that is to be honored by everyone who participates formally or informally. Please read the full text: [Code of Conduct](CODE_OF_CONDUCT.md)
+* `SYSTEM_DESIGN.md` ,  why each folder exists, in order.
+* `SYSTEM_ARCHITECTURE.md` ,  runtime, deployment and scaling, with diagrams.
 
-####
+## Verify
 
-All notable changes are documented in: [CHANGELOG](CHANGELOG.md)
+```bash
+curl -s http://localhost/api/health | python -m json.tool
+curl -s -X POST http://localhost/api/classify -H "Content-Type: application/json" \
+  -d '{"logs":["ERROR UserService ,  connection refused host=db-primary"]}' | python -m json.tool
+python -c "from parsing.ulpf_ocsf import parse; print(list(parse(open('output/normalized/perimeter-2026-09-11.ndjson').read()))[])"
+vector validate --no-environment ingestion/vector.toml
+vector test ingestion/vector.toml tests/test_normalize_perimeter.yaml
+```
 
-ULPF UI
--------------
-
-To learn more about the ULPF dashboard, visit: [System Architecture](docs/SYSTEM_ARCHITECTURE.md).
-
-There you will find:
-
-* Dashboard with live ingest counters
-* Health and classify APIs
-* Hive writer and Postgres mirror
-
-Services
----------
-
-To explore ULPF services, visit: [Ingestion](ingestion/vector.toml) and [Parsing](parsing/ulpf_ocsf.py).
-
-There you will find:
-
-* Vector ingestion service
-* Parsing bridge service
-* Storage writer service
-* Classification service
-
-Deployment
-----------
-
-To deploy the prototype, refer to: [System Architecture](docs/SYSTEM_ARCHITECTURE.md#deployment-view).
-
-For evaluation, visit: [Evaluation](docs/EVALUATION.md) and [Architecture 2Page](docs/ARCHITECTURE_2PAGE.md).
-
-You will find guides on:
-
-* Running with Docker Compose
-* Offline bundling with SHA256SUMS
-* Wiring Vector to Postgres and Hive
+Air-gapped: models are baked into the image. No HF pull at runtime. See `docs/offline-bundle.md`.
