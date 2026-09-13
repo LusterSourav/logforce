@@ -1,0 +1,66 @@
+# perimeter.yml
+# Wazuh Engine decoders for perimeter devices. Hot swap via router Orchestrator.
+# No manager restart. Push with the Wazuh API and the engine builds a new Environment.
+
+# Catch anything ULPF already normalized. This is the parent all others extend.
+# Keeps raw in full_log and hashes in data.ocsf so forensics stays intact.
+- name: ulpf-perimeter-root
+  type: decoder
+  sources:
+    - ulpf-ocsf-ndjson
+    - perimeter-syslog
+  prematch: '"class_uid":4001'
+  regex: '"severity_id":(\d+).*?"raw_event":"([^"]+)"'
+  order: severity_id, full_log
+  wcs:
+    event.kind: alert
+    event.category: network
+    observer.product: ULPF
+
+# Palo Alto NGFW. Positional syslog, PAN OS 10 and 11. Keep fields list in raw just in case offsets drift.
+- name: ulpf-paloalto
+  parent: ulpf-perimeter-root
+  prematch: 'TRAFFIC,THREAT'
+  regex: ',(\w+),[^,]*,([^,]+),([^,]+),([^,]+),([^,]+),.*src=(\d+\.\d+\.\d+\.\d+).*dst=(\d+\.\d+\.\d+\.\d+)'
+  order: log_type, rule.name, src.ip, dst.ip, extra.fields
+  wcs:
+    observer.vendor: Palo Alto
+    source.ip: $src.ip
+    destination.ip: $dst.ip
+
+# Cisco ASA Lina. Free text with %ASA-n-nnnnnn. Extract the 5 tuple.
+- name: ulpf-cisco-asa
+  parent: ulpf-perimeter-root
+  prematch: '%ASA-'
+  regex: 'Built (\w+).*for (\w+):(\d+\.\d+\.\d+\.\d+)/(\d+) to (\w+):(\d+\.\d+\.\d+\.\d+)/(\d+)'
+  order: event.action, src.interface, src.ip, src.port, dst.interface, dst.ip, dst.port
+  wcs:
+    observer.vendor: Cisco
+    observer.product: ASA
+
+# Fortinet FortiGate. Key value syslog.
+- name: ulpf-fortigate
+  parent: ulpf-perimeter-root
+  prematch: 'FortiGate'
+  regex: 'src=(\d+\.\d+\.\d+\.\d+).*dst=(\d+\.\d+\.\d+\.\d+).*action=(\w+)'
+  order: src.ip, dst.ip, event.action
+  wcs:
+    observer.vendor: Fortinet
+
+# CEF. Common Event Format. The vertical bar header is the anchor.
+- name: ulpf-cef
+  parent: ulpf-perimeter-root
+  prematch: 'CEF:'
+  regex: 'CEF:\d+\|([^|]+)\|([^|]+)\|[^|]+\|([^|]+)\|([^|]+)\|(\d+)\|'
+  order: observer.vendor, observer.product, rule.name, event.action, event.severity
+  wcs:
+    event.category: network
+
+# Suricata EVE. JSON, check event_type alert first.
+- name: ulpf-suricata
+  parent: ulpf-perimeter-root
+  prematch: '"event_type":"alert"'
+  regex: '"signature":"([^"]+)".*"src_ip":"([^"]+)".*"dest_ip":"([^"]+)"'
+  order: rule.name, src.ip, dst.ip
+  wcs:
+    observer.product: Suricata
