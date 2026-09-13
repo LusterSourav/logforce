@@ -77,4 +77,3 @@
 ## 5. Principle
 
 > **Ground reality = file:line, not slide. If the line isn't in `maincode/`, it's a roadmap, not a claim.**
-
