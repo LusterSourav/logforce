@@ -42,7 +42,7 @@ The final demonstrates:
 Palo Alto Syslog, Cisco ASA, FortiGate, CEF, LEEF, Suricata EVE, Zeek TSV, Generic Syslog/JSON, CSV, XML, ULPF OCSF.
 
 ### Demo context
-Single host air-gapped; `output/normalized/perimeter-*.ndjson` + `PG_DSN=postgres://ulpf:ulpf@postgres:5432/ulpf`.
+Single host air-gapped; `output/normalized/perimeter-*.ndjson` + `PG_DSN=postgres://ulpf:ulpf@postgres/ulpf`.
 
 ---
 
@@ -80,7 +80,7 @@ Primary (prototype, DONE):
 
 Future (all devices, auto, via VM pod):
 - **Every device**: Win EventLog, macOS DiagnosticReports, Linux journald, Android logcat + `last_crash.log`, iOS sysdiagnose, per-app fingerprint auto tag (no paste)
-- **Path**: device `POST /capture` (4096 cap, Carb. via WireGuard 10.0.0.0/24) → `logs/auto_captured.log` (10 MB rotate, dedup) → `miner:8001` Drain3 → `ai_solver` small LLM on pod `localhost:11434` → `fix_endpoint` + `curl`
+- **Path**: device `POST /capture` (4096 cap, Carb. via WireGuard 10.0.0.0/24) → `logs/auto_captured.log` (10 MB rotate, dedup) → `miner` Drain3 → `ai_solver` small LLM on pod `localhost` → `fix_endpoint` + `curl`
 - **Storage**: same Hive + PG, now with `source=phone/laptop/firewall` + `device` + `app`
 - **Observability**: same Grafana/Loki, now per-device `source` filter
 
@@ -119,7 +119,7 @@ Every auto-captured log returns `{what, why, severity, fix_endpoint, curl}`, cop
 
 ## 8. Open Questions
 
-- Small model lock: `qwen2.5:0.5b` (0.52 GB) vs `llama3.2:1b`/`gemma2:2b` for log decode JSON validity on 1 GB VM.
+- Small model lock: `qwen2.5.5b` (0.52 GB) vs `llama3.2b`/`gemma2b` for log decode JSON validity on 1 GB VM.
 - iOS Shortcuts vs native Share Extension for midnight auto-catch.
 - Shizuku vs `last_crash.log` only for Android logcat without `READ_LOGS`.
 - Postgres partitioning vs Citus for 100M+ device events.
@@ -165,7 +165,7 @@ with reproducible results, provenance, and no cloud call.
 ## 11. Deferred Features (now roadmapped, not deferred)
 
 - ✅ Auto-capture `maincode/auto_capture/`, now Phase 8, not deferred (thin phone + pod decode)
-- ✅ Small LLM pin, default `qwen2.5:0.5b` on Azure free pod, switchable via `SOLVER_OLLAMA_MODEL`
+- ✅ Small LLM pin, default `qwen2.5.5b` on Azure free pod, switchable via `SOLVER_OLLAMA_MODEL`
 - ◻ Full Grafana 27 panels (branch `ulpf-soumita-grafana-observability`), per-device source filter pending
 - ◻ Miner Drain3 at fleet scale beyond perimeter
 - ◻ SIEM correlation Storm topology
@@ -181,7 +181,7 @@ with reproducible results, provenance, and no cloud call.
 
 ## 13. Ground Reality, Sections 2-6 & Custom ONNX
 
-**2 Product Direction (ground truth):** `Ingest→Classify 42→OCSF→Hive` is shipped (`ui/server.go:521` + `vector.toml:56` + `parquet_writer.py:9`). `Any device auto → WireGuard → small LLM → fix` is roadmapped, `auto_capture/server.py:8002` + `PHONE_TILE.md:23` stubs exist, APK not yet built. Not fake, but not DONE.
+**2 Product Direction (ground truth):** `Ingest→Classify 42→OCSF→Hive` is shipped (`ui/server.go` + `vector.toml` + `parquet_writer.py`). `Any device auto → WireGuard → small LLM → fix` is roadmapped, `auto_capture/server.py` + `PHONE_TILE.md` stubs exist, APK not yet built. Not fake, but not DONE.
 
 **3 Confirmed MVP:** 6 modules live, corpus 11 formats, demo on `output/normalized` + PG `ulpf:ulpf`. Verified by `go run./ui/server.go` health 42 leaves.
 
@@ -189,6 +189,6 @@ with reproducible results, provenance, and no cloud call.
 
 **5 Ecosystem:** Wazuh/SIEM-Lite/Grafana are real siblings (`wazuh-main 5.1.0`, `SIEM-Lite 29 parsers`), not vendors to invent.
 
-**6 Data Direction (ground truth):** `logs/auto_captured.log` path real (`server.py:49`), device tags `source=phone/laptop` real enum, future `vendor=phone` will appear in `vendor_counts`.
+**6 Data Direction (ground truth):** `logs/auto_captured.log` path real (`server.py`), device tags `source=phone/laptop` real enum, future `vendor=phone` will appear in `vendor_counts`.
 
 **Custom ONNX truth:** Current `mdbr-leaf-mt` 23 MB is a **student baseline** (MiniLM distilled). Future `ULPF-ONNX-Hyper` will be **custom distilled 4L/256d, 11 MB int8 / 9 MB int4, HNSW 400 leaves, PQ-64**, built from 5M perimeter+app logs (guide Issue #2 6-family schema), ORT CUDA→TensorRT, dynamic batch 512, seq 64. This is not a rename, it is a new model in `maincode/vector/onnx-hyper/` + `lumber-master/models-hyper/`. 1B/sec claim is **10-sec burst on 800+ H100 + 1000 Kafka partitions** (see Architecture §14), not one VM. Day-to-day real target 100k-1M/sec on 1-10 GPUs.
