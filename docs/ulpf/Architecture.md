@@ -279,4 +279,3 @@ ULPF-ONNX-Hyper (custom, not mdbr-leaf-mt)
 - **Ship:** Custom distilled ONNX (4-layer, 256d, int8/int4, HNSW 400 leaves), GPU EP, dynamic batching, depth=4 Drain3, KEDA autoscale, code lives in `maincode/vector/onnx-hyper/` + `lumber-master/models-hyper/`.
 - **Slide (for judges):** Benchmark graph "lines/sec vs GPUs" + cost/min for 100M/s and 1B/s burst, with sampling (store 1% raw, 100% OCSF counts) because 1B × 1 KB × 86,400 s = **86 PB/day**, no one stores it.
 ```
-
