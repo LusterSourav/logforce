@@ -1,0 +1,22 @@
+# tests/test_normalize_perimeter.yaml — 6 cases for perimeter VRL (see ingestion/transforms/normalize_perimeter.vrl)
+# Run: vector validate --no-environment ingestion/vector.toml
+#      vector test ingestion/vector.toml tests/test_normalize_perimeter.yaml
+tests:
+  - name: "TC-01 OuterTune E line -> OCSF 4001 severity 4"
+    inputs: [{insert_at: perimeter_normalized, type: raw, value: "08-27 20:45:01.123  1234  5678 E OuterTune: CRASH: Unhandled exception"}]
+    outputs: [{extract_from: perimeter_normalized, conditions: [{type: vrl, source: "assert_eq!(.class_uid, 4001)\nassert_eq!(.severity_id, 4)"}]}]
+  - name: "TC-02 W line -> severity 3"
+    inputs: [{insert_at: perimeter_normalized, type: raw, value: "08-27 20:45:01.200  1234  5678 W OuterTune: WARN: slow path"}]
+    outputs: [{extract_from: perimeter_normalized, conditions: [{type: vrl, source: "assert_eq!(.severity_id, 3)"}]}]
+  - name: "TC-03 I line dropped"
+    inputs: [{insert_at: perimeter_normalized, type: raw, value: "08-27 20:45:01.300  1234  5678 I OuterTune: info"}]
+    no_outputs_from: [perimeter_normalized]
+  - name: "TC-04 bare stack trace dropped"
+    inputs: [{insert_at: perimeter_normalized, type: raw, value: "  at com.example.Foo.bar(Foo.java:42)"}]
+    no_outputs_from: [perimeter_normalized]
+  - name: "TC-05 raw preserved"
+    inputs: [{insert_at: perimeter_normalized, type: raw, value: "08-27 20:45:01.210  1234  5678 E OuterTune: ERROR: token expired"}]
+    outputs: [{extract_from: perimeter_normalized, conditions: [{type: vrl, source: "assert_eq!(.unmapped.raw_event, \"08-27 20:45:01.210  1234  5678 E OuterTune: ERROR: token expired\")"}]}]
+  - name: "TC-06 hash present"
+    inputs: [{insert_at: perimeter_normalized, type: raw, value: "08-27 20:45:01.210  1234  5678 E OuterTune: ERROR: token expired"}]
+    outputs: [{extract_from: perimeter_normalized, conditions: [{type: vrl, source: "assert_eq!(.integrity.algorithm, \"SHA-256\")\nassert!(length(string!(.integrity.hash)) > 0)"}]}]
