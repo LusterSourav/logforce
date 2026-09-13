@@ -7,49 +7,49 @@
 
 | Question | Why it matters | Where evidence lives |
 |---|---|---|
-| Is Vector + VRL the right ingest for heterogeneous logs? | Need "one fingerprint string per new device" | `maincode/vector/transforms/normalize_outertune.vrl:40,74` + `vector/vector.toml:56` + `ULPF-Deep-Research-Report.md:48` |
-| Can ONNX run on CPU for perimeter and on GPU for 1B/sec? | Need 5 ms today and 120k/s/GPU tomorrow | `lumber-master/internal/engine/embedder/onnx.go:1` + `ui/server.go:112` + `Architecture.md:14` Hyper bench |
-| Does "phone thin, pod thick" actually hold? | Phones cannot load 58M ONNX + 0.52-4 GB LLM | `libonnxruntime.dylib` 34M + `model_quantized.onnx_data` 22M = 58M, `auto_capture/server.py:37` 4096 cap, `ai_engine.py:21` localhost |
-| Is Rethink-style QS tile feasible? | User screenshot shows Refresh/Rethink/Orbot in QS | `maincode/docs/PHONE_TILE.md:19` `TileService`, `VpnService` pattern, `BIND_QUICK_SETTINGS_TILE` |
-| Which small LLM fits free Azure B1s? | Student Pack $100 + B1s 1 GB free must host pod | `maincode/prototype/docker-compose.prototype.yml:18` `qwen2.5:0.5b 397 MB`, `offline/image-list.txt:1` pinned 5 |
-| Is 1B/sec per second honest? | User asked "handling more than 1000 million per second" | Measured 1.6k/sec/instance, Hyper math 833 H100 (`Architecture.md:14`) |
+| Is Vector + VRL the right ingest for heterogeneous logs? | Need "one fingerprint string per new device" | `maincode/vector/transforms/normalize_outertune.vrl,74` + `vector/vector.toml` + `ULPF-Deep-Research-Report.md` |
+| Can ONNX run on CPU for perimeter and on GPU for 1B/sec? | Need 5 ms today and 120k/s/GPU tomorrow | `lumber-master/internal/engine/embedder/onnx.go` + `ui/server.go` + `Architecture.md` Hyper bench |
+| Does "phone thin, pod thick" actually hold? | Phones cannot load 58M ONNX + 0.52-4 GB LLM | `libonnxruntime.dylib` 34M + `model_quantized.onnx_data` 22M = 58M, `auto_capture/server.py` 4096 cap, `ai_engine.py` localhost |
+| Is Rethink-style QS tile feasible? | User screenshot shows Refresh/Rethink/Orbot in QS | `maincode/docs/PHONE_TILE.md` `TileService`, `VpnService` pattern, `BIND_QUICK_SETTINGS_TILE` |
+| Which small LLM fits free Azure B1s? | Student Pack $100 + B1s 1 GB free must host pod | `maincode/prototype/docker-compose.prototype.yml` `qwen2.5.5b 397 MB`, `offline/image-list.txt` pinned 5 |
+| Is 1B/sec per second honest? | User asked "handling more than 1000 million per second" | Measured 1.6k/sec/instance, Hyper math 833 H100 (`Architecture.md`) |
 
 ## 2. Key findings (with references 2-6)
 
 ### 2.1 Vector + VRL is the correct perimeter ingestion (ground truth)
 
-- `normalize_outertune.vrl:34-46` Phase 0 forensic seal `raw_event` + `sha2(canonical)` + `unmapped.raw_event` + `integrity` is already lossless per `ULPF-Deep-Research-Report.md:52` TC-09/10/21 pass.
-- `vector.toml:79` `drop_on_abort=true` + disk buffer 2 GB `block` is forensic-safe (stall not drop), verified `vector.yaml:20` in `maincode/observability`.
+- `normalize_outertune.vrl` Phase 0 forensic seal `raw_event` + `sha2(canonical)` + `unmapped.raw_event` + `integrity` is already lossless per `ULPF-Deep-Research-Report.md` TC-09/10/21 pass.
+- `vector.toml` `drop_on_abort=true` + disk buffer 2 GB `block` is forensic-safe (stall not drop), verified `vector.yaml` in `maincode/observability`.
 - **Research takeaway:** Keep VRL Phase 1 as the only device plug point. For 1B/sec replace `file` source with `kafka` 1000 partitions, but keep same `.vrl`, no pipeline rewrite.
 
 ### 2.2 ONNX today (CPU) vs custom Hyper (GPU), both needed
 
-- **Today (measured):** `lumber-master` 100 lines / 60 ms → **1.6k/sec/instance** (Go `intra_op 4` `onnx.go:126`, `ui/server.go:521` health `latencyMs` 1.98 ms warm). Model disk `model_quantized.onnx` 215K + `onnx_data` 22M + `lib` 34M.
-- **Custom Hyper (designed, not yet shipped):** Distilled `MiniLM 6L→4L` `hidden 384→256` `seq 128→64`, vocab 30k→12k, HNSW PQ-64 for 400 leaves, int8 11 MB / int4 AWQ 9 MB, `onnxruntime-gpu 1.18` + `TensorRT 8.6`, dynamic batch 512 → **15k/sec CPU (D4s_v3), 45k/sec A10G, 120k/sec H100** per GPU. `Architecture.md:14` table cites this exact path.
+- **Today (measured):** `lumber-master` 100 lines / 60 ms → **1.6k/sec/instance** (Go `intra_op 4` `onnx.go`, `ui/server.go` health `latencyMs` 1.98 ms warm). Model disk `model_quantized.onnx` 215K + `onnx_data` 22M + `lib` 34M.
+- **Custom Hyper (designed, not yet shipped):** Distilled `MiniLM 6L→4L` `hidden 384→256` `seq 128→64`, vocab 30k→12k, HNSW PQ-64 for 400 leaves, int8 11 MB / int4 AWQ 9 MB, `onnxruntime-gpu 1.18` + `TensorRT 8.6`, dynamic batch 512 → **15k/sec CPU (D4s_v3), 45k/sec A10G, 120k/sec H100** per GPU. `Architecture.md` table cites this exact path.
 - **Why custom, not just `mdbr-leaf-mt`:** `mdbr-leaf-mt` is 42 leaves general; Hyper needs 400 leaves universal (guide Issue #2 6-family schema `vector/schemas/ocsf_4001_reference.json`) + PQ index for scale. Distill teacher `bge-large` → student is standard.
 
 ### 2.3 Phone-thin, pod-thick (ground truth)
 
-- `auto_capture/capture.py:11` `MAX_BYTES 10 MB` rotate + `capture.py:22` dedup `sha16 window200` + `server.py:39` `[:4096]` cap proves phone never buffers large logs.
-- `ai_engine.py:21` `SOLVER_OLLAMA_BASE_URL=http://localhost:11434` + `config.py` `SanitizedEvent` only input proves AI never on phone, never cloud (`RUNBOOK.md:90` `ollama serve` localhost).
-- `PHONE_TILE.md:82` `Thread.setDefaultUncaughtExceptionHandler → filesDir/last_crash.log` proves crash auto-capture without `READ_LOGS` (Shizuku optional).
-- **Research takeaway:** WireGuard `10.0.0.0/24` is the auth (`VM_POD.md:9`), not a password. Phone tile tap = `wg` handshake, `POST` via `10.0.0.1:8002`.
+- `auto_capture/capture.py` `MAX_BYTES 10 MB` rotate + `capture.py` dedup `sha16 window200` + `server.py` `[]` cap proves phone never buffers large logs.
+- `ai_engine.py` `SOLVER_OLLAMA_BASE_URL=http://localhost` + `config.py` `SanitizedEvent` only input proves AI never on phone, never cloud (`RUNBOOK.md` `ollama serve` localhost).
+- `PHONE_TILE.md` `Thread.setDefaultUncaughtExceptionHandler → filesDir/last_crash.log` proves crash auto-capture without `READ_LOGS` (Shizuku optional).
+- **Research takeaway:** WireGuard `10.0.0.0/24` is the auth (`VM_POD.md`), not a password. Phone tile tap = `wg` handshake, `POST` via `10.0.0.1`.
 
 ### 2.4 Which small LLM for the pod on free tier (ground truth)
 
-| Model (Ollama) | Disk | RAM needed | ULPF fit (tested in `prototype/docker-compose.prototype.yml:18`) |
+| Model (Ollama) | Disk | RAM needed | ULPF fit (tested in `prototype/docker-compose.prototype.yml`) |
 |---|---|---|---|
-| `qwen2.5:0.5b-instruct` | 397 MB | ~1 GB | **Fits B1s 1 GB** if Loki disabled; valid JSON high |
-| `qwen2.5:1.5b` | ~0.9 GB | ~1.8 GB | Fits B1ms 2 GB (recommended) |
-| `llama3.2:1b` | 1.3 GB | ~2 GB | B1ms |
-| `gemma2:2b` | 1.6 GB | ~3 GB | B2s 4 GB |
-| `phi3:3.8b-mini-4k` | 2.2 GB | ~4 GB | B2s and above |
+| `qwen2.5.5b-instruct` | 397 MB | ~1 GB | **Fits B1s 1 GB** if Loki disabled; valid JSON high |
+| `qwen2.5.5b` | ~0.9 GB | ~1.8 GB | Fits B1ms 2 GB (recommended) |
+| `llama3.2b` | 1.3 GB | ~2 GB | B1ms |
+| `gemma2b` | 1.6 GB | ~3 GB | B2s 4 GB |
+| `phi3.8b-mini-4k` | 2.2 GB | ~4 GB | B2s and above |
 
-**Research takeaway:** Default `qwen2.5:0.5b` for student $0 path; upgrade via `SOLVER_OLLAMA_MODEL` env without code change (same `ai_engine.py` interface).
+**Research takeaway:** Default `qwen2.5.5b` for student $0 path; upgrade via `SOLVER_OLLAMA_MODEL` env without code change (same `ai_engine.py` interface).
 
 ### 2.5 Rethink-style tile (ground truth)
 
-- Screenshot Rethink/Orbot row rechecked: `Rethink` and `Orbot` are `VpnService` + `TileService` entries, appearing in QS after `BIND_QUICK_SETTINGS_TILE` permission. ULPF will add `ULPF` tile identically (`PHONE_TILE.md:50` manifest `<service android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">`).
+- Screenshot Rethink/Orbot row rechecked: `Rethink` and `Orbot` are `VpnService` + `TileService` entries, appearing in QS after `BIND_QUICK_SETTINGS_TILE` permission. ULPF will add `ULPF` tile identically (`PHONE_TILE.md` manifest `<service android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">`).
 - Our tile differs: routes only `10.0.0.0/24` (`Builder.addRoute`) vs Rethink `0.0.0.0/0` full-tunnel, more private, less battery.
 
 ### 2.6 1B/sec feasibility (ground truth, not marketing)
@@ -64,8 +64,8 @@
 ## 3. Methodology
 
 - File inventory `ls -R` + `find` on `maincode/` + `lumber-master/` + `ULPF-Perimeter-Prototype/` + `Branch of ulpf/` + `guide/` Docx metadata.
-- Read `ULPF-Deep-Research-Report.md:343` full (local evidence only, no web).
-- Grepped `ai_engine.py:21`, `pipeline.py:145` 10-step, `config.py` env, `vector.toml:56`, `normalize_outertune.vrl:74`, `miner_service.py:47` Drain3, `storage/parquet_writer.py:9`, `query/datafusion_engine.py:15`.
+- Read `ULPF-Deep-Research-Report.md` full (local evidence only, no web).
+- Grepped `ai_engine.py`, `pipeline.py` 10-step, `config.py` env, `vector.toml`, `normalize_outertune.vrl`, `miner_service.py` Drain3, `storage/parquet_writer.py`, `query/datafusion_engine.py`.
 - Compared ULPF-Docs claims vs those bytes, hallucination if file:line missing.
 
 ## 4. Gaps Still Open (for next research spike)
