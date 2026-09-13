@@ -33,10 +33,14 @@ The Go API classifies with a quantized 23 MB ONNX model in about 5 ms per log an
 
 For more introduction, visit: [System Design](docs/SYSTEM_DESIGN.md).
 
+For evaluation, visit: [Evaluation](docs/EVALUATION.md), [Setup](docs/SETUP.md) and [Architecture 2Page](docs/ARCHITECTURE_2PAGE.md).
+
 Installation
 ------------
 
 To run the prototype locally, visit: [Quickstart](docs/SYSTEM_DESIGN.md#how-to-run).
+
+For setup instructions, visit: [Setup](docs/SETUP.md).
 
 Quickstart:
 
@@ -85,6 +89,8 @@ Deployment
 ----------
 
 To deploy the prototype, refer to: [System Architecture](docs/SYSTEM_ARCHITECTURE.md#deployment-view).
+
+For evaluation, visit: [Evaluation](docs/EVALUATION.md) and [Architecture 2Page](docs/ARCHITECTURE_2PAGE.md).
 
 You will find guides on:
 
