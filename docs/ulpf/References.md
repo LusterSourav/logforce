@@ -51,4 +51,3 @@ Example: "ONNX int8 23 MB (R03) + VRL Phase 1 (R04) + WireGuard 10.0.0.0/24 (R11
 ## 5. Principle
 
 > **If the line isn't in `maincode/` or `ULPF-Perimeter-Prototype/`, it's a roadmap, the docs mark it as future, not done.**
-
