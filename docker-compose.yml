@@ -1,0 +1,42 @@
+services:
+  ulpf-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.lumber
+    container_name: ulpf-perimeter
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./output:/app/output
+    environment:
+      - LUMBER_MODEL_DIR=/app/models
+      - STATIC_DIR=/app/ui
+      - PORT=8081
+      - PG_DSN=postgres://ulpf:ulpf@postgres:5432/ulpf?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/api/health"]
+      interval: 10s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ulpf-postgres
+    environment:
+      - POSTGRES_USER=ulpf
+      - POSTGRES_PASSWORD=ulpf
+      - POSTGRES_DB=ulpf
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ulpf"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  pgdata:
