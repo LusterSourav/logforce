@@ -1,0 +1,110 @@
+# normalize_perimeter.vrl
+# Perimeter logs become OCSF Security Finding Class 4001
+# Works for any syslog or app log once Phase 1 regex matches your device.
+# The hash and raw preservation happen before parsing so forensics never loses data.
+
+# Raw capture. We snapshot the line before anything mutates it.
+# This is why replays stay identical. Hash the trimmed form so trailing
+# newlines from the file reader do not create fake duplicates.
+raw_event = string!(.message)
+canonical_raw = strip_whitespace(raw_event)
+integrity_hash = sha2(canonical_raw, variant: "SHA-256")
+
+# Phase 1. Parse the line. Change only this regex when you onboard a new device.
+# Everything after this uses the named groups date, time, pid, tid, level, tag, body.
+# If your device adds fields like session or interface, capture them here
+# and map them in Phase 3 under metadata or unmapped.
+parsed, parse_err = parse_regex(
+  canonical_raw,
+  r'^(?P<date>\d{2}-\d{2})\s+(?P<time>\d{2}:\d{2}:\d{2}\.\d+)\s+(?P<pid>\d+)\s+(?P<tid>\d+)\s+(?P<level>[VDIWEF])\s+(?P<tag>\S+)\s+(?P<body>.+)$'
+)
+
+# Unparseable lines are not errors. They are comments, blank lines, or bare
+# stack continuations without a header. Drop them silently so the sink
+# only sees real events. Lines with a full header but stack content still pass.
+if parse_err != null {
+  abort
+}
+
+# Phase 2. Keep only warning and above. Verbose and debug are noisy
+# and not security relevant. Change the list to ["E", "F"] if you want
+# errors only. Keeping the filter here instead of in Vector makes tests easy.
+level = string!(parsed.level)
+if !includes(["W", "E", "F"], level) {
+  abort
+}
+
+# Phase 3. Build OCSF 4001. Map the parsed fields into the envelope
+# plus integrity and raw blocks. The shape matches ocsf_4001_reference.json.
+# The product block is generic on purpose. Override vendor_name if you
+# know the device at this point, or enrich later in SIEM.
+
+# Severity mapping follows OCSF. W becomes medium, E becomes high, F becomes fatal.
+# These numbers drive downstream routing and alert colors.
+severity_id = if level == "F" {
+    6
+} else if level == "E" {
+    4
+} else {
+    3
+}
+severity_label = if severity_id == 6 {
+    "Fatal"
+} else if severity_id == 4 {
+    "High"
+} else {
+    "Medium"
+}
+
+# Type UID for activity Create. 400101 is 4001 class times 100 plus 1.
+# Finding type 200401 is a placeholder for Software Error. Replace it
+# once you define product specific types.
+finding_type_uid = 200401
+tag_clean = replace(string!(parsed.tag), ":", "")
+
+# Replace the whole event with the normalized form. Vector moves old
+# meta into unmapped so you can always get back to raw_event.
+. = {
+  "class_uid":      4001,
+  "class_name":     "Security Finding",
+  "category_uid":   2,
+  "category_name":  "Findings",
+  "activity_id":    1,
+  "activity_name":  "Create",
+  "type_uid": 400101,
+  "time": format_timestamp!(now(), format: "%+"),
+  "severity_id": severity_id,
+  "severity":    severity_label,
+  "status_id": 1,
+  "status":    "New",
+  "finding": {
+    "uid":      uuid_v4(),
+    "title":    string!(parsed.body),
+    "type_uid": finding_type_uid,
+    "types":    ["Software Error"]
+  },
+  "process": {
+    "pid":  to_int!(parsed.pid),
+    "name": tag_clean
+  },
+  "metadata": {
+    "version": "1.3.0",
+    "product": {
+      "name":        "Perimeter",
+      "vendor_name": "Generic",
+      "url_string":  "https://example.local/perimeter"
+    },
+    "log_level": level,
+    "log_date":  string!(parsed.date),
+    "log_time":  string!(parsed.time),
+    "tid":       string!(parsed.tid)
+  },
+  "integrity": {
+    "algorithm": "SHA-256",
+    "hash":      integrity_hash,
+    "canonical": canonical_raw
+  },
+  "unmapped": {
+    "raw_event": raw_event
+  }
+}
