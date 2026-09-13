@@ -19,7 +19,7 @@ Two views over the same docs. No file was moved; this index is the map.
 ## Pattern decisions (so docs line up with code)
 
 * **Prototype pattern:** modular monolith ,  `Prd.md §4` + `SYSTEM_DESIGN.md §2` (assessor flagged unstructured 0%; fix is module boundaries, not microservices).
-* **Full product pattern:** event-driven + microservices ,  `Architecture.md:241` + `SYSTEM_ARCHITECTURE.md §7` (Kafka, WireGuard pod, Hyper ONNX).
+* **Full product pattern:** event-driven + microservices ,  `Architecture.md` + `SYSTEM_ARCHITECTURE.md §7` (Kafka, WireGuard pod, Hyper ONNX).
 * **DB choice:** Postgres for prototype (<1M, GIN), ClickHouse added later for burst ,  `SYSTEM_ARCHITECTURE.md §5`.
 
 ## Large-file note (assessor flagged)
