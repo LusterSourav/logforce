@@ -1,4 +1,4 @@
-# ULPF Perimeter Prototype — System Design
+# ULPF Perimeter Prototype ,  System Design
 
 This doc explains why the prototype is built this way. Read it top to bottom; each section builds on the last.
 
@@ -8,7 +8,7 @@ Firewalls, IDS, switches and apps each log differently. Syslog, JSON, XML, CSV, 
 
 We need a pipeline that takes any perimeter log, keeps the raw bytes for forensics, normalizes to one schema, and makes it usable for SIEM and ML. It must run air-gapped, inside a container, and not lose data when the downstream stalls.
 
-## 2. Architecture pattern — why modular monolith for the prototype
+## 2. Architecture pattern ,  why modular monolith for the prototype
 
 We picked **modular monolith** for the prototype, not microservices.
 
@@ -17,7 +17,7 @@ We picked **modular monolith** for the prototype, not microservices.
 * single `docker compose` is easier to hand to an evaluator than 6 repos
 * shared Postgres is fine at this scale
 
-The senior-architect tool flags both `maincode` and this prototype as unstructured (0% pattern confidence) and calls out `ui/server.go:525` as too long. It is right. The fix is not microservices; it is modules inside the monolith that talk only through a public `api/` surface:
+The senior-architect tool flags both `maincode` and this prototype as unstructured (0% pattern confidence) and calls out `ui/server.go` as too long. It is right. The fix is not microservices; it is modules inside the monolith that talk only through a public `api/` surface:
 
 ```
 perimeter/
@@ -40,7 +40,7 @@ That rule is `modules communicate only through public API`. When we need to pull
 * one regex per new device, not one pipeline rewrite.
 * `when_full=block`, not drop. `docker compose` brings it all up.
 
-## 4. Folder map — what each folder does
+## 4. Folder map ,  what each folder does
 
 ```mermaid
 flowchart TB
@@ -68,32 +68,32 @@ flowchart TB
   class UI,API ui
 ```
 
-**ui** — dashboard and Go API together. One HTML file works as `file://` with mock and upgrades to real ONNX when `server.go` is on :8081. The server loads the model once, pre-embeds the 42 leaves, and serves `health` and `classify`. Health returns `leaves`, `threshold`, `latencyMs` so the badge can flip. One binary, one port, no build step — that is why air-gap demos are trivial.
+**ui** ,  dashboard and Go API together. One HTML file works as `file://` with mock and upgrades to real ONNX when `server.go` is on :8081. The server loads the model once, pre-embeds the 42 leaves, and serves `health` and `classify`. Health returns `leaves`, `threshold`, `latencyMs` so the badge can flip. One binary, one port, no build step ,  that is why air-gap demos are trivial.
 
-The tool says `server.go:525` is too long. We agree. Next split is `server.go -> api.go + ingest.go + stats.go + health.go` with shared `store` package. Not done yet because the prototype is still one file and tests are green; splitting now would churn the demo without changing behavior.
+The tool says `server.go` is too long. We agree. Next split is `server.go -> api.go + ingest.go + stats.go + health.go` with shared `store` package. Not done yet because the prototype is still one file and tests are green; splitting now would churn the demo without changing behavior.
 
-**models** — `model_quantized.onnx` + `onnx_data` (23 MB int8), `vocab.txt` (WordPiece), `2_Dense/model.safetensors` (1.5 MB projection to 1024). `SHA256SUMS` pins them for offline bundles. Empty folder falls back to mock — deliberate fail-safe, not a crash.
+**models** ,  `model_quantized.onnx` + `onnx_data` (23 MB int8), `vocab.txt` (WordPiece), `2_Dense/model.safetensors` (1.5 MB projection to 1024). `SHA256SUMS` pins them for offline bundles. Empty folder falls back to mock ,  deliberate fail-safe, not a crash.
 
-**ingestion** — `vector.toml` watches `${PERIMETER_LOG_PATH}` with multiline glue for Java traces and a 2 GB disk buffer that blocks when the VRL or sink stalls. `normalize_perimeter.vrl` has 4 phases: 0 snapshot+hash (SHA-256 over trimmed raw), 1 single regex (the only device-specific line), 2 drop below warning, 3 build OCSF 4001 (`class_uid 4001`, `type_uid 400101`, `integrity`, `unmapped`). New device = one regex, nothing else.
+**ingestion** ,  `vector.toml` watches `${PERIMETER_LOG_PATH}` with multiline glue for Java traces and a 2 GB disk buffer that blocks when the VRL or sink stalls. `normalize_perimeter.vrl` has 4 phases: 0 snapshot+hash (SHA-256 over trimmed raw), 1 single regex (the only device-specific line), 2 drop below warning, 3 build OCSF 4001 (`class_uid 4001`, `type_uid 400101`, `integrity`, `unmapped`). New device = one regex, nothing else.
 
-**parsing** — `ulpf_ocsf.py` is the fast path: if `class_uid==4001` unwrap and lift to `NormalizedEvent` while keeping everything in `raw`. `perimeter.yml` adds 5 hot-swap decoders (Palo Alto, ASA, FortiGate, CEF, Suricata) with `prematch` + `regex` + `mapping`. The engine swaps them without restart.
+**parsing** ,  `ulpf_ocsf.py` is the fast path: if `class_uid==4001` unwrap and lift to `NormalizedEvent` while keeping everything in `raw`. `perimeter.yml` adds 5 hot-swap decoders (Palo Alto, ASA, FortiGate, CEF, Suricata) with `prematch` + `regex` + `mapping`. The engine swaps them without restart.
 
-**storage** — `parquet_writer.py` moves NDJSON to Hive `year/month/day/class/vendor` with Snappy if pyarrow is present, otherwise keeps NDJSON under the same hive path so no data is lost. `watch_and_convert` polls every 30s.
+**storage** ,  `parquet_writer.py` moves NDJSON to Hive `year/month/day/class/vendor` with Snappy if pyarrow is present, otherwise keeps NDJSON under the same hive path so no data is lost. `watch_and_convert` polls every 30s.
 
-## 5. Database choice — why Postgres here
+## 5. Database choice ,  why Postgres here
 
 Prototype picks **PostgreSQL 16** for the prototype slice:
 
 * data is structured with clear relationships, needs ACID for dedup (`UNIQUE dedup_hash, event_time` pattern from SIEM-Lite)
 * GIN on `raw jsonb` gives SIEM search without Elasticsearch at this scale
-* <1M events, single node, read-heavy — Postgres is the default choice per tech guide
+* <1M events, single node, read-heavy ,  Postgres is the default choice per tech guide
 * Timescale or ClickHouse would be overkill now, right later
 
 Full product keeps Postgres for `events` but adds **ClickHouse** for 100M+ burst (see section 8). Same Hive path, different engine per query size.
 
 ## 6. Component design, briefly
 
-**Edge engine.** WordPiece to 128, run ONNX with 3 tensors, mean-pool, project to 1024, cosine vs 42 pre-embedded leaves, pick best above 0.5 or `UNCLASSIFIED`. Batch packs many texts into one call — that is how 100 lines hit 50–80 ms.
+**Edge engine.** WordPiece to 128, run ONNX with 3 tensors, mean-pool, project to 1024, cosine vs 42 pre-embedded leaves, pick best above 0.5 or `UNCLASSIFIED`. Batch packs many texts into one call ,  that is how 100 lines hit 50-80 ms.
 
 **Vector + VRL.** File source is the simplest air-gap source, no agent needed. VRL runs at Rust speed. Hash over trimmed raw, not normalized event, so replays are stable (`echo -n raw | sha256sum` matches `integrity.hash`).
 
@@ -105,7 +105,7 @@ Canonical event from Lumber: `type`, `category`, `severity`, `timestamp`, `summa
 
 Interfaces: dashboard `POST /api/classify {logs[], verbosity?} -> {events[], latencyMs}` and `GET /api/health` every 30s; search `parse(content) -> Iterator[NormalizedEvent]` claims ULPF NDJSON if `class_uid==4001`; ingest `POST /api/ingest?format=` appends NDJSON + PG + Hive.
 
-## 8. What we left out — and where it goes next
+## 8. What we left out ,  and where it goes next
 
 This prototype intentionally skips LLM for unknowns, Storm topology, and full Loki/Prom. Those live in `maincode/` as the full product, which uses **event-driven + microservices**:
 
@@ -120,4 +120,4 @@ From the prototype root: `go run ./ui/server.go`, open `dashboard.html`, export 
 
 ## 10. Ground truth
 
-All claims here match files on disk: `ingestion/vector.toml:96`, `transforms/normalize_perimeter.vrl:110`, `ui/server.go:525` length warning is acknowledged, `parsing/ulpf_ocsf.py:89`, `storage/parquet_writer.py:53`, `init.sql:17` GIN, `models/SHA256SUMS` pins 4 hashes. Prototype is ~84% done; remaining 16% is wiring generated VRL and real Parquet, not missing design.
+All claims here match files on disk: `ingestion/vector.toml`, `transforms/normalize_perimeter.vrl`, `ui/server.go` length warning is acknowledged, `parsing/ulpf_ocsf.py`, `storage/parquet_writer.py`, `init.sql` GIN, `models/SHA256SUMS` pins 4 hashes. Prototype is ~84% done; remaining 16% is wiring generated VRL and real Parquet, not missing design.
