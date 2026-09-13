@@ -12,7 +12,7 @@
 | **D3** | **Architecture Document (max 2 pages)** | Strategy + high-level + sequence + device tier + frontend/backend + data/storage + deploy + scaling + prototype-vs-final delta, all on 2 pages | `ULPF-Architecture-2Page.md` (companion) + `perimeter/SYSTEM_ARCHITECTURE.md:161` + `SYSTEM_DESIGN.md:110` | To be handed in |
 | **D4** | **Audit + Evidence Pack** | Line-by-line audit, % done/left, throughput honesty, reuse truth | `ULPF-Audit-Report-Detailed.md` + `ULPF-Docs/AUDIT.md:139` | Done |
 | **D5** | **Offline / Air-Gapped bundle** | Pinned images + wheels + `models/` SHA pin, no HF pull at runtime | `maincode/offline/image-list.txt:37-41` 5 pins + `perimeter/models/` baked 58M + `offline/offline-prepare.sh:31` | 80%, tags not digests |
-| **D6** | **Module docs (supporting)** | Design, Memory, Rules, Security & Review, Phases, References, Research, Operational, Financial, Market, Risks | `ULPF-Docs/` 14 files 2167 lines + `example docc/` format control | Done, 6 gaps in `AUDIT.md:124-129` still noted |
+| **D6** | **Module docs (supporting)** | Design, Memory, Rules, Security & Review, Phases, References, Research, Operational, Financial, Market, Risks | `ULPF-Docs/` | Done, 6 gaps in `AUDIT.md:124-129` still noted |
 
 **Submission layout evaluators open:**
 
