@@ -23,7 +23,7 @@
 
 ## Methodology
 
-1. Read all 7 `ULPF-Docs/*.md` (1442 lines total) plus `example docc/Architecture.md:314` etc. as format control.
+1. Read all `ULPF-Docs/*.md` plus `example docc/Architecture.md:314` etc. as format control.
 2. Grepped `maincode/` (156-line `docker-compose.yml:114` `auto-capture:8002`, `miner:8001`, `vector:0.38`, `lumber v0.10.6`), `ULPF-Perimeter-Prototype/ui/server.go:521` (5 handlers at `112:116`), `ai_solver/unknown_solver/{ai_engine.py:21,pipeline.py:145,config.py}` default `localhost:11434`, `models/model_quantized.onnx` 215K + `onnx_data` 22M + `libonnxruntime.dylib` 34M = 58M `lumber-master/models`, `maincode/docs/PHONE_TILE.md:19` `TileService`, `VM_POD.md:9` pod spec, `auto_capture/capture.py:11` 10 MB.
 3. Checked referenced paths exist: `maincode/auto_capture/server.py:106` exists, `maincode/ai_solver/unknown_solver/ai_engine.py:21` exists, `ULPF-Perimeter-Prototype/ingestion/vector.toml:56` exists, `storage/parquet_writer.py:9` Hive exists, `guide/` 2 docx exist (unparsed but cited in `ULPF-Deep-Research-Report.md` §7).
 4. Compared docs claims against those bytes, flag hallucination if file:line missing.
