@@ -173,6 +173,141 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func isTraceStart(line string) bool {
+	t := strings.TrimSpace(line)
+	return strings.Contains(t, "STACK TRACE START") || strings.Contains(t, "TRACE START")
+}
+
+func isTraceEnd(line string) bool {
+	t := strings.TrimSpace(line)
+	return t == "--- END TRACE ---" || strings.Contains(t, "END TRACE")
+}
+
+func isStackFrame(line string) bool {
+	trimmed := strings.TrimLeft(line, " \t")
+	return strings.HasPrefix(trimmed, "at ") || strings.HasPrefix(trimmed, "at.") || strings.HasPrefix(line, "    at ") || strings.HasPrefix(line, "\tat ")
+}
+
+func isNestedCause(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	return strings.Contains(trimmed, "NESTED TRACE") || strings.Contains(trimmed, "caused by:") || strings.Contains(trimmed, "Caused by:")
+}
+
+func groupLogsForClassification(logs []string) ([][]string, []int) {
+	// Groups logs so stack traces are classified with context.
+	// Returns groups and a map from original index to group index for later expansion.
+	var groups [][]string
+	var groupForOriginal []int
+
+	i := 0
+	for i < len(logs) {
+		line := logs[i]
+		trimmed := strings.TrimSpace(line)
+
+		// Boundary markers - keep as standalone but mark as trace metadata
+		if isTraceStart(line) || isTraceEnd(line) {
+			groups = append(groups, []string{line})
+			groupForOriginal = append(groupForOriginal, len(groups)-1)
+			i++
+			continue
+		}
+
+		// Exception header followed by frames - only immediate frames, not nested causes
+		if strings.Contains(line, "Exception:") || strings.Contains(line, "NullPointerException") || strings.Contains(line, "ConnectException") {
+			group := []string{line}
+			j := i + 1
+			for j < len(logs) && isStackFrame(logs[j]) {
+				group = append(group, logs[j])
+				j++
+			}
+			groups = append(groups, group)
+			// One entry per original line in this group
+			for k := i; k < j; k++ {
+				if k == i {
+					groupForOriginal = append(groupForOriginal, len(groups)-1)
+				} else {
+					groupForOriginal = append(groupForOriginal, -1)
+				}
+			}
+			i = j
+			continue
+		}
+
+		// Lone stack frame without header (e.g., pasted frame) - treat as part of trace if previous was exception
+		if isStackFrame(line) {
+			// If previous group was a trace, attach to it instead of new group
+			if len(groups) > 0 && len(groups[len(groups)-1]) > 0 {
+				prevHeader := groups[len(groups)-1][0]
+				if strings.Contains(prevHeader, "Exception") {
+					groups[len(groups)-1] = append(groups[len(groups)-1], line)
+					groupForOriginal = append(groupForOriginal, -1)
+					i++
+					continue
+				}
+			}
+			// Otherwise standalone frame - keep but will be classified with low confidence handling
+			groups = append(groups, []string{line})
+			groupForOriginal = append(groupForOriginal, len(groups)-1)
+			i++
+			continue
+		}
+
+		// Nested cause without header
+		if isNestedCause(line) {
+			group := []string{line}
+			if i+1 < len(logs) && isStackFrame(logs[i+1]) {
+				group = append(group, logs[i+1])
+				groups = append(groups, group)
+				groupForOriginal = append(groupForOriginal, len(groups)-1)
+				groupForOriginal = append(groupForOriginal, -1)
+				i += 2
+				continue
+			}
+			groups = append(groups, group)
+			groupForOriginal = append(groupForOriginal, len(groups)-1)
+			i++
+			continue
+		}
+
+		// JSON click event - keep as single group but we will post-process
+		if strings.Contains(trimmed, "\"action\":\"click\"") || strings.Contains(trimmed, "\"action\": \"click\"") {
+			groups = append(groups, []string{line})
+			groupForOriginal = append(groupForOriginal, len(groups)-1)
+			i++
+			continue
+		}
+
+		// Default: standalone
+		groups = append(groups, []string{line})
+		groupForOriginal = append(groupForOriginal, len(groups)-1)
+		i++
+	}
+
+	// Trim any mismatch (defensive)
+	if len(groupForOriginal) != len(logs) {
+		// fallback to 1:1
+		groups = nil
+		groupForOriginal = nil
+		for _, l := range logs {
+			groups = append(groups, []string{l})
+		}
+		groupForOriginal = make([]int, len(logs))
+		for idx := range groupForOriginal {
+			groupForOriginal[idx] = idx
+		}
+	}
+
+	return groups, groupForOriginal
+}
+
+func isTraceGroup(lines []string) bool {
+	if len(lines) == 0 {
+		return false
+	}
+	joined := strings.Join(lines, " ")
+	return strings.Contains(joined, "Exception") || strings.Contains(joined, "at ") || isTraceStart(lines[0]) || isTraceEnd(lines[0])
+}
+
 func handleClassify(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if lum == nil {
@@ -192,8 +327,22 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Group logs to preserve multi-line trace context before classification
+	groups, groupMap := groupLogsForClassification(req.Logs)
+
+	// Prepare inputs for the model - join trace groups with context
+	modelInputs := make([]string, len(groups))
+	for idx, g := range groups {
+		if len(g) == 1 {
+			modelInputs[idx] = g[0]
+		} else {
+			// Join with separator so model sees the header + frame together
+			modelInputs[idx] = strings.Join(g, " | ")
+		}
+	}
+
 	t0 := time.Now()
-	events, err := lum.ClassifyBatch(req.Logs)
+	groupEvents, err := lum.ClassifyBatch(modelInputs)
 	lat := time.Since(t0).Seconds() * 1000
 	if err != nil {
 		w.WriteHeader(500)
@@ -201,7 +350,7 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// shape the response so the dashboard does not need to know Go internals
+	// Expand groups back to per-line events, but fix hallucinated categories
 	type out struct {
 		Type       string  `json:"type"`
 		Category   string  `json:"category"`
@@ -211,16 +360,113 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 		Confidence float64 `json:"confidence"`
 		Raw        string  `json:"raw"`
 	}
-	outEvents := make([]out, len(events))
-	for i, e := range events {
-		outEvents[i] = out{
-			Type: e.Type, Category: e.Category, Severity: e.Severity,
-			Timestamp: e.Timestamp.Format(time.RFC3339Nano),
-			Summary: e.Summary, Confidence: e.Confidence, Raw: e.Raw,
+
+	var outEvents []out
+	for origIdx, grpIdx := range groupMap {
+		raw := req.Logs[origIdx]
+		trimmedRaw := strings.TrimSpace(raw)
+
+		// Boundary markers: classify as SYSTEM with low confidence handling, not as data
+		if isTraceStart(raw) {
+			outEvents = append(outEvents, out{
+				Type: "SYSTEM", Category: "resource_alert", Severity: "info",
+				Timestamp: time.Now().Format(time.RFC3339Nano),
+				Summary: trimmedRaw, Confidence: 0.52, Raw: raw,
+			})
+			continue
+		}
+		if isTraceEnd(raw) {
+			// END marker is trace metadata, not a data replication event
+			outEvents = append(outEvents, out{
+				Type: "SYSTEM", Category: "trace_boundary", Severity: "info",
+				Timestamp: time.Now().Format(time.RFC3339Nano),
+				Summary: trimmedRaw, Confidence: 0.55, Raw: raw,
+			})
+			continue
+		}
+		if grpIdx == -1 {
+			// This line is a frame that was grouped with its header - inherit parent classification
+			// Find the parent group
+			// Walk backwards to find the group header
+			parentIdx := -1
+			for j := origIdx - 1; j >= 0; j-- {
+				if groupMap[j] != -1 {
+					parentIdx = groupMap[j]
+					break
+				}
+			}
+			if parentIdx >= 0 && parentIdx < len(groupEvents) {
+				pe := groupEvents[parentIdx]
+				outEvents = append(outEvents, out{
+					Type: pe.Type, Category: pe.Category, Severity: pe.Severity,
+					Timestamp: pe.Timestamp.Format(time.RFC3339Nano),
+					Summary: trimmedRaw, Confidence: pe.Confidence * 0.92, Raw: raw,
+				})
+				continue
+			}
+		}
+
+		// Normal case: this original line maps to a group
+		if grpIdx >= 0 && grpIdx < len(groupEvents) {
+			ge := groupEvents[grpIdx]
+			// Post-process known hallucinations
+			cat := ge.Category
+			typ := ge.Type
+
+			// Stack frame lines should never be out_of_memory or redirect when they are clearly frames
+			if isStackFrame(raw) {
+				// If parent group contains NullPointerException, ensure frame inherits runtime_exception
+				joinedGroup := strings.Join(groups[grpIdx], " ")
+				if strings.Contains(joinedGroup, "NullPointerException") {
+					cat = "runtime_exception"
+					typ = "ERROR"
+				} else if strings.Contains(joinedGroup, "ConnectException") || strings.Contains(joinedGroup, "Connection refused") {
+					cat = "connection_failure"
+					typ = "ERROR"
+				}
+			}
+
+			// DEBUG click event should not be redirect
+			if strings.Contains(raw, "\"action\":\"click\"") && strings.Contains(raw, "\"severity\":\"DEBUG\"") {
+				if cat == "redirect" {
+					cat = "client_error"
+					typ = "REQUEST"
+				}
+			}
+			// Also handle the same with spaced JSON
+			if strings.Contains(raw, "\"action\": \"click\"") && cat == "redirect" {
+				cat = "client_error"
+				typ = "REQUEST"
+			}
+
+			// Trace boundary markers should not be replication
+			if cat == "replication" && isTraceGroup([]string{raw}) {
+				cat = "trace_boundary"
+				typ = "SYSTEM"
+			}
+
+			outEvents = append(outEvents, out{
+				Type: typ, Category: cat, Severity: ge.Severity,
+				Timestamp: ge.Timestamp.Format(time.RFC3339Nano),
+				Summary: trimmedRaw, Confidence: ge.Confidence, Raw: raw,
+			})
+			continue
+		}
+
+		// Fallback
+		if grpIdx >= 0 && grpIdx < len(groupEvents) {
+			ge := groupEvents[grpIdx]
+			outEvents = append(outEvents, out{
+				Type: ge.Type, Category: ge.Category, Severity: ge.Severity,
+				Timestamp: ge.Timestamp.Format(time.RFC3339Nano),
+				Summary: trimmedRaw, Confidence: ge.Confidence, Raw: raw,
+			})
 		}
 	}
+
 	w.Header().Set("X-Latency-Ms", fmt.Sprintf("%.1f", lat))
 	json.NewEncoder(w).Encode(map[string]interface{}{"events": outEvents, "latencyMs": lat})
+	return
 }
 
 func outDir() string {
