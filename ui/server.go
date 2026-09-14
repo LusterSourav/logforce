@@ -123,7 +123,29 @@ func main() {
 	})
 
 	// serve the dashboard itself. dashboard.html lives next to this binary.
-	mux.Handle("/", http.FileServer(http.Dir(staticDir)))
+	// fix: only dashboard at /dashboard.html, no directory listing at /
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			http.ServeFile(w, r, filepath.Join(staticDir, "dashboard.html"))
+			return
+		}
+		if r.URL.Path == "/dashboard.html" {
+			http.ServeFile(w, r, filepath.Join(staticDir, "dashboard.html"))
+			return
+		}
+		// block sensitive files and directory listing
+		if strings.HasSuffix(r.URL.Path, ".go") || strings.HasSuffix(r.URL.Path, ".mod") || strings.HasSuffix(r.URL.Path, ".sum") || strings.HasSuffix(r.URL.Path, ".md") {
+			http.NotFound(w, r)
+			return
+		}
+		// for any other path, try to serve file but deny directory
+		fpath := filepath.Join(staticDir, filepath.Clean(r.URL.Path))
+		if info, err := os.Stat(fpath); err == nil && info.IsDir() {
+			http.NotFound(w, r)
+			return
+		}
+		http.FileServer(http.Dir(staticDir)).ServeHTTP(w, r)
+	})
 
 	addr := ":" + port
 	log.Printf("ULPF listening on http://localhost%s  static=%s  model=%s", addr, staticDir, modelDir)
