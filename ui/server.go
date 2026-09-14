@@ -366,21 +366,23 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 		raw := req.Logs[origIdx]
 		trimmedRaw := strings.TrimSpace(raw)
 
-		// Boundary markers: classify as SYSTEM with low confidence handling, not as data
+		// Boundary markers: deterministic pattern matches, not model predictions
+		// Use high confidence (0.95) and consistent trace_boundary category so they
+		// don't flap near the 0.5 threshold when monitored. These are infra markers,
+		// not data events, and should be excluded from model confidence intervals.
 		if isTraceStart(raw) {
 			outEvents = append(outEvents, out{
-				Type: "SYSTEM", Category: "resource_alert", Severity: "info",
+				Type: "SYSTEM", Category: "trace_boundary", Severity: "info",
 				Timestamp: time.Now().Format(time.RFC3339Nano),
-				Summary: trimmedRaw, Confidence: 0.52, Raw: raw,
+				Summary: trimmedRaw, Confidence: 0.95, Raw: raw,
 			})
 			continue
 		}
 		if isTraceEnd(raw) {
-			// END marker is trace metadata, not a data replication event
 			outEvents = append(outEvents, out{
 				Type: "SYSTEM", Category: "trace_boundary", Severity: "info",
 				Timestamp: time.Now().Format(time.RFC3339Nano),
-				Summary: trimmedRaw, Confidence: 0.55, Raw: raw,
+				Summary: trimmedRaw, Confidence: 0.95, Raw: raw,
 			})
 			continue
 		}
