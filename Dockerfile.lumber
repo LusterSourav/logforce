@@ -8,7 +8,7 @@ COPY models ./models
 RUN go build -o /out/ulpf-server server.go
 
 FROM alpine:3.19
-RUN apk add --no-cache ca-certificates libgomp wget tar
+RUN apk add --no-cache ca-certificates libgomp libstdc++ wget tar
 WORKDIR /app
 COPY --from=builder /out/ulpf-server /usr/local/bin/ulpf-server
 COPY ui/dashboard.html /app/ui/dashboard.html
