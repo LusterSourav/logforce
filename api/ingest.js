@@ -11,14 +11,24 @@ module.exports = async (req, res) => {
   for await (const c of req) body += c
   const url = new URL(req.url, 'http://localhost')
   const qFmt = url.searchParams.get('format') || 'generic'
+  try{
+    const r = await fetch('https://logforce.onrender.com/api/ingest?format='+encodeURIComponent(qFmt), {method:'POST', headers:{'Content-Type':'application/x-ndjson'}, body: body})
+    const j = await r.json()
+    const base = getStoreDir()
+    const dateStr = new Date().toISOString().slice(0,10)
+    const outPath = path.join(base, 'perimeter-' + dateStr + '.ndjson')
+    fs.mkdirSync(path.dirname(outPath), {recursive:true})
+    if(body.trim()) try{ fs.appendFileSync(outPath, body.trim()+'\n') }catch(e){}
+    return res.status(200).json(j)
+  }catch(e){}
   const base = getStoreDir()
   const dateStr = new Date().toISOString().slice(0,10)
   const outPath = path.join(base, 'perimeter-' + dateStr + '.ndjson')
   const hiveBase = path.join(path.dirname(base), 'parquet')
   const now = new Date()
-  const hive = path.join(path.dirname(base), `parquet/year=${now.getFullYear()}/month=${String(now.getMonth()+1).padStart(2,'0')}/day=${String(now.getDate()).padStart(2,'0')}/class=4001/vendor=${qFmt}`)
-  fs.mkdirSync(path.dirname(outPath), { recursive:true })
-  fs.mkdirSync(hive, { recursive:true })
+  const hive = path.join(path.dirname(base), 'parquet/year='+now.getFullYear()+'/month='+String(now.getMonth()+1).padStart(2,'0')+'/day='+String(now.getDate()).padStart(2,'0')+'/class=4001/vendor='+qFmt)
+  fs.mkdirSync(path.dirname(outPath), {recursive:true})
+  fs.mkdirSync(hive, {recursive:true})
   let count = 0
   const lines = body.split('\n')
   let toAppend = ''

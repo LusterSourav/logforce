@@ -1,12 +1,22 @@
 const fs = require('fs')
 const path = require('path')
 const { getStoreDir } = require('./_shared')
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin','*')
   res.setHeader('Access-Control-Allow-Methods','GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers','Content-Type')
   if (req.method === 'OPTIONS') return res.status(204).end()
   res.setHeader('Content-Type','application/json')
+  try{
+    const r = await fetch('https://logforce.onrender.com/api/stats', {cache:'no-store'})
+    const j = await r.json()
+    if(j && typeof j.total_events === 'number' && j.total_events>0){
+      return res.status(200).json(j)
+    }
+    if(j && typeof j.total_events === 'number'){
+      throw new Error('empty')
+    }
+  }catch(e){}
   const base = getStoreDir()
   const hiveBase = path.join(path.dirname(base), 'parquet')
   const walk = (dir) => {

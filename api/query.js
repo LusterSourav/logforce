@@ -17,6 +17,16 @@ module.exports = async (req, res) => {
   if (!sqlStr) {
     try { const u = new URL(req.url, 'http://localhost'); sqlStr = u.searchParams.get('q') || '' } catch {}
   }
+  try{
+    const r = await fetch('https://logforce.onrender.com/api/query', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sql: sqlStr})})
+    const j = await r.json()
+    if(j && Array.isArray(j.rows) && j.rows.length>0){
+      return res.status(200).json(j)
+    }
+    if(j && j.prune && j.prune.matched_rows>0){
+      return res.status(200).json(j)
+    }
+  }catch(e){}
   const classFilter = sqlStr.includes('4001') ? 4001 : 0
   const vendorFilter = sqlStr.toLowerCase().includes('ulpf') ? 'ulpf' : ''
   const base = getStoreDir()
