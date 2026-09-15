@@ -6,7 +6,7 @@
 <title>Sports Betting Analytics Dashboard</title>
 <!-- Tailwind CSS CDN with forms and container queries -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Google Fonts: Inter -->
+<!-- Google Fonts  Inter -->
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
@@ -76,11 +76,11 @@
     ::-webkit-scrollbar-thumb { background: #c7c4d8; border-radius: 4px; }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 md:p-8" style="background: #f7f9fd;">
-<!-- BEGIN: MainDashboardContainer -->
+<body class="min-h-screen flex items-center justify-center p-4 md:p-8" style="background: #EEF2FF;">
+<!-- BEGIN  MainDashboardContainer -->
 <main class="w-full max-w-[1480px] bg-white rounded-[24px] border border-[#e0e7ff] shadow-[0_1px_3px_rgba(79,70,229,0.04),0_4px_12px_rgba(17,24,39,0.03)] flex overflow-hidden min-h-[920px]">
-<!-- BEGIN: LeftSidebar -->
-<aside class="w-20 bg-[#f2f4f8] border-r border-[#e5e7eb] flex flex-col items-center py-7 justify-between shrink-0 select-none">
+<!-- BEGIN  LeftSidebar -->
+<aside class="w-20 bg-[#f2f4f8] border-r border-[#E0E7FF] flex flex-col items-center py-7 justify-between shrink-0 select-none">
 <div class="flex flex-col items-center gap-9 w-full">
 <!-- Dashboard Logo ($ ball) -->
 <a class="w-12 h-12 rounded-full bg-[#4f46e5] flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-[#4f46e5]/20 hover:scale-105 transition-transform" href="#" title="Live Pipeline" data-view="perimeter">
@@ -147,10 +147,10 @@
 </svg>
 </a>
 </aside>
-<!-- END: LeftSidebar -->
-<!-- BEGIN: DashboardBody -->
+<!-- END  LeftSidebar -->
+<!-- BEGIN  DashboardBody -->
 <div class="flex-1 flex flex-col px-7 py-6 overflow-y-auto space-y-6">
-<!-- BEGIN: TopHeader -->
+<!-- BEGIN  TopHeader -->
 <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
 <!-- Title & Sub navigation -->
 <div class="flex flex-col gap-3">
@@ -204,7 +204,7 @@
 <path d="m21 21-4.35-4.35" stroke-linecap="round" stroke-width="2"></path>
 </svg>
 </span>
-<input class="w-full pl-10 pr-4 py-2 bg-white border border-[#e5e7eb] rounded-full text-xs text-[#111827] placeholder-zinc-500 focus:outline-none focus:border-[#4f46e5] transition-colors" placeholder="Search" type="text"/>
+<input class="w-full pl-10 pr-4 py-2 bg-white border border-[#E0E7FF] rounded-full text-xs text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:border-[#4f46e5] transition-colors" placeholder="Search" type="text"/>
 </div>
 <!-- Quick Action Buttons -->
 <div class="flex items-center gap-2">
@@ -215,19 +215,19 @@
 </svg>
 </button>
 <!-- Bell Notification -->
-<button class="w-10 h-10 rounded-full bg-white border border-[#e5e7eb] text-zinc-300 hover:text-[#111827] transition-colors flex items-center justify-center relative" title="Alerts" id="btn-top-alerts">
+<button class="w-10 h-10 rounded-full bg-white border border-[#E0E7FF] text-[#6B7280] hover:text-[#111827] transition-colors flex items-center justify-center relative" title="Alerts" id="btn-top-alerts">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
 <!-- Tune / Filter -->
-<button class="w-10 h-10 rounded-full bg-white border border-[#e5e7eb] text-zinc-300 hover:text-[#111827] transition-colors flex items-center justify-center" title="Query" id="btn-top-query">
+<button class="w-10 h-10 rounded-full bg-white border border-[#E0E7FF] text-[#6B7280] hover:text-[#111827] transition-colors flex items-center justify-center" title="Query" id="btn-top-query">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M3 4h18M7 12h10M11 20h2" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
 <!-- History -->
-<button class="w-10 h-10 rounded-full bg-white border border-[#e5e7eb] text-zinc-300 hover:text-[#111827] transition-colors flex items-center justify-center" title="History" id="btn-top-history">
+<button class="w-10 h-10 rounded-full bg-white border border-[#E0E7FF] text-[#6B7280] hover:text-[#111827] transition-colors flex items-center justify-center" title="History" id="btn-top-history">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
@@ -235,66 +235,66 @@
 </div>
 </div>
 </header>
-<!-- END: TopHeader -->
-<!-- BEGIN: GridContent -->
+<!-- END  TopHeader -->
+<!-- BEGIN  GridContent -->
 <div class="grid grid-cols-12 gap-5">
 <!-- =================== LEFT COLUMN (Cards & Leagues) =================== -->
 <div class="col-span-12 lg:col-span-4 flex flex-col gap-5">
-<!-- Top Row: 3 KPI Cards -->
+<!-- Top Row  3 KPI Cards -->
 <div class="grid grid-cols-3 gap-3">
 <!-- Total Ingested -->
-<div class="bg-[#1f2812] border border-[#2e3b1a] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
+<div class="bg-white border border-[#E0E7FF] rounded-xl p-3.5 flex flex-col justify-between h-28 relative shadow-card">
 <div class="flex items-center justify-between">
-<div class="w-8 h-8 rounded-full bg-[#4f46e5] text-white flex items-center justify-center text-xs font-bold shadow-sm">
+<div class="w-9 h-9 rounded-full bg-[#4f46e5] text-white flex items-center justify-center text-xs font-bold shadow-sm">
                   $
                 </div>
-<svg class="w-3.5 h-3.5 text-[#575e70] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
+<svg class="w-3.5 h-3.5 text-[#9CA3AF] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <div>
-<p class="text-[11px] text-zinc-300 font-medium">Total Ingested</p>
-<p id="kpi-total-ingested" class="text-base font-bold text-[#4f46e5] tracking-tight mt-0.5">0</p>
+<p class="text-[11px] text-[#6B7280] font-medium">Total Ingested</p>
+<p id="kpi-total-ingested" class="text-base font-bold text-[#111827] tracking-tight mt-0.5">0</p>
 </div>
 </div>
 <!-- Total Sources -->
-<div class="bg-[#292211] border border-[#3e3419] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
+<div class="bg-white border border-[#E0E7FF] rounded-xl p-3.5 flex flex-col justify-between h-28 relative shadow-card">
 <div class="flex items-center justify-between">
-<div class="w-8 h-8 rounded-full bg-[#f09f28] text-white flex items-center justify-center">
+<div class="w-9 h-9 rounded-full bg-[#FFF7ED] text-[#EA580C] flex items-center justify-center">
 <svg class="w-4 h-4 text-black" fill="currentColor" viewbox="0 0 24 24">
 <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"></path>
 </svg>
 </div>
-<svg class="w-3.5 h-3.5 text-[#575e70] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
+<svg class="w-3.5 h-3.5 text-[#9CA3AF] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <div>
-<p class="text-[11px] text-zinc-300 font-medium">Total Sources</p>
+<p class="text-[11px] text-[#6B7280] font-medium">Total Sources</p>
 <p id="kpi-total-sources" class="text-base font-bold text-[#111827] tracking-tight mt-0.5">0</p>
 </div>
 </div>
 <!-- Total Time -->
-<div class="bg-[#2d1416] border border-[#441d21] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
+<div class="bg-white border border-[#E0E7FF] rounded-xl p-3.5 flex flex-col justify-between h-28 relative shadow-card">
 <div class="flex items-center justify-between">
-<div class="w-8 h-8 rounded-full bg-[#e84343] text-white flex items-center justify-center">
+<div class="w-9 h-9 rounded-full bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center">
 <svg class="w-4 h-4 text-white stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <circle cx="12" cy="12" r="9"></circle>
 <path d="M12 6v6l4 2" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<svg class="w-3.5 h-3.5 text-[#575e70] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
+<svg class="w-3.5 h-3.5 text-[#9CA3AF] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <div>
-<p class="text-[11px] text-zinc-300 font-medium">Avg Latency</p>
+<p class="text-[11px] text-[#6B7280] font-medium">Avg Latency</p>
 <p id="kpi-avg-latency" class="text-base font-bold text-[#111827] tracking-tight mt-0.5">— ms</p>
 </div>
 </div>
 </div>
 <!-- Top 5 Vendors & Donut / Speedometer Arc Chart -->
-<div class="bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-5 flex flex-col justify-between">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-2">
 <h2 class="text-sm font-semibold text-[#111827]">Top 5 Vendors</h2>
 <button class="text-[#575e70] hover:text-[#111827]" title="Options">
@@ -305,20 +305,20 @@
 </svg>
 </button>
 </div>
-<!-- Semi-Circle Gauge SVG -->
+<!-- Semi Circle Gauge SVG -->
 <div class="relative flex flex-col items-center justify-center pt-2">
 <div class="w-64 h-36 relative flex items-center justify-center overflow-hidden">
 <svg class="w-64 h-64 -rotate-90 origin-center" viewbox="0 0 200 200">
 <!-- Arc segments -->
 <!-- Background Track -->
-<circle cx="100" cy="100" fill="transparent" r="76" stroke="#22272e" stroke-dasharray="238.76 238.76" stroke-dashoffset="0" stroke-linecap="round" stroke-width="22"></circle>
-<!-- Segment 4: Orange -->
-<circle cx="100" cy="100" fill="transparent" r="76" stroke="#ff9800" stroke-dasharray="55 238.76" stroke-dashoffset="0" stroke-linecap="round" stroke-width="22"></circle>
-<!-- Segment 3: Red -->
-<circle cx="100" cy="100" fill="transparent" r="76" stroke="#f43636" stroke-dasharray="50 238.76" stroke-dashoffset="-45" stroke-linecap="round" stroke-width="22"></circle>
-<!-- Segment 2: Blue -->
-<circle cx="100" cy="100" fill="transparent" r="76" stroke="#3b5bfd" stroke-dasharray="35 238.76" stroke-dashoffset="-88" stroke-linecap="round" stroke-width="22"></circle>
-<!-- Segment 1: Neon Lime Textured Arc -->
+<circle cx="100" cy="100" fill="transparent" r="76" stroke="#E5E7EB" stroke-dasharray="238.76 238.76" stroke-dashoffset="0" stroke-linecap="round" stroke-width="22"></circle>
+<!-- Segment 4  Orange -->
+<circle cx="100" cy="100" fill="transparent" r="76" stroke="#EA580C" stroke-dasharray="55 238.76" stroke-dashoffset="0" stroke-linecap="round" stroke-width="22"></circle>
+<!-- Segment 3  Red -->
+<circle cx="100" cy="100" fill="transparent" r="76" stroke="#DC2626" stroke-dasharray="50 238.76" stroke-dashoffset="-45" stroke-linecap="round" stroke-width="22"></circle>
+<!-- Segment 2  Blue -->
+<circle cx="100" cy="100" fill="transparent" r="76" stroke="#4f46e5" stroke-dasharray="35 238.76" stroke-dashoffset="-88" stroke-linecap="round" stroke-width="22"></circle>
+<!-- Segment 1  Neon Lime Textured Arc -->
 <circle cx="100" cy="100" fill="transparent" r="76" stroke="#4f46e5" stroke-dasharray="115 238.76" stroke-dashoffset="-120" stroke-linecap="round" stroke-width="22"></circle>
 </svg>
 <!-- Gauge Inner Text Center overlay -->
@@ -328,7 +328,7 @@
 </div>
 </div>
 <!-- Sports Badges Row Below Speedometer -->
-<div class="flex items-center justify-between w-full max-w-xs mt-4 px-2 py-1.5 bg-[#1a1d24] rounded-full border border-[#272d36]">
+<div class="flex items-center justify-between w-full max-w-xs mt-4 px-2 py-1.5 bg-[#ffffff] rounded-full border border-[#E0E7FF]">
 <!-- Tennis / Volleyball (active neon lime) -->
 <button class="w-8 h-8 rounded-full bg-[#4f46e5] text-white flex items-center justify-center shadow" title="Tennis">
 <svg class="w-4 h-4 fill-none stroke-black stroke-2" viewbox="0 0 24 24">
@@ -338,35 +338,35 @@
 </svg>
 </button>
 <!-- Boxing Glove -->
-<button class="w-8 h-8 rounded-full hover:bg-zinc-800 text-[#575e70] flex items-center justify-center transition-colors" title="Boxing">
+<button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Boxing">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M16 8a4 4 0 00-8 0v7a3 3 0 003 3h4a3 3 0 003-3v-4" stroke-linecap="round" stroke-linejoin="round"></path>
 <path d="M8 12H6a2 2 0 00-2 2v1a2 2 0 002 2h2" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
 <!-- Soccer -->
-<button class="w-8 h-8 rounded-full hover:bg-zinc-800 text-[#575e70] flex items-center justify-center transition-colors" title="Soccer">
+<button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Soccer">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <circle cx="12" cy="12" r="9"></circle>
 <path d="M12 8l2.5 2-1 3h-3l-1-3z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
 <!-- Football -->
-<button class="w-8 h-8 rounded-full hover:bg-zinc-800 text-[#575e70] flex items-center justify-center transition-colors" title="Football">
+<button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Football">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <ellipse cx="12" cy="12" rx="9" ry="6" transform="rotate(-45 12 12)"></ellipse>
 <path d="M10 14l4-4M10 11l3 3" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
 <!-- Basketball -->
-<button class="w-8 h-8 rounded-full hover:bg-zinc-800 text-[#575e70] flex items-center justify-center transition-colors" title="Basketball">
+<button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Basketball">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <circle cx="12" cy="12" r="9"></circle>
 <path d="M3 12h18M12 3v18"></path>
 </svg>
 </button>
 <!-- Ping Pong Paddle -->
-<button class="w-8 h-8 rounded-full hover:bg-zinc-800 text-[#575e70] flex items-center justify-center transition-colors" title="Table Tennis">
+<button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Table Tennis">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <circle cx="11" cy="9" r="6"></circle>
 <path d="M15 13l5 5a2 2 0 01-3 3l-5-5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -375,8 +375,8 @@
 </div>
 </div>
 </div>
-<!-- Bottom Left: Top 5 Parsers -->
-<div class="bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-5 flex flex-col justify-between">
+<!-- Bottom Left  Top 5 Parsers -->
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-4">
 <h2 class="text-sm font-semibold text-[#111827]">Top 5 Parsers</h2>
 <button class="text-[#575e70] hover:text-[#111827]" title="Options">
@@ -391,12 +391,12 @@
 <!-- Item 1 NFL -->
 <div class="flex items-center justify-between gap-3 text-xs">
 <div class="flex items-center gap-2.5 w-24">
-<div class="w-7 h-7 rounded-lg bg-[#20252e] flex items-center justify-center text-[10px] font-bold text-[#111827] tracking-wider border border-[#2b333e]">
+<div class="w-7 h-7 rounded-lg bg-[#ffffff] flex items-center justify-center text-[10px] font-bold text-[#111827] tracking-wider border border-[#E0E7FF]">
                     NFL
                   </div>
 <span class="font-semibold text-[#111827]">NFL</span>
 </div>
-<div class="flex-1 bg-[#20252e] h-1.5 rounded-full overflow-hidden">
+<div class="flex-1 bg-[#ffffff] h-1.5 rounded-full overflow-hidden">
 <div class="bg-[#4f46e5] h-full rounded-full" style="width: 38%"></div>
 </div>
 <span class="font-bold text-[#111827] text-xs w-9 text-right">38%</span>
@@ -404,12 +404,12 @@
 <!-- Item 2 NHL -->
 <div class="flex items-center justify-between gap-3 text-xs">
 <div class="flex items-center gap-2.5 w-24">
-<div class="w-7 h-7 rounded-lg bg-[#20252e] flex items-center justify-center text-[10px] font-bold text-[#111827] tracking-wider border border-[#2b333e]">
+<div class="w-7 h-7 rounded-lg bg-[#ffffff] flex items-center justify-center text-[10px] font-bold text-[#111827] tracking-wider border border-[#E0E7FF]">
                     NHL
                   </div>
 <span class="font-semibold text-[#111827]">NFL</span>
 </div>
-<div class="flex-1 bg-[#20252e] h-1.5 rounded-full overflow-hidden">
+<div class="flex-1 bg-[#ffffff] h-1.5 rounded-full overflow-hidden">
 <div class="bg-[#4f46e5] h-full rounded-full" style="width: 78%"></div>
 </div>
 <span class="font-bold text-[#111827] text-xs w-9 text-right">78%</span>
@@ -417,12 +417,12 @@
 <!-- Item 3 NBA -->
 <div class="flex items-center justify-between gap-3 text-xs">
 <div class="flex items-center gap-2.5 w-24">
-<div class="w-7 h-7 rounded-lg bg-[#1f2a44] flex items-center justify-center text-[10px] font-bold text-[#3b82f6] tracking-wider border border-[#26375a]">
+<div class="w-7 h-7 rounded-lg bg-[#ffffff] flex items-center justify-center text-[10px] font-bold text-[#4f46e5] tracking-wider border border-[#E0E7FF]">
                     NBA
                   </div>
 <span class="font-semibold text-[#111827]">NBA</span>
 </div>
-<div class="flex-1 bg-[#20252e] h-1.5 rounded-full overflow-hidden">
+<div class="flex-1 bg-[#ffffff] h-1.5 rounded-full overflow-hidden">
 <div class="bg-[#4f46e5] h-full rounded-full" style="width: 78%"></div>
 </div>
 <span class="font-bold text-[#111827] text-xs w-9 text-right">78%</span>
@@ -435,65 +435,65 @@
 <!-- KPI Stack 3 Cards -->
 <div class="flex flex-col gap-2.5">
 <!-- Total Normalized (Lime card) -->
-<div class="bg-[#313f17] border border-[#445620] rounded-2xl p-4 flex items-center justify-between">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center justify-between">
 <div class="flex items-center gap-3.5">
 <div class="w-9 h-9 rounded-full bg-[#4f46e5] text-white flex items-center justify-center font-bold text-sm">
                   $
                 </div>
 <div>
 <div class="flex items-center gap-2">
-<span class="text-xs text-zinc-200 font-medium">Total Normalized</span>
-<span class="text-[10px] px-1.5 py-0.5 bg-[#42551a] text-[#4f46e5] rounded-md font-semibold">+4,5%</span>
+<span class="text-xs text-[#575e70] font-medium">Total Normalized</span>
+<span class="text-[10px] px-1.5 py-0.5 bg-[#EEF2FF] text-[#4f46e5] rounded-md font-semibold">+4,5%</span>
 </div>
 <p class="text-xl font-bold text-[#111827] mt-0.5">0</p>
 </div>
 </div>
-<svg class="w-4 h-4 text-[#575e70] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
+<svg class="w-4 h-4 text-[#9CA3AF] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <!-- Normalization Rate (Dark card) -->
-<div class="bg-[#14161c] border border-[#1f242d] rounded-2xl p-4 flex items-center justify-between">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center justify-between">
 <div class="flex items-center gap-3.5">
-<div class="w-9 h-9 rounded-full bg-[#20252e] text-[#111827] flex items-center justify-center">
+<div class="w-9 h-9 rounded-full bg-[#EEF2FF] text-[#4f46e5] flex items-center justify-center">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <div>
 <div class="flex items-center gap-2">
-<span class="text-xs text-zinc-300 font-medium">Normalization Rate</span>
-<span class="text-[10px] px-1.5 py-0.5 bg-[#1d222b] text-zinc-300 rounded-md font-semibold">+4,5%</span>
+<span class="text-xs text-[#575e70] font-medium">Normalization Rate</span>
+<span class="text-[10px] px-1.5 py-0.5 bg-[#EEF2FF] text-[#4f46e5] rounded-md font-semibold">+4,5%</span>
 </div>
 <p class="text-xl font-bold text-[#111827] mt-0.5">34%</p>
 </div>
 </div>
-<svg class="w-4 h-4 text-[#575e70] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
+<svg class="w-4 h-4 text-[#9CA3AF] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <!-- Event Count (Dark card) -->
-<div class="bg-[#14161c] border border-[#1f242d] rounded-2xl p-4 flex items-center justify-between">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center justify-between">
 <div class="flex items-center gap-3.5">
-<div class="w-9 h-9 rounded-full bg-[#fa8c16] text-white flex items-center justify-center">
+<div class="w-9 h-9 rounded-full bg-[#F59E0B] text-white flex items-center justify-center">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <div>
 <div class="flex items-center gap-2">
-<span class="text-xs text-zinc-300 font-medium">Event Count</span>
-<span class="text-[10px] px-1.5 py-0.5 bg-[#1d222b] text-zinc-300 rounded-md font-semibold">+4,5%</span>
+<span class="text-xs text-[#575e70] font-medium">Event Count</span>
+<span class="text-[10px] px-1.5 py-0.5 bg-[#EEF2FF] text-[#4f46e5] rounded-md font-semibold">+4,5%</span>
 </div>
 <p class="text-xl font-bold text-[#111827] mt-0.5">35</p>
 </div>
 </div>
-<svg class="w-4 h-4 text-[#575e70] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
+<svg class="w-4 h-4 text-[#9CA3AF] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 </div>
-<!-- Tabs: Events, Players, Bets, Plays -->
+<!-- Tabs  Events, Players, Bets, Plays -->
 <div class="flex items-center justify-between text-xs px-1">
 <button id="events-tab" class="text-[#575e70] hover:text-[#111827] font-medium py-1" data-tab-detail="events">Events</button>
 <button id="players-tab" class="text-[#4f46e5] font-semibold border-b-2 border-[#4f46e5] pb-1" data-tab-detail="players">Players</button>
@@ -501,11 +501,11 @@
 <button id="plays-tab" class="text-[#575e70] hover:text-[#111827] font-medium py-1" data-tab-detail="plays">Plays</button>
 </div>
 <!-- Palo Alto Feature Card -->
-<div class="bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-5 flex flex-col justify-between relative">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col justify-between relative">
 <div class="flex items-start justify-between">
 <div class="flex items-center gap-3">
 <!-- Palo Alto Logo / Sock Icon -->
-<div class="w-12 h-12 rounded-2xl bg-[#20252e] border border-[#2b333e] flex items-center justify-center p-2">
+<div class="w-12 h-12 rounded-2xl bg-[#ffffff] border border-[#E0E7FF] flex items-center justify-center p-2">
 <svg class="w-full h-full fill-[#d32f2f]" viewbox="0 0 100 100">
 <!-- Stylized hanging socks silhouette -->
 <path d="M25 15h18v35l14 12c5 4 4 10-1 14l-6 5c-5 4-12 3-16-2l-9-11V15z"></path>
@@ -515,7 +515,7 @@
 <div>
 <div class="flex items-center gap-2">
 <h3 class="font-bold text-[#111827] text-base">Palo Alto</h3>
-<span class="text-[10px] bg-[#222730] text-zinc-300 font-semibold px-2 py-0.5 rounded-full">x2.0</span>
+<span class="text-[10px] bg-[#ffffff] text-[#6B7280] font-semibold px-2 py-0.5 rounded-full">x2.0</span>
 </div>
 <span class="text-xs text-[#575e70]">25% Full</span>
 </div>
@@ -539,11 +539,11 @@
 </svg>
 <span id="palo-count" class="text-lg font-bold text-[#4f46e5]">0</span>
 </div>
-<!-- Users & Funds Sub-Boxes -->
+<!-- Users & Funds Sub Boxes -->
 <div class="grid grid-cols-2 gap-3 mt-4">
 <!-- Users -->
-<div class="bg-[#191c23] border border-[#232933] rounded-2xl p-3 flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-[#242b36] flex items-center justify-center text-zinc-300">
+<div class="bg-[#ffffff] border border-[#e0e7ff] rounded-2xl p-3 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#ffffff] flex items-center justify-center text-[#6B7280]">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
 <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
@@ -554,8 +554,8 @@
 </div>
 </div>
 <!-- Funds -->
-<div class="bg-[#191c23] border border-[#232933] rounded-2xl p-3 flex items-center gap-3">
-<div class="w-8 h-8 rounded-full bg-[#354316] text-[#4f46e5] flex items-center justify-center font-bold text-xs">
+<div class="bg-[#ffffff] border border-[#e0e7ff] rounded-2xl p-3 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#ffffff] text-[#4f46e5] flex items-center justify-center font-bold text-xs">
                   $
                 </div>
 <div>
@@ -566,10 +566,10 @@
 </div>
 </div>
 <!-- Top Parsers Card -->
-<div class="bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-4 flex flex-col justify-between">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-3">
 <div class="flex items-center gap-1.5 text-xs font-semibold text-[#111827]">
-<svg class="w-4 h-4 text-[#575e70] stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
+<svg class="w-4 h-4 text-[#9CA3AF] stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.7-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
                 Top Parsers
@@ -591,28 +591,28 @@
 <div class="flex items-center">
 <div class="flex -space-x-2 overflow-hidden">
 <!-- Avatar 1 -->
-<div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#14161b] bg-zinc-700 overflow-hidden">
+<div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#ffffff] bg-zinc-700 overflow-hidden">
 <svg class="w-full h-full fill-zinc-300" viewbox="0 0 100 100">
 <circle cx="50" cy="40" r="25"></circle>
 <circle cx="50" cy="95" r="40"></circle>
 </svg>
 </div>
 <!-- Avatar 2 -->
-<div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#14161b] bg-[#a8442a] overflow-hidden">
-<svg class="w-full h-full fill-[#f5a782]" viewbox="0 0 100 100">
+<div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#ffffff] bg-[#575e70] overflow-hidden">
+<svg class="w-full h-full fill-[#9CA3AF]" viewbox="0 0 100 100">
 <circle cx="50" cy="40" r="25"></circle>
 <circle cx="50" cy="95" r="40"></circle>
 </svg>
 </div>
 <!-- Avatar 3 -->
-<div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#14161b] bg-[#3b4c68] overflow-hidden">
+<div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#ffffff] bg-[#ffffff] overflow-hidden">
 <svg class="w-full h-full fill-zinc-200" viewbox="0 0 100 100">
 <circle cx="50" cy="40" r="25"></circle>
 <circle cx="50" cy="95" r="40"></circle>
 </svg>
 </div>
 <!-- Avatar 4 -->
-<div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#14161b] bg-[#7d2024] overflow-hidden">
+<div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#ffffff] bg-[#4f46e5] overflow-hidden">
 <svg class="w-full h-full fill-white" viewbox="0 0 100 100">
 <circle cx="50" cy="40" r="25"></circle>
 <circle cx="50" cy="95" r="40"></circle>
@@ -622,7 +622,7 @@
 <!-- Next Arrow & Counter -->
 <div class="flex items-center gap-1.5 ml-2">
 <span class="text-xs text-orange-400 font-bold">→</span>
-<span class="text-xs text-zinc-300 font-semibold">+145</span>
+<span class="text-xs text-[#6B7280] font-semibold">+145</span>
 <button class="w-7 h-7 ml-1.5 rounded-full bg-white text-[#111827] flex items-center justify-center font-bold text-xs hover:bg-zinc-200 transition-colors shadow" title="Add player">
                     +
                   </button>
@@ -631,15 +631,15 @@
 </div>
 </div>
 <!-- Week Activity Card -->
-<div class="bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-4 flex items-center justify-between">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center justify-between">
 <div>
 <p class="text-xs font-semibold text-[#111827]">Week ingest</p>
 <div class="flex items-center gap-1.5 mt-0.5">
 <span class="text-[11px] text-[#575e70]">Last week</span>
-<span class="text-[10px] px-1 bg-[#263116] text-[#4f46e5] font-semibold rounded">4,5%</span>
+<span class="text-[10px] px-1 bg-[#f2f4f8] text-[#4f46e5] font-semibold rounded">4,5%</span>
 </div>
 </div>
-<div class="px-3 py-1 bg-[#20252e] border border-[#2d3440] text-xs font-bold text-[#111827] rounded-full">
+<div class="px-3 py-1 bg-[#ffffff] border border-[#e0e7ff] text-xs font-bold text-[#111827] rounded-full">
               2,200
             </div>
 </div>
@@ -647,19 +647,19 @@
 <!-- =================== RIGHT COLUMN (Profile, Ingest Activity, Recent Ingests) =================== -->
 <div class="col-span-12 lg:col-span-4 flex flex-col gap-5">
 <!-- Profile Card -->
-<div class="bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-4 flex items-center gap-4">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center gap-4">
 <!-- User Avatar with lime ring -->
-<div class="w-16 h-16 rounded-full p-1 border-2 border-[#819920] shrink-0 overflow-hidden bg-zinc-800 flex items-center justify-center">
+<div class="w-16 h-16 rounded-full p-1 border-2 border-[#E0E7FF] shrink-0 overflow-hidden bg-white flex items-center justify-center">
 <svg class="w-full h-full rounded-full" viewbox="0 0 120 120">
 <!-- Illustrated Portrait of young man with glasses & beard -->
-<rect fill="#2d3748" height="120" width="120"></rect>
-<circle cx="60" cy="50" fill="#8d5b4c" r="28"></circle>
+<rect fill="#ffffff" height="120" width="120"></rect>
+<circle cx="60" cy="50" fill="#777587" r="28"></circle>
 <!-- Glasses -->
 <circle cx="50" cy="48" fill="none" r="8" stroke="#ffffff" stroke-width="2.5"></circle>
 <circle cx="70" cy="48" fill="none" r="8" stroke="#ffffff" stroke-width="2.5"></circle>
 <path d="M58 48h4" stroke="#ffffff" stroke-width="2"></path>
 <!-- Beard & smile -->
-<path d="M42 52c0 14 8 22 18 22s18-8 18-22c0-1-36-1-36 0z" fill="#321e17"></path>
+<path d="M42 52c0 14 8 22 18 22s18-8 18-22c0-1-36-1-36 0z" fill="#ffffff"></path>
 <path d="M54 62c3 2 9 2 12 0" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="1.5"></path>
 <!-- Shirt / Shoulders -->
 <path d="M20 115c0-22 18-32 40-32s40 10 40 32z" fill="#f7fafc"></path>
@@ -668,50 +668,50 @@
 <div>
 <h2 class="font-bold text-[#111827] text-base">ulpf-perimeter</h2>
 <p class="text-[11px] text-[#575e70] mt-1">Last ingest:</p>
-<p class="text-[11px] text-zinc-300 font-medium"><span id="last-ingest-time">never</span></p>
+<p class="text-[11px] text-[#6B7280] font-medium"><span id="last-ingest-time">never</span></p>
 </div>
 </div>
 <!-- Ingested & Failed Mini KPI Duo -->
 <div class="grid grid-cols-2 gap-3">
 <!-- Ingested Card (Lime/Olive tint) -->
-<div class="bg-[#242f15] border border-[#34441c] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
+<div class="bg-[#f2f4f8] border border-[#E0E7FF] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
 <div class="flex items-center justify-between">
 <div class="w-8 h-8 rounded-full bg-[#4f46e5] text-white flex items-center justify-center text-xs font-bold shadow-sm">
                   $
                 </div>
-<svg class="w-3.5 h-3.5 text-[#575e70] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
+<svg class="w-3.5 h-3.5 text-[#9CA3AF] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <div>
 <div class="flex items-center gap-1.5">
-<span class="text-[11px] text-zinc-300 font-medium">Ingested</span>
-<span class="text-[9px] bg-[#3a4d1b] text-[#4f46e5] px-1 py-0.5 rounded font-semibold">+4,5%</span>
+<span class="text-[11px] text-[#6B7280] font-medium">Ingested</span>
+<span class="text-[9px] bg-[#ffffff] text-[#4f46e5] px-1 py-0.5 rounded font-semibold">+4,5%</span>
 </div>
 <p class="text-base font-bold text-[#111827] tracking-tight mt-0.5">1,284</p>
 </div>
 </div>
 <!-- Failed Card (Wine/Ruby tint) -->
-<div class="bg-[#2b1619] border border-[#422025] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
+<div class="bg-[#ffffff] border border-[#FEF2F2] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
 <div class="flex items-center justify-between">
-<div class="w-8 h-8 rounded-full bg-[#e84343] text-white flex items-center justify-center text-xs font-bold shadow-sm">
+<div class="w-8 h-8 rounded-full bg-[#DC2626] text-white flex items-center justify-center text-xs font-bold shadow-sm">
                   $
                 </div>
-<svg class="w-3.5 h-3.5 text-[#575e70] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
+<svg class="w-3.5 h-3.5 text-[#9CA3AF] stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
 <div>
 <div class="flex items-center gap-1.5">
-<span class="text-[11px] text-zinc-300 font-medium">Failed</span>
-<span class="text-[9px] bg-[#471f25] text-[#e84343] px-1 py-0.5 rounded font-semibold">-5,2%</span>
+<span class="text-[11px] text-[#6B7280] font-medium">Failed</span>
+<span class="text-[9px] bg-[#EEF2FF] text-[#DC2626] px-1 py-0.5 rounded font-semibold">-5,2%</span>
 </div>
 <p class="text-base font-bold text-[#111827] tracking-tight mt-0.5">11,443</p>
 </div>
 </div>
 </div>
 <!-- Ingest Activity Card with Dual Line Chart -->
-<div class="bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-5 flex flex-col justify-between">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-2">
 <h2 class="text-sm font-semibold text-[#111827]">Ingest Activity</h2><span class="text-[10px] px-2 py-1 rounded-full bg-[#4f46e5]/15 text-[#4f46e5] border border-[#4f46e5]/20 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#4f46e5] animate-pulse"></span> live</span><span class="text-[10px] px-2 py-1 rounded-full bg-[#4f46e5]/15 text-[#4f46e5] border border-[#4f46e5]/20 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#4f46e5] animate-pulse"></span> live</span>
 <button class="text-[#575e70] hover:text-[#111827]" title="Filter Activity">
@@ -723,7 +723,7 @@
 <!-- Dual Line Chart SVG with Y and X axes -->
 <div class="relative w-full pt-2">
 <div class="flex">
-<!-- Y-Axis labels -->
+<!-- Y Axis labels -->
 <div class="flex flex-col justify-between text-[10px] text-[#9ca3af] pr-2 h-28 select-none">
 <span>6k</span>
 <span>4k</span>
@@ -734,23 +734,23 @@
 <div class="flex-1 h-28 relative">
 <svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 280 110">
 <!-- Subtle horizontal grid lines -->
-<line stroke="#1c212a" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="5" y2="5"></line>
-<line stroke="#1c212a" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="40" y2="40"></line>
-<line stroke="#1c212a" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="75" y2="75"></line>
-<line stroke="#1c212a" stroke-width="1" x1="0" x2="280" y1="105" y2="105"></line>
+<line stroke="#E5E7EB" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="5" y2="5"></line>
+<line stroke="#E5E7EB" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="40" y2="40"></line>
+<line stroke="#E5E7EB" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="75" y2="75"></line>
+<line stroke="#E5E7EB" stroke-width="1" x1="0" x2="280" y1="105" y2="105"></line>
 <!-- Olive secondary line curve -->
-<path d="M 10 95 C 40 95, 55 60, 90 60 C 130 60, 150 90, 190 90 C 220 90, 240 65, 275 60" fill="none" stroke="#68782a" stroke-width="2"></path>
+<path d="M 10 95 C 40 95, 55 60, 90 60 C 130 60, 150 90, 190 90 C 220 90, 240 65, 275 60" fill="none" stroke="#4f46e5" stroke-width="2"></path>
 <!-- Yellow/Gold main line curve -->
 <path d="M 10 70 C 40 70, 55 20, 85 20 C 115 20, 125 50, 150 50 C 170 50, 175 88, 195 88 C 215 88, 230 40, 275 90" fill="none" stroke="#d49429" stroke-width="2.5"></path>
 <!-- Key Data Points (Dots on lines) -->
-<circle cx="85" cy="20" fill="#d49429" r="4.5" stroke="#14161b" stroke-width="2"></circle>
-<circle cx="150" cy="50" fill="#4f46e5" r="4.5" stroke="#14161b" stroke-width="2"></circle>
+<circle cx="85" cy="20" fill="#d49429" r="4.5" stroke="#ffffff" stroke-width="2"></circle>
+<circle cx="150" cy="50" fill="#4f46e5" r="4.5" stroke="#ffffff" stroke-width="2"></circle>
 <circle cx="170" cy="55" fill="#4f46e5" r="3.5"></circle>
 <circle cx="215" cy="88" fill="#d49429" r="3.5"></circle>
 </svg>
 </div>
 </div>
-<!-- X-Axis Labels -->
+<!-- X Axis Labels -->
 <div class="flex justify-between text-[10px] text-[#575e70] pl-6 mt-2 select-none">
 <span>Sat</span>
 <span>Mon</span>
@@ -762,7 +762,7 @@
 </div>
 </div>
 <!-- Bottom Chart Breakdown Pill (Active & Playing) -->
-<div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#1e232c]">
+<div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#E5E7EB]">
 <!-- Active -->
 <div class="flex flex-col items-center justify-center">
 <div class="flex items-center gap-1.5">
@@ -772,9 +772,9 @@
 <span id="ingest-active-count" class="text-sm font-bold text-[#111827] mt-0.5">0</span>
 </div>
 <!-- Playing -->
-<div class="flex flex-col items-center justify-center border-l border-[#1e232c]">
+<div class="flex flex-col items-center justify-center border-l border-[#E5E7EB]">
 <div class="flex items-center gap-1.5">
-<span class="w-1.5 h-1.5 rounded-full bg-[#fa8c16]"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#F59E0B]"></span>
 <span class="text-[10px] text-[#575e70] font-medium">Raw</span>
 </div>
 <span id="ingest-queued-count" class="text-sm font-bold text-[#111827] mt-0.5">0</span>
@@ -782,7 +782,7 @@
 </div>
 </div>
 <!-- Recent Ingests Card -->
-<div class="bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-4 flex flex-col justify-between">
+<div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-3">
 <h2 class="text-sm font-semibold text-[#111827]">Recent Ingests</h2>
 <button class="text-[#575e70] hover:text-[#111827]" title="Transaction Options">
@@ -792,7 +792,7 @@
 </button>
 </div>
 <!-- Single Transaction Row -->
-<div id="recent-ingest-row" class="flex items-center justify-between bg-[#191c23] border border-[#222732] rounded-2xl p-3">
+<div id="recent-ingest-row" class="flex items-center justify-between bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-3">
 <div class="flex items-center gap-3">
 <div class="w-9 h-9 rounded-full bg-[#4f46e5] text-white flex items-center justify-center font-bold text-xs shrink-0">
                   #
@@ -800,7 +800,7 @@
 <div>
 <div class="flex items-center gap-2">
 <span id="recent-log-type" class="text-xs font-bold text-[#111827]">CEF</span>
-<span id="recent-log-vendor" class="w-4 h-4 rounded-full bg-[#1b253b] flex items-center justify-center text-[8px] text-[#4f46e5] font-bold border border-zinc-700">
+<span id="recent-log-vendor" class="w-4 h-4 rounded-full bg-[#ffffff] flex items-center justify-center text-[8px] text-[#4f46e5] font-bold border border-[#E5E7EB]">
                       P
                     </span>
 <span id="recent-log-latency" class="text-[10px] text-[#575e70]">~5 ms</span>
@@ -815,8 +815,8 @@
 </div>
 </div>
 
-<!-- BEGIN: ULPF Necessary - only what prototype needs, styled exactly like Sports card -->
-<div class="col-span-12 bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-5 flex flex-col gap-4">
+<!-- BEGIN  ULPF Necessary   only what prototype needs, styled exactly like Sports card -->
+<div class="col-span-12 bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col gap-4">
 <div class="flex items-center justify-between">
 <h2 class="text-sm font-semibold text-[#111827]">Perimeter Log Ingest — Live Pipeline</h2>
 <span class="text-[10px] px-2 py-1 rounded-full bg-[#4f46e5]/15 text-[#4f46e5] border border-[#4f46e5]/20">42 leaves • 5 ms • Offline</span>
@@ -824,34 +824,34 @@
 <div class="grid grid-cols-12 gap-5">
 <div class="col-span-12 lg:col-span-5 flex flex-col gap-3">
 <div id="drop-wrap" class="relative">
-<div id="drop" class="border border-dashed border-[#2a303b] rounded-2xl p-6 text-center text-sm text-[#575e70] bg-white hover:border-[#4f46e5]/40 transition-colors cursor-pointer">
-Drop log file here or paste below — live <span class="text-zinc-200">output/multi</span> → <span class="text-[#4f46e5]">POST /api/ingest</span> <span id="drop-status" class="text-[#4f46e5] ml-2"></span>
-<div id="log-type-menu" class="hidden absolute left-0 right-0 mt-2 bg-white border border-[#e5e7eb] rounded-2xl shadow-lg p-2 z-20 max-h-64 overflow-auto">
+<div id="drop" class="border border-dashed border-[#e0e7ff] rounded-2xl p-6 text-center text-sm text-[#575e70] bg-white hover:border-[#4f46e5]/40 transition-colors cursor-pointer">
+Drop log file here or paste below — live <span class="text-[#9CA3AF]">output/multi</span> → <span class="text-[#4f46e5]">POST /api/ingest</span> <span id="drop-status" class="text-[#4f46e5] ml-2"></span>
+<div id="log-type-menu" class="hidden absolute left-0 right-0 mt-2 bg-white border border-[#E0E7FF] rounded-2xl shadow-lg p-2 z-20 max-h-64 overflow-auto">
 <div class="text-[10px] text-[#9ca3af] px-2 py-1 uppercase tracking-widest">Select log type to ingest</div>
 <div class="grid grid-cols-2 gap-1 mt-1">
-<button data-format="paloalto_syslog" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">Palo Alto Syslog</button>
-<button data-format="cisco_asa" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">Cisco ASA</button>
-<button data-format="fortinet_fortigate" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">Fortinet FortiGate</button>
-<button data-format="cef" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">CEF</button>
-<button data-format="leef" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">LEEF</button>
-<button data-format="suricata_eve" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">Suricata EVE</button>
-<button data-format="zeek_tsv" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">Zeek TSV</button>
-<button data-format="generic_syslog" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">Generic Syslog</button>
-<button data-format="generic_json" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">Generic JSON</button>
-<button data-format="csv" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">CSV</button>
-<button data-format="xml" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">XML</button>
-<button data-format="ulpf_ocsf" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-[#4f46e5]">ULPF OCSF 4001</button>
-<button data-format="json" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">JSON</button>
-<button data-format="vendor" class="text-left px-3 py-2 rounded-xl hover:bg-[#1a1d24] text-xs text-zinc-300">Vendor Custom</button>
+<button data-format="paloalto_syslog" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Palo Alto Syslog</button>
+<button data-format="cisco_asa" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Cisco ASA</button>
+<button data-format="fortinet_fortigate" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Fortinet FortiGate</button>
+<button data-format="cef" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">CEF</button>
+<button data-format="leef" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">LEEF</button>
+<button data-format="suricata_eve" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Suricata EVE</button>
+<button data-format="zeek_tsv" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Zeek TSV</button>
+<button data-format="generic_syslog" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Generic Syslog</button>
+<button data-format="generic_json" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Generic JSON</button>
+<button data-format="csv" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">CSV</button>
+<button data-format="xml" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">XML</button>
+<button data-format="ulpf_ocsf" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#4f46e5]">ULPF OCSF 4001</button>
+<button data-format="json" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">JSON</button>
+<button data-format="vendor" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Vendor Custom</button>
 </div>
 </div>
 </div>
 </div>
-<textarea id="input" placeholder="Paste raw logs — one per line" class="w-full min-h-[180px] bg-white border border-[#e5e7eb] rounded-2xl p-3 text-xs text-[#111827] placeholder-zinc-500 focus:outline-none focus:border-[#4f46e5] font-mono"></textarea>
+<textarea id="input" placeholder="Paste raw logs — one per line" class="w-full min-h-[180px] bg-white border border-[#E0E7FF] rounded-2xl p-3 text-xs text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:border-[#4f46e5] font-mono"></textarea>
 <div class="flex gap-2">
 <button id="btn-classify" class="px-4 py-2 rounded-full bg-[#4f46e5] text-white text-xs font-bold hover:bg-[#4338ca]">Classify • ~5 ms</button>
-<button id="btn-batch" class="px-3 py-2 rounded-full bg-[#1a1d24] border border-[#2a303b] text-zinc-300 text-xs">Batch</button>
-<button id="btn-clear" class="px-3 py-2 rounded-full bg-transparent border border-[#2a303b] text-[#575e70] text-xs">Clear</button>
+<button id="btn-batch" class="px-3 py-2 rounded-full bg-[#ffffff] border border-[#e0e7ff] text-[#6B7280] text-xs">Batch</button>
+<button id="btn-clear" class="px-3 py-2 rounded-full bg-transparent border border-[#e0e7ff] text-[#575e70] text-xs">Clear</button>
 </div>
 <div id="chips" class="flex flex-wrap gap-1"></div>
 </div>
@@ -859,34 +859,34 @@ Drop log file here or paste below — live <span class="text-zinc-200">output/mu
 <div class="flex items-center justify-between">
 <span class="text-xs text-[#575e70]">Canonical NDJSON</span>
 <div class="flex gap-2">
-<button id="btn-copy" class="text-[11px] px-3 py-1 rounded-full bg-[#1a1d24] border border-[#2a303b] text-zinc-300">Copy</button>
-<button id="btn-download" class="text-[11px] px-3 py-1 rounded-full bg-[#1a1d24] border border-[#2a303b] text-zinc-300">Download</button>
+<button id="btn-copy" class="text-[11px] px-3 py-1 rounded-full bg-[#ffffff] border border-[#e0e7ff] text-[#6B7280]">Copy</button>
+<button id="btn-download" class="text-[11px] px-3 py-1 rounded-full bg-[#ffffff] border border-[#e0e7ff] text-[#6B7280]">Download</button>
 </div>
 </div>
-<pre id="output" class="bg-white border border-[#e5e7eb] rounded-2xl p-3 text-[11px] leading-relaxed text-zinc-300 overflow-auto max-h-[320px] whitespace-pre-wrap break-words">Press Classify — each line becomes a CanonicalEvent</pre>
-<div class="text-[10px] text-[#9ca3af]">Flow: <span class="text-zinc-300">RawLog</span> → local infer → cosine 42 → <span class="text-zinc-300">CanonicalEvent</span> • Batch one call</div>
+<pre id="output" class="bg-white border border-[#E0E7FF] rounded-2xl p-3 text-[11px] leading-relaxed text-[#6B7280] overflow-auto max-h-[320px] whitespace-pre-wrap break-words">Press Classify — each line becomes a CanonicalEvent</pre>
+<div class="text-[10px] text-[#9ca3af]">Flow: <span class="text-[#6B7280]">RawLog</span> → local infer → cosine 42 → <span class="text-[#6B7280]">CanonicalEvent</span> • Batch one call</div>
 </div>
 </div>
 </div>
 
 
-<div class="col-span-12 bg-[#14161b] border border-[#e5e7eb] rounded-3xl p-5 flex flex-col gap-4">
+<div class="col-span-12 bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col gap-4">
 <div class="flex items-center justify-between">
 <h2 class="text-sm font-semibold text-[#111827]">ONNX Live Normalisation — 42 leaves • 23MB quantized • 5 ms</h2>
 <span class="text-[10px] px-2 py-1 rounded-full bg-[#4f46e5]/15 text-[#4f46e5] border border-[#4f46e5]/20">local • offline • no cloud</span>
 </div>
 <div class="grid grid-cols-12 gap-4">
-<div class="col-span-12 lg:col-span-6 bg-white border border-[#e5e7eb] rounded-2xl p-4">
+<div class="col-span-12 lg:col-span-6 bg-white border border-[#E0E7FF] rounded-2xl p-4">
 <h3 class="text-xs font-semibold text-[#111827] mb-2">How it normalises live</h3>
 <p class="text-xs text-[#575e70] leading-relaxed">Paste any raw log below. The Go engine tokenizes with WordPiece to 128 tokens, runs the 23 MB quantized ONNX (mdbr-leaf-mt) with 3 tensors (input_ids, attention_mask, token_type_ids), mean pools hidden states, projects to 1024 dim, and cosines against 42 pre embedded leaf texts. Best above 0.5 wins or UNCLASSIFIED. Batch is one ONNX call for 100 lines (50 to 80 ms).</p>
 <div class="mt-3 flex gap-2">
-<span class="text-[10px] px-2 py-1 rounded-full bg-[#1a1d24] border border-[#2a303b] text-zinc-300">WordPiece 128</span>
-<span class="text-[10px] px-2 py-1 rounded-full bg-[#1a1d24] border border-[#2a303b] text-zinc-300">ONNX int8</span>
-<span class="text-[10px] px-2 py-1 rounded-full bg-[#1a1d24] border border-[#2a303b] text-zinc-300">1024 dim</span>
-<span class="text-[10px] px-2 py-1 rounded-full bg-[#1a1d24] border border-[#2a303b] text-zinc-300">cosine 42</span>
+<span class="text-[10px] px-2 py-1 rounded-full bg-[#ffffff] border border-[#e0e7ff] text-[#6B7280]">WordPiece 128</span>
+<span class="text-[10px] px-2 py-1 rounded-full bg-[#ffffff] border border-[#e0e7ff] text-[#6B7280]">ONNX int8</span>
+<span class="text-[10px] px-2 py-1 rounded-full bg-[#ffffff] border border-[#e0e7ff] text-[#6B7280]">1024 dim</span>
+<span class="text-[10px] px-2 py-1 rounded-full bg-[#ffffff] border border-[#e0e7ff] text-[#6B7280]">cosine 42</span>
 </div>
 </div>
-<div class="col-span-12 lg:col-span-6 bg-white border border-[#e5e7eb] rounded-2xl p-4">
+<div class="col-span-12 lg:col-span-6 bg-white border border-[#E0E7FF] rounded-2xl p-4">
 <h3 class="text-xs font-semibold text-[#111827] mb-2">What each log type is for</h3>
 <div class="text-xs text-[#575e70] leading-relaxed space-y-1">
 <div><span class="text-[#111827]">Palo Alto Syslog</span> — firewall traffic, allow/deny perimeter</div>
@@ -902,11 +902,11 @@ Drop log file here or paste below — live <span class="text-zinc-200">output/mu
 <div class="text-[11px] text-[#9ca3af]">Try: paste a Palo Alto CEF line → watch it become <code>type=REQUEST category=success</code> with confidence, or a Cisco ASA line → <code>ERROR.connection_failure</code>. Use the drop zone above or POST <code>/api/ingest?format=</code>.</div>
 </div>
 
-<!-- END: GridContent -->
+<!-- END  GridContent -->
 </div>
-<!-- END: DashboardBody -->
+<!-- END  DashboardBody -->
 </main>
-<!-- END: MainDashboardContainer -->
+<!-- END  MainDashboardContainer -->
 
 <script>
 // ULPF wire — drop + classify with real Go ONNX
@@ -932,7 +932,7 @@ async function doClassify(){
       const r=await fetch('/api/classify',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({logs:lines})});
       const j=await r.json();
       lastEvents=j.events; renderOutput(lastEvents);
-      // persist canonical events so dashboard stats move live (2->3) — was in-memory only
+      // persist canonical events so dashboard stats move live (2 >3) — was in memory only
       try{
         const ndjson = lastEvents.map(e=>JSON.stringify(e)).join('\n');
         const fmt = (typeof selectedFormat!=='undefined' && selectedFormat) ? selectedFormat : 'ulpf_ocsf';
@@ -1014,22 +1014,22 @@ document.getElementById('btn-top-alerts')?.addEventListener('click',()=>{ docume
 
 
 <script>
-// Make all data real - replace fake $ and fake counts with live ULPF data
+// Make all data real   replace fake $ and fake counts with live ULPF data
 async function refreshRealData(){
   try{
     const stats = await fetch('/api/stats',{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
     if(stats){
-      // Total Ingested - count, not $
+      // Total Ingested   count, not $
       const totalEl=document.getElementById('kpi-total-ingested');
       if(totalEl) totalEl.textContent = (stats.total_events||0).toLocaleString();
       // Donut center
       const donut=document.getElementById('donut-center');
       if(donut) donut.textContent = (stats.total_events||0).toLocaleString();
-      // Total Sources - distinct vendors approximation: use total_events as proxy, or query
+      // Total Sources   distinct vendors approximation  use total_events as proxy, or query
       // Update the second KPI (Total Sources) which is next to Total Ingested
       const kpis=document.querySelectorAll('.kpi b, [id^="kpi-"]');
-      // Find Total Sources card: look for text Total Sources
-      document.querySelectorAll('.bg-\\[\\#1f2812\\], .bg-\\[\\#292211\\]').forEach(el=>{});
+      // Find Total Sources card  look for text Total Sources
+      document.querySelectorAll('.bg-\\[\\#f2f4f8\\], .bg-\\[\\#f2f4f8\\]').forEach(el=>{});
       // Update Ingest Activity Active/Queued from buckets
       const activeEl=document.querySelector('#live-graph');
       // Already handled by refreshStats
@@ -1046,7 +1046,7 @@ async function refreshRealData(){
       const lastEl=document.getElementById('last-normalize-time');
       if(lastEl && lastNorm) lastEl.textContent = new Date(parseInt(lastNorm)).toLocaleString();
     }
-    // Last ingest time - from file stats last_24h or from localStorage
+    // Last ingest time   from file stats last_24h or from localStorage
     const lastIngestEl=document.getElementById('last-ingest-time');
     if(lastIngestEl){
       const lastIngest=localStorage.getItem('ulpf_last_ingest');
@@ -1054,7 +1054,7 @@ async function refreshRealData(){
       else if(stats && stats.last_24h>0) lastIngestEl.textContent = new Date().toLocaleString() + ' • ' + stats.last_24h + ' in 24h';
       else lastIngestEl.textContent = 'never — drop a file';
     }
-    // Top 5 Vendors and Parsers - query real distribution
+    // Top 5 Vendors and Parsers   query real distribution
     try{
       const q=await fetch('/api/query',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sql:'SELECT * FROM lake WHERE class_uid=4001'})}).then(r=>r.json()).catch(()=>null);
       if(q && q.rows){
@@ -1069,7 +1069,7 @@ async function refreshRealData(){
         // Update Top 5 Vendors bars if present
         const vendors=Object.entries(vendorCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
         // Find the Top 5 Vendors card and update its bars
-        const vendorCard=document.querySelector('#donut-center')?.closest('.bg-\\[\\#14161b\\]');
+        const vendorCard=document.querySelector('#donut-center')?.closest('.bg-\\[\\#ffffff\\]');
         // For now, just log
         console.log('vendors', vendors, 'parsers', parserCounts);
       }
@@ -1132,14 +1132,14 @@ if(origHandleFiles2){
 }
 
 // Fix Ingest Activity graph to be real time already handled by refreshStats, but ensure it shows counts not $
-document.querySelectorAll('.bg-\\[\\#14161b\\]').forEach(card=>{
+document.querySelectorAll('.bg-\\[\\#ffffff\\]').forEach(card=>{
   // Find the $ values in Total Ingested etc. and ensure they are not $ for counts
   card.querySelectorAll('p.text-base').forEach(p=>{
     if(p.textContent.includes('$') && p.textContent.includes(',')){
-      // Check if parent is Total Ingested etc. - the $ is wrong for counts
+      // Check if parent is Total Ingested etc.   the $ is wrong for counts
       const label=card.querySelector('p.text-\\[11px\\]')?.textContent||'';
       if(label.includes('Sources') || label.includes('Time')){
-        // These should be counts, not dollars - remove $
+        // These should be counts, not dollars   remove $
         p.textContent = p.textContent.replace('$','').replace('.0','');
       }
     }
@@ -1149,7 +1149,7 @@ document.querySelectorAll('.bg-\\[\\#14161b\\]').forEach(card=>{
 
 
 <script>
-// Make remaining fake cards live - ULPF real data
+// Make remaining fake cards live   ULPF real data
 async function refreshAllCards(){
   try{
     const stats = await fetch('/api/stats',{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
@@ -1161,8 +1161,8 @@ async function refreshAllCards(){
       if(avgLatencyEl && health && health.latencyMs) avgLatencyEl.textContent = health.latencyMs.toFixed(1)+' ms';
       const recentCount = document.getElementById('recent-ingest-count');
       if(recentCount) recentCount.textContent = '+' + (stats.total_events||0);
-      // live KPIs: Total Normalized, Normalization Rate, Event Count, Ingested/Failed
-      const totalNormEls = document.querySelectorAll('.bg-\\[\\#313f17\\] p.text-xl, #donut-center');
+      // live KPIs  Total Normalized, Normalization Rate, Event Count, Ingested/Failed
+      const totalNormEls = document.querySelectorAll('.bg-\\[\\#ffffff\\] p.text-xl, #donut-center');
       // donuts + Total Normalized card share same value = normalized
       const donut=document.getElementById('donut-center');
       if(donut) donut.textContent = (stats.total_events||0).toLocaleString();
@@ -1172,14 +1172,14 @@ async function refreshAllCards(){
         if(label.includes('Total Normalized')) el.textContent = (stats.normalized ?? stats.total_events ?? 0).toLocaleString();
         if(label.includes('Event Count')) el.textContent = (stats.total_events ?? 0).toLocaleString();
       });
-      // Normalization Rate 34% -> real rate
+      // Normalization Rate 34%  > real rate
       document.querySelectorAll('span.text-xs').forEach(lbl=>{
         if(lbl.textContent.includes('Normalization Rate')){
           const valEl = lbl.closest('div')?.parentElement?.querySelector('p.text-xl');
           if(valEl) valEl.textContent = (stats.rate ?? 0) + '%';
         }
       });
-      // Ingested 1,284 / Failed 11,443 duo -> real
+      // Ingested 1,284 / Failed 11,443 duo  > real
       const ingestActiveCount=document.getElementById('ingest-active-count');
       if(ingestActiveCount) ingestActiveCount.textContent = String(stats.normalized ?? 0);
       const ingestQueuedCount=document.getElementById('ingest-queued-count');
@@ -1229,7 +1229,7 @@ async function refreshAllCards(){
             if(nameEl) nameEl.textContent=vendors[i][0];
           }
         });
-        // Update Top 5 Parsers (the one with NFL) - same rows
+        // Update Top 5 Parsers (the one with NFL)   same rows
         // For the Palo Alto card
         const paloCount=document.getElementById('palo-count');
         if(paloCount && vendorCounts['Palo Alto']) paloCount.textContent=vendorCounts['Palo Alto'].toLocaleString();
@@ -1264,9 +1264,9 @@ document.querySelectorAll('[data-tab-detail]').forEach(btn=>{
     document.getElementById('tab-events')?.classList.add('hidden');
     document.getElementById('tab-bets')?.classList.add('hidden');
     document.getElementById('tab-plays')?.classList.add('hidden');
-    // Palo Alto card is not in a tab- container, it's the main card
+    // Palo Alto card is not in a tab  container, it's the main card
     const paloCard=document.querySelector('div:has(> div > h3.text-[#111827])');
-    // Simpler: hide/show via display
+    // Simpler  hide/show via display
     ['tab-events','tab-bets','tab-plays'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.style.display='none';
@@ -1275,18 +1275,18 @@ document.querySelectorAll('[data-tab-detail]').forEach(btn=>{
     if(showEl) showEl.style.display='block';
     // For players, also ensure Palo Alto card is visible (it is the default)
     if(target==='tab-palo'){
-      document.querySelector('.bg-\\[\\#14161b\\].border').style.display='block';
+      document.querySelector('.bg-\\[\\#ffffff\\].border').style.display='block';
     }
   });
 });
-// Ensure Palo Alto card has an id for tab-palo
+// Ensure Palo Alto card has an id for tab palo
 const paloCard2=document.querySelector('div:has(> div > h3)');
 if(paloCard2 && !document.getElementById('tab-palo')){
   // Find the Palo Alto card by its h3
   const h3s=document.querySelectorAll('h3');
   for(const h of h3s){
     if(h.textContent.includes('Palo Alto')){
-      const card=h.closest('.bg-\[\#14161b\]');
+      const card=h.closest('.bg-\[\#ffffff\]');
       if(card) card.id='tab-palo';
     }
   }
