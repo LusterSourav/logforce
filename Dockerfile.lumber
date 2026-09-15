@@ -8,11 +8,12 @@ COPY models ./models
 RUN go build -o /out/ulpf-server server.go
 
 FROM alpine:3.19
-RUN apk add --no-cache ca-certificates libgomp
+RUN apk add --no-cache ca-certificates libgomp wget tar
 WORKDIR /app
 COPY --from=builder /out/ulpf-server /usr/local/bin/ulpf-server
 COPY ui/dashboard.html /app/ui/dashboard.html
 COPY models /app/models
+RUN wget -q https://github.com/microsoft/onnxruntime/releases/download/v1.20.1/onnxruntime-linux-x64-1.20.1.tgz -O /tmp/ort.tgz && tar -xzf /tmp/ort.tgz -C /tmp && cp /tmp/onnxruntime-linux-x64-1.20.1/lib/libonnxruntime.so* /app/models/ 2>/dev/null || cp /tmp/onnxruntime-linux-x64-1.20.1/lib/* /app/models/; ls -lh /app/models/
 ENV LUMBER_MODEL_DIR=/app/models
 ENV STATIC_DIR=/app/ui
 ENV PORT=8081
