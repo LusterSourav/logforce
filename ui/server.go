@@ -123,7 +123,7 @@ func main() {
 	})
 
 	// serve the dashboard itself. dashboard.html lives next to this binary.
-	// fix: only dashboard at /dashboard.html, no directory listing at /
+	// fix  only dashboard at /dashboard.html, no directory listing at /
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
 			http.ServeFile(w, r, filepath.Join(staticDir, "dashboard.html"))
@@ -193,6 +193,270 @@ func isNestedCause(line string) bool {
 	return strings.Contains(trimmed, "NESTED TRACE") || strings.Contains(trimmed, "caused by:") || strings.Contains(trimmed, "Caused by:")
 }
 
+func isWindowsEventKV(line string) bool {
+	// Key  Value shape, e.g. "LogName  Microsoft Windows PowerShell/Operational"
+	// ponytail  naive colon position heuristic, regex if onboarding more formats
+	idx := strings.Index(line, ":")
+	if idx < 1 || idx > 50 {
+		return false
+	}
+	key := strings.TrimSpace(line[:idx])
+	if key == "" || strings.Contains(key, " ") && len(key) > 30 {
+		return false
+	}
+	return len(strings.TrimSpace(line[idx+1:])) > 0
+}
+
+func isWindowsEventStart(line string) bool {
+	t := line
+	return strings.Contains(t, "LogName:") || strings.Contains(t, "EventID:") ||
+		strings.Contains(t, "Microsoft-Windows-PowerShell") || strings.Contains(t, "Microsoft-Windows-Security-Auditing") ||
+		strings.Contains(t, "ScriptBlock") || strings.Contains(t, "Creating Scriptblock")
+}
+
+func isWindowsSecuritySignal(s string) bool {
+	for _, k := range []string{
+		"Microsoft-Windows-PowerShell", "Microsoft-Windows-Security-Auditing",
+		"Sysmon", "EventID", "LogName:", "ScriptBlock", "Creating Scriptblock",
+		"ScriptBlockId", "MessageNumber", "PowerShell",
+	} {
+		if strings.Contains(s, k) {
+			return true
+		}
+	}
+	return false
+}
+
+// classifyWindowsGroup is a deterministic router that runs BEFORE the ONNX
+// cosine lookup. The 42 leaf taxonomy has no SECURITY root, so argmax always
+// forces a wrong answer (SYSTEM/config_change, REQUEST/success, ...).
+// Returns typ, cat, severity, ok.
+func classifyWindowsGroup(joined string) (string, string, string, bool) {
+	j := joined
+	lower := strings.ToLower(joined)
+	if !isWindowsSecuritySignal(j) {
+		return "", "", "", false
+	}
+	// Malicious payload indicators first (Sigma 4104 corpus  Invoke Mimikatz,
+	// FromBase64String+IEX+WebClient,  EncodedCommand). Severity critical.
+	for _, k := range []string{
+		"invoke-mimikatz", "invoke-shellcode", "invoke-expression", "frombase64string",
+		"mimikatz", "sekurlsa", "kerberos::", "-encodedcommand", "-enc ",
+		"downloadstring", "net.webclient", "invoke-obfuscation",
+	} {
+		if strings.Contains(lower, strings.ToLower(k)) {
+			return "SECURITY", "malicious_script", "critical", true
+		}
+	}
+	// 4104 Script Block Logging / 4103 module logging  > script execution.
+	if strings.Contains(j, "4104") || strings.Contains(j, "ScriptBlock") || strings.Contains(j, "Creating Scriptblock") {
+		sev := "info"
+		if strings.Contains(lower, "level: warning") || strings.Contains(lower, "warning") && strings.Contains(j, "4104") {
+			sev = "warning" // MS  Level=Warning means engine flagged suspicious content
+		}
+		if strings.Contains(lower, "write-host") || strings.Contains(lower, "checking for") {
+			return "SECURITY", "script_execution", sev, true
+		}
+		return "SECURITY", "script_execution", sev, true
+	}
+	if strings.Contains(j, "4103") || strings.Contains(j, "Pipeline Execution") || strings.Contains(j, "Module Logging") {
+		return "SECURITY", "script_execution", "info", true
+	}
+	// Process creation / logon auditing.
+	if strings.Contains(j, "4688") || strings.Contains(lower, "new process") || strings.Contains(lower, "process creation") {
+		return "SECURITY", "process_creation", "info", true
+	}
+	if strings.Contains(j, "4624") || strings.Contains(j, "4625") || strings.Contains(lower, "logon") {
+		return "SECURITY", "authentication", "info", true
+	}
+	// Pure envelope metadata (LogName/EventID/Level/Description headers).
+	if strings.Contains(j, "LogName:") || strings.Contains(j, "EventID:") || strings.HasPrefix(strings.TrimSpace(j), "Level:") || strings.HasPrefix(strings.TrimSpace(j), "Description:") {
+		return "SECURITY", "audit_metadata", "info", true
+	}
+	return "SECURITY", "audit_event", "info", true
+}
+
+func isNetworkVendorSignal(s string) bool {
+	// Mirrors parsing/decoders/perimeter.yml prematch anchors.
+	lower := strings.ToLower(s)
+	for _, k := range []string{
+		"paloalto", "pan-os", "fortigate", "suricata", "snort",
+		"traffic,", "threat,", `"event_type":"alert"`, "et exploit", "et malware", "et c2",
+	} {
+		if strings.Contains(lower, k) {
+			return true
+		}
+	}
+	for _, k := range []string{"%ASA-", "CEF:", "TRAFFIC,", "THREAT,", `"event_type": "alert"`} {
+		if strings.Contains(s, k) {
+			return true
+		}
+	}
+	return false
+}
+
+// classifyNetworkGroup routes firewall / traffic / IDS formats BEFORE the ONNX
+// cosine lookup. Same forced choice problem as Windows logs  the 42 leaf
+// taxonomy has no NETWORK leaf, so TRAFFIC→latency_spike, CEF act=allow→redirect,
+// Suricata alert→redirect, ASA Built→connection_failure. Returns typ, cat, severity, ok.
+func classifyNetworkGroup(joined string) (string, string, string, bool) {
+	if !isNetworkVendorSignal(joined) {
+		return "", "", "", false
+	}
+	lower := strings.ToLower(joined)
+
+	// IDS intrusion alert first  always escalate, never a web redirect.
+	if strings.Contains(joined, `"event_type":"alert"`) || strings.Contains(joined, `"event_type": "alert"`) ||
+		(strings.Contains(lower, "suricata") && strings.Contains(lower, "signature")) ||
+		(strings.Contains(lower, "snort") && strings.Contains(lower, "signature")) {
+		sev := "high"
+		targeted := strings.Contains(lower, "exploit") || strings.Contains(lower, "c2") ||
+			strings.Contains(lower, "trojan") || strings.Contains(lower, "malware")
+		if targeted ||
+			strings.Contains(joined, `"severity":1`) || strings.Contains(joined, `"severity": 1`) {
+			sev = "critical"
+		}
+		if strings.Contains(lower, "et info") && !targeted && sev == "critical" {
+			sev = "high" // ET INFO class (e.g. STUN binding) is recon/info  cap below critical
+		}
+		return "SECURITY", "ids_alert", sev, true
+	}
+
+	// Cisco ASA  %ASA <level> <msg>. "Built ... 302013/302014" is a successful
+	// session build, NOT a connection failure (the old false trigger on "Built").
+	if strings.Contains(joined, "%ASA-") {
+		sev := "info"
+		if i := strings.Index(joined, "%ASA-"); i >= 0 && i+5 < len(joined) {
+			switch joined[i+5] {
+			case '1', '2':
+				sev = "critical"
+			case '3':
+				sev = "error"
+			case '4':
+				sev = "warning"
+			}
+		}
+		if strings.Contains(lower, "deny") || strings.Contains(lower, "denied") ||
+			strings.Contains(joined, "106023") || strings.Contains(joined, "106100") ||
+			strings.Contains(joined, "106015") || strings.Contains(joined, "106021") {
+			if sev == "info" {
+				sev = "warning"
+			}
+			return "NETWORK", "firewall_deny", sev, true
+		}
+		return "NETWORK", "firewall_session", sev, true
+	}
+
+	// CEF  route on act=, not on embedded IPs/ports.
+	if strings.Contains(joined, "CEF:") {
+		act := ""
+		if i := strings.Index(lower, "act="); i >= 0 {
+			rest := lower[i+4:]
+			if j := strings.IndexAny(rest, " |"); j >= 0 {
+				act = rest[:j]
+			} else {
+				act = rest
+			}
+		}
+		switch act {
+		case "deny", "drop", "block", "quarantine", "reset":
+			return "SECURITY", "policy_deny", "warning", true
+		}
+		return "NETWORK", "traffic_flow", "info", true
+	}
+
+	// Palo Alto  THREAT subtype is a security event; TRAFFIC is a flow.
+	if strings.Contains(joined, "THREAT,") || strings.Contains(lower, "threat,") {
+		sev := "warning"
+		switch {
+		case strings.Contains(lower, "critical"):
+			sev = "critical"
+		case strings.Contains(lower, "high"):
+			sev = "error"
+		case strings.Contains(lower, "medium"):
+			sev = "warning"
+		case strings.Contains(lower, "low"):
+			sev = "info"
+		}
+		return "SECURITY", "threat_event", sev, true
+	}
+	if strings.Contains(joined, "TRAFFIC,") || strings.Contains(lower, "traffic,") ||
+		strings.Contains(lower, "paloalto") || strings.Contains(lower, "pan-os") {
+		return "NETWORK", "traffic_flow", "info", true
+	}
+
+	// FortiGate  route on action=.
+	if strings.Contains(lower, "fortigate") {
+		if strings.Contains(lower, "action=deny") || strings.Contains(lower, "action=drop") ||
+			strings.Contains(lower, "action=block") {
+			return "NETWORK", "firewall_deny", "warning", true
+		}
+		return "NETWORK", "traffic_flow", "info", true
+	}
+
+	return "NETWORK", "traffic_flow", "info", true
+}
+
+// classifyCrashGroup catches app crash headers (Android logcat FATAL EXCEPTION,
+// Java exception chains) BEFORE ONNX. Unambiguous crash language; the model
+// already gets these right most of the time, this just pins them.
+func classifyCrashGroup(joined string) (string, string, string, bool) {
+	lower := strings.ToLower(joined)
+	if strings.Contains(lower, "fatal exception") {
+		return "ERROR", "runtime_exception", "error", true
+	}
+	return "", "", "", false
+}
+
+// classifyDeterministic tries crash, network vendor, then Windows security
+// routers. Any hit bypasses ONNX; otherwise ok=false → model.
+func classifyDeterministic(joined string) (string, string, string, bool) {
+	if t, c, s, ok := classifyCrashGroup(joined); ok {
+		return t, c, s, true
+	}
+	if t, c, s, ok := classifyNetworkGroup(joined); ok {
+		return t, c, s, true
+	}
+	return classifyWindowsGroup(joined)
+}
+
+func containsExceptionCI(line string) bool {
+	// Case insensitive  logcat uses "FATAL EXCEPTION ", Java "NullPointerException ".
+	return strings.Contains(strings.ToLower(line), "exception:")
+}
+
+func isCrashContinuation(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	if isStackFrame(line) || isNestedCause(line) {
+		return true
+	}
+	if strings.HasPrefix(trimmed, "Process:") || strings.Contains(trimmed, "PID:") {
+		return true // AndroidRuntime context lines belong to the crash above
+	}
+	if containsExceptionCI(line) {
+		return true // chained root cause, e.g. java.lang.NullPointerException  ...
+	}
+	if strings.HasPrefix(trimmed, "...") && strings.Contains(trimmed, "more") {
+		return true // Java "... 5 more" truncated frame marker
+	}
+	return false
+}
+
+func isNewEventAnchor(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	if len(trimmed) >= 6 && trimmed[0] >= '0' && trimmed[0] <= '9' &&
+		trimmed[1] >= '0' && trimmed[1] <= '9' && trimmed[2] == '-' &&
+		trimmed[3] >= '0' && trimmed[3] <= '9' && trimmed[4] >= '0' && trimmed[4] <= '9' {
+		return true // logcat date MM DD starts a new event
+	}
+	for _, p := range []string{"<", "%ASA-", "CEF:", "{", "LogName:", "EventID:"} {
+		if strings.HasPrefix(trimmed, p) {
+			return true // syslog / ASA / CEF / JSON / Windows envelope
+		}
+	}
+	return false
+}
+
 func groupLogsForClassification(logs []string) ([][]string, []int) {
 	// Groups logs so stack traces are classified with context.
 	// Returns groups and a map from original index to group index for later expansion.
@@ -204,7 +468,7 @@ func groupLogsForClassification(logs []string) ([][]string, []int) {
 		line := logs[i]
 		trimmed := strings.TrimSpace(line)
 
-		// Boundary markers - keep as standalone but mark as trace metadata
+		// Boundary markers   keep as standalone but mark as trace metadata
 		if isTraceStart(line) || isTraceEnd(line) {
 			groups = append(groups, []string{line})
 			groupForOriginal = append(groupForOriginal, len(groups)-1)
@@ -212,11 +476,12 @@ func groupLogsForClassification(logs []string) ([][]string, []int) {
 			continue
 		}
 
-		// Exception header followed by frames - only immediate frames, not nested causes
-		if strings.Contains(line, "Exception:") || strings.Contains(line, "NullPointerException") || strings.Contains(line, "ConnectException") {
+		// Exception/crash header + context  Android "FATAL EXCEPTION" (uppercase),
+		// "Process /PID " context lines, chained causes, and stack frames form ONE event.
+		if containsExceptionCI(line) {
 			group := []string{line}
 			j := i + 1
-			for j < len(logs) && isStackFrame(logs[j]) {
+			for j < len(logs) && j < i+30 && !isNewEventAnchor(logs[j]) && isCrashContinuation(logs[j]) {
 				group = append(group, logs[j])
 				j++
 			}
@@ -233,19 +498,19 @@ func groupLogsForClassification(logs []string) ([][]string, []int) {
 			continue
 		}
 
-		// Lone stack frame without header (e.g., pasted frame) - treat as part of trace if previous was exception
+		// Lone stack frame without header (e.g., pasted frame)   treat as part of trace if previous was exception
 		if isStackFrame(line) {
 			// If previous group was a trace, attach to it instead of new group
 			if len(groups) > 0 && len(groups[len(groups)-1]) > 0 {
 				prevHeader := groups[len(groups)-1][0]
-				if strings.Contains(prevHeader, "Exception") {
+				if containsExceptionCI(prevHeader) {
 					groups[len(groups)-1] = append(groups[len(groups)-1], line)
 					groupForOriginal = append(groupForOriginal, -1)
 					i++
 					continue
 				}
 			}
-			// Otherwise standalone frame - keep but will be classified with low confidence handling
+			// Otherwise standalone frame   keep but will be classified with low confidence handling
 			groups = append(groups, []string{line})
 			groupForOriginal = append(groupForOriginal, len(groups)-1)
 			i++
@@ -269,7 +534,7 @@ func groupLogsForClassification(logs []string) ([][]string, []int) {
 			continue
 		}
 
-		// JSON click event - keep as single group but we will post-process
+		// JSON click event   keep as single group but we will post process
 		if strings.Contains(trimmed, "\"action\":\"click\"") || strings.Contains(trimmed, "\"action\": \"click\"") {
 			groups = append(groups, []string{line})
 			groupForOriginal = append(groupForOriginal, len(groups)-1)
@@ -277,7 +542,42 @@ func groupLogsForClassification(logs []string) ([][]string, []int) {
 			continue
 		}
 
-		// Default: standalone
+		// Windows EventLog block  consecutive Key  Value lines (+ script payload)
+		// belong to ONE audit event. dashboard.html splits on '\n', so reassemble
+		// here. e.g. LogName/EventID/Level/Description/Write Host chunk.
+		if isWindowsEventStart(line) || (isWindowsEventKV(line) && isWindowsSecuritySignal(line)) {
+			group := []string{line}
+			j := i + 1
+			for j < len(logs) && j < i+20 {
+				nxt := logs[j]
+				if isTraceStart(nxt) || isTraceEnd(nxt) || strings.Contains(nxt, "Exception:") {
+					break
+				}
+				if strings.Contains(nxt, "LogName:") {
+					break // next event begins; EventID/Level/Description/Scriptblock are continuations
+				}
+				if isWindowsEventKV(nxt) || isWindowsSecuritySignal(nxt) || strings.TrimSpace(nxt) == "" || strings.Contains(nxt, "Write-Host") || strings.Contains(nxt, "Scriptblock") {
+					if strings.TrimSpace(nxt) != "" {
+						group = append(group, nxt)
+					}
+					j++
+					continue
+				}
+				break
+			}
+			groups = append(groups, group)
+			for k := i; k < j; k++ {
+				if k == i {
+					groupForOriginal = append(groupForOriginal, len(groups)-1)
+				} else {
+					groupForOriginal = append(groupForOriginal, -1)
+				}
+			}
+			i = j
+			continue
+		}
+
+		// Default  standalone
 		groups = append(groups, []string{line})
 		groupForOriginal = append(groupForOriginal, len(groups)-1)
 		i++
@@ -285,7 +585,7 @@ func groupLogsForClassification(logs []string) ([][]string, []int) {
 
 	// Trim any mismatch (defensive)
 	if len(groupForOriginal) != len(logs) {
-		// fallback to 1:1
+		// fallback to 1 1
 		groups = nil
 		groupForOriginal = nil
 		for _, l := range logs {
@@ -310,12 +610,6 @@ func isTraceGroup(lines []string) bool {
 
 func handleClassify(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if lum == nil {
-		w.WriteHeader(503)
-		json.NewEncoder(w).Encode(map[string]string{"error": "model not loaded " + lumErr, "fallback": "mock"})
-		return
-	}
-
 	var req ClassifyReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(400)
@@ -327,11 +621,15 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Group logs to preserve multi-line trace context before classification
+	// Group logs to preserve multi line trace context before classification
 	groups, groupMap := groupLogsForClassification(req.Logs)
 
-	// Prepare inputs for the model - join trace groups with context
+	// Prepare inputs for the model   join trace groups with context
 	modelInputs := make([]string, len(groups))
+	winTyp := make([]string, len(groups))
+	winCat := make([]string, len(groups))
+	winSev := make([]string, len(groups))
+	winHit := make([]bool, len(groups))
 	for idx, g := range groups {
 		if len(g) == 1 {
 			modelInputs[idx] = g[0]
@@ -339,18 +637,45 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 			// Join with separator so model sees the header + frame together
 			modelInputs[idx] = strings.Join(g, " | ")
 		}
+		if t, c, s, ok := classifyDeterministic(modelInputs[idx]); ok {
+			winTyp[idx], winCat[idx], winSev[idx], winHit[idx] = t, c, s, true
+		}
+	}
+	if lum == nil {
+		// Model down  still answer deterministic vendor/security hits, else 503.
+		hasHit := false
+		for _, h := range winHit {
+			if h {
+				hasHit = true
+				break
+			}
+		}
+		if !hasHit {
+			w.WriteHeader(503)
+			json.NewEncoder(w).Encode(map[string]string{"error": "model not loaded " + lumErr, "fallback": "mock"})
+			return
+		}
+		// fall through with empty groupEvents; winHit path below fills output
 	}
 
 	t0 := time.Now()
-	groupEvents, err := lum.ClassifyBatch(modelInputs)
-	lat := time.Since(t0).Seconds() * 1000
-	if err != nil {
-		w.WriteHeader(500)
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
-		return
+	var groupEvents []lumber.Event
+	var lat float64
+	if lum != nil {
+		ge, err := lum.ClassifyBatch(modelInputs)
+		lat = time.Since(t0).Seconds() * 1000
+		if err != nil {
+			w.WriteHeader(500)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		groupEvents = ge
+	} else {
+		lat = time.Since(t0).Seconds() * 1000
+		// lum nil but winHit guaranteed non empty here (checked above)
 	}
 
-	// Expand groups back to per-line events, but fix hallucinated categories
+	// Expand groups back to per line events, but fix hallucinated categories
 	type out struct {
 		Type       string  `json:"type"`
 		Category   string  `json:"category"`
@@ -361,12 +686,44 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 		Raw        string  `json:"raw"`
 	}
 
+	// One event per group  multi line groups (crash + context, Windows envelope)
+	// emit as a single stitched entity with \n joined raw, not per line fragments.
 	var outEvents []out
+	emitted := make(map[int]bool, len(groups))
 	for origIdx, grpIdx := range groupMap {
-		raw := req.Logs[origIdx]
-		trimmedRaw := strings.TrimSpace(raw)
+		if grpIdx < 0 || grpIdx >= len(groups) {
+			continue // continuation line  merged into its group head
+		}
+		if emitted[grpIdx] {
+			continue
+		}
+		emitted[grpIdx] = true
+		g := groups[grpIdx]
+		raw := strings.Join(g, "\n")
+		summary := strings.TrimSpace(req.Logs[origIdx])
+		if len(g) > 1 {
+			summary = raw // stitched entity keeps full context in summary
+		}
+		trimmedRaw := summary
 
-		// Boundary markers: deterministic pattern matches, not model predictions
+		// Deterministic vendor/security router wins over ONNX argmax.
+		// The 42 leaf taxonomy has no SECURITY or NETWORK leaf, so cosine is forced wrong.
+		if grpIdx >= 0 && grpIdx < len(winHit) && winHit[grpIdx] {
+			conf := 0.93
+			if winCat[grpIdx] == "malicious_script" || winCat[grpIdx] == "ids_alert" {
+				conf = 0.97
+			} else if winCat[grpIdx] == "audit_metadata" {
+				conf = 0.95
+			}
+			outEvents = append(outEvents, out{
+				Type: winTyp[grpIdx], Category: winCat[grpIdx], Severity: winSev[grpIdx],
+				Timestamp: time.Now().Format(time.RFC3339Nano),
+				Summary:   trimmedRaw, Confidence: conf, Raw: raw,
+			})
+			continue
+		}
+
+		// Boundary markers  deterministic pattern matches, not model predictions
 		// Use high confidence (0.95) and consistent trace_boundary category so they
 		// don't flap near the 0.5 threshold when monitored. These are infra markers,
 		// not data events, and should be excluded from model confidence intervals.
@@ -386,32 +743,10 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 			})
 			continue
 		}
-		if grpIdx == -1 {
-			// This line is a frame that was grouped with its header - inherit parent classification
-			// Find the parent group
-			// Walk backwards to find the group header
-			parentIdx := -1
-			for j := origIdx - 1; j >= 0; j-- {
-				if groupMap[j] != -1 {
-					parentIdx = groupMap[j]
-					break
-				}
-			}
-			if parentIdx >= 0 && parentIdx < len(groupEvents) {
-				pe := groupEvents[parentIdx]
-				outEvents = append(outEvents, out{
-					Type: pe.Type, Category: pe.Category, Severity: pe.Severity,
-					Timestamp: pe.Timestamp.Format(time.RFC3339Nano),
-					Summary: trimmedRaw, Confidence: pe.Confidence * 0.92, Raw: raw,
-				})
-				continue
-			}
-		}
-
-		// Normal case: this original line maps to a group
+		// Normal case  this original line maps to a group
 		if grpIdx >= 0 && grpIdx < len(groupEvents) {
 			ge := groupEvents[grpIdx]
-			// Post-process known hallucinations
+			// Post process known hallucinations
 			cat := ge.Category
 			typ := ge.Type
 
@@ -462,6 +797,15 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 				Type: ge.Type, Category: ge.Category, Severity: ge.Severity,
 				Timestamp: ge.Timestamp.Format(time.RFC3339Nano),
 				Summary: trimmedRaw, Confidence: ge.Confidence, Raw: raw,
+			})
+			continue
+		}
+		// Model down + non Windows line  keep event, mark UNCLASSIFIED.
+		if grpIdx >= 0 {
+			outEvents = append(outEvents, out{
+				Type: "UNCLASSIFIED", Category: "unknown", Severity: "info",
+				Timestamp: time.Now().Format(time.RFC3339Nano),
+				Summary: trimmedRaw, Confidence: 0.2, Raw: raw,
 			})
 		}
 	}
@@ -562,7 +906,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 
 func handleQuery(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	// Accept both { "sql": "SELECT ..." } and { "query": "class_uid=4001" }
+	// Accept both { "sql"  "SELECT ..." } and { "query"  "class_uid=4001" }
 	var req map[string]string
 	_ = json.NewDecoder(r.Body).Decode(&req)
 	sqlStr := req["sql"]
@@ -574,8 +918,8 @@ func handleQuery(w http.ResponseWriter, r *http.Request) {
 	}
 	// normalize the DataFusion style query the prototype docs show
 	// we support two forms that prove prune
-	// - raw SQL like SELECT * FROM lake WHERE class_uid=4001
-	// - simple filter like class_uid=4001 or vendor=ulpf
+	//   raw SQL like SELECT * FROM lake WHERE class_uid=4001
+	//   simple filter like class_uid=4001 or vendor=ulpf
 	classFilter := 0
 	vendorFilter := ""
 	if strings.Contains(sqlStr, "4001") {
@@ -600,7 +944,7 @@ func handleQuery(w http.ResponseWriter, r *http.Request) {
 	files = append(files, hiveFiles...)
 
 	for _, fp := range files {
-		// prune simulation - files under class=4001 are kept, others would be skipped
+		// prune simulation   files under class=4001 are kept, others would be skipped
 		// since prototype only has 4001, pruned stays 0 but we report the mechanism
 		if classFilter == 4001 && !strings.Contains(fp, "class=4001") && strings.Contains(fp, "class=") {
 			pruned++
@@ -641,7 +985,7 @@ func handleQuery(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// also try Postgres count for the same filter to prove Vector -> Postgres path
+	// also try Postgres count for the same filter to prove Vector  > Postgres path
 	pgCount := -1
 	if pg != nil {
 		q := `select count(*) from events where 1=1`
