@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "cleanUrls": false,
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/ui/dashboard.html" },
+    { "source": "/dashboard.html", "destination": "/ui/dashboard.html" },
+    { "source": "/", "destination": "/ui/dashboard.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    }
+  ]
+}
