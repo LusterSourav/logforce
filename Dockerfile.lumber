@@ -1,14 +1,14 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-bookworm AS builder
 WORKDIR /src
-RUN apk add --no-cache build-base
+RUN apt-get update && apt-get install -y build-essential
 COPY ui/go.mod ui/go.sum* ./
 RUN go mod download || true
 COPY ui/server.go ./
 COPY models ./models
 RUN go build -o /out/ulpf-server server.go
 
-FROM alpine:3.19
-RUN apk add --no-cache ca-certificates libgomp libstdc++ wget tar gcompat
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y ca-certificates wget tar libgomp1 libstdc++6 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /out/ulpf-server /usr/local/bin/ulpf-server
 COPY ui/dashboard.html /app/ui/dashboard.html
