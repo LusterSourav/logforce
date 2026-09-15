@@ -688,7 +688,7 @@
 <span class="text-[11px] text-[#6B7280] font-medium">Ingested</span>
 <span class="text-[9px] bg-[#ffffff] text-[#4f46e5] px-1 py-0.5 rounded font-semibold">+4,5%</span>
 </div>
-<p class="text-base font-bold text-[#111827] tracking-tight mt-0.5">1,284</p>
+<p id="kpi-ingested-duo" class="text-base font-bold text-[#111827] tracking-tight mt-0.5">1,284</p>
 </div>
 </div>
 <!-- Failed Card (Wine/Ruby tint) -->
@@ -706,7 +706,7 @@
 <span class="text-[11px] text-[#6B7280] font-medium">Failed</span>
 <span class="text-[9px] bg-[#EEF2FF] text-[#DC2626] px-1 py-0.5 rounded font-semibold">-5,2%</span>
 </div>
-<p class="text-base font-bold text-[#111827] tracking-tight mt-0.5">11,443</p>
+<p id="kpi-failed-duo" class="text-base font-bold text-[#111827] tracking-tight mt-0.5">11,443</p>
 </div>
 </div>
 </div>
@@ -909,7 +909,7 @@ Drop log file here or paste below — live <span class="text-[#9CA3AF]">output/m
 <!-- END  MainDashboardContainer -->
 
 <script>
-// ULPF wire — drop + classify with real Go ONNX
+// ULPF wire   drop + classify with real Go ONNX
 let realONNX=false;
 async function checkHealth(){ try{ const r=await fetch('/api/health',{cache:'no-store'}); const j=await r.json(); realONNX=j.status==='ok'; }catch(e){ realONNX=false; } }
 checkHealth(); setInterval(checkHealth,30000);
@@ -932,7 +932,7 @@ async function doClassify(){
       const r=await fetch('/api/classify',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({logs:lines})});
       const j=await r.json();
       lastEvents=j.events; renderOutput(lastEvents);
-      // persist canonical events so dashboard stats move live (2 >3) — was in memory only
+      // persist canonical events so dashboard stats move live (2 >3)   was in memory only
       try{
         const ndjson = lastEvents.map(e=>JSON.stringify(e)).join('\n');
         const fmt = (typeof selectedFormat!=='undefined' && selectedFormat) ? selectedFormat : 'ulpf_ocsf';
@@ -1010,284 +1010,223 @@ document.querySelectorAll('[data-view]').forEach(el=>{
 });
 document.getElementById('btn-top-ingest')?.addEventListener('click',()=>{ document.getElementById('drop')?.scrollIntoView({behavior:'smooth'}); });
 document.getElementById('btn-top-alerts')?.addEventListener('click',()=>{ document.querySelector('[data-view="console"]')?.click(); });
-</script>
-
-
-<script>
-// Make all data real   replace fake $ and fake counts with live ULPF data
-async function refreshRealData(){
-  try{
-    const stats = await fetch('/api/stats',{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
-    if(stats){
-      // Total Ingested   count, not $
-      const totalEl=document.getElementById('kpi-total-ingested');
-      if(totalEl) totalEl.textContent = (stats.total_events||0).toLocaleString();
-      // Donut center
-      const donut=document.getElementById('donut-center');
-      if(donut) donut.textContent = (stats.total_events||0).toLocaleString();
-      // Total Sources   distinct vendors approximation  use total_events as proxy, or query
-      // Update the second KPI (Total Sources) which is next to Total Ingested
-      const kpis=document.querySelectorAll('.kpi b, [id^="kpi-"]');
-      // Find Total Sources card  look for text Total Sources
-      document.querySelectorAll('.bg-\\[\\#f2f4f8\\], .bg-\\[\\#f2f4f8\\]').forEach(el=>{});
-      // Update Ingest Activity Active/Queued from buckets
-      const activeEl=document.querySelector('#live-graph');
-      // Already handled by refreshStats
-    }
-    // Health for ONNX and last normalize time from localStorage
-    const health=await fetch('/api/health',{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
-    if(health){
-      const latEl=document.getElementById('onnx-latency');
-      if(latEl) latEl.textContent = health.latencyMs ? health.latencyMs.toFixed(1)+' ms' : '— ms';
-      const statusEl=document.getElementById('onnx-status');
-      if(statusEl) statusEl.textContent = health.status==='ok' ? 'ready' : 'mock';
-      // Update last normalize time from browser
-      const lastNorm=localStorage.getItem('ulpf_last_normalize');
-      const lastEl=document.getElementById('last-normalize-time');
-      if(lastEl && lastNorm) lastEl.textContent = new Date(parseInt(lastNorm)).toLocaleString();
-    }
-    // Last ingest time   from file stats last_24h or from localStorage
-    const lastIngestEl=document.getElementById('last-ingest-time');
-    if(lastIngestEl){
-      const lastIngest=localStorage.getItem('ulpf_last_ingest');
-      if(lastIngest) lastIngestEl.textContent = new Date(parseInt(lastIngest)).toLocaleString();
-      else if(stats && stats.last_24h>0) lastIngestEl.textContent = new Date().toLocaleString() + ' • ' + stats.last_24h + ' in 24h';
-      else lastIngestEl.textContent = 'never — drop a file';
-    }
-    // Top 5 Vendors and Parsers   query real distribution
-    try{
-      const q=await fetch('/api/query',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sql:'SELECT * FROM lake WHERE class_uid=4001'})}).then(r=>r.json()).catch(()=>null);
-      if(q && q.rows){
-        const vendorCounts={}; const parserCounts={};
-        q.rows.forEach(r=>{
-          const v=(r.metadata && r.metadata.product && r.metadata.product.vendor_name) || r.vendor || 'unknown';
-          vendorCounts[v]=(vendorCounts[v]||0)+1;
-          const p=r.finding && r.finding.types ? r.finding.types[0] : (r.log_type||'unknown');
-          const pp=Array.isArray(p)?p[0]:p;
-          parserCounts[pp]=(parserCounts[pp]||0)+1;
-        });
-        // Update Top 5 Vendors bars if present
-        const vendors=Object.entries(vendorCounts).sort((a,b)=>b[1]-a[1]).slice(0,3);
-        // Find the Top 5 Vendors card and update its bars
-        const vendorCard=document.querySelector('#donut-center')?.closest('.bg-\\[\\#ffffff\\]');
-        // For now, just log
-        console.log('vendors', vendors, 'parsers', parserCounts);
-      }
-    }catch(e){}
-  }catch(e){ console.warn('refreshRealData failed',e); }
-}
-refreshRealData(); setInterval(refreshRealData,5000);
-
-// Wire all buttons to actually work with same UI/UX but ULPF actions
-document.querySelectorAll('[data-view]').forEach(el=>{
-  if(el._wired) return; el._wired=true;
-  el.addEventListener('click',e=>{
-    e.preventDefault();
-    const v=el.getAttribute('data-view');
-    const map={perimeter:'view-perimeter', classify:'view-lumber', console:'view-wazuh', parsers:'view-lumber', decoders:'view-wazuh', storage:'view-perimeter', history:'view-wazuh'};
-    const targetId=map[v] || 'view-perimeter';
-    document.querySelectorAll('section[id^="view-"]').forEach(s=>s.style.display='none');
-    const target=document.getElementById(targetId);
-    if(target) target.style.display='block';
-    document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('text-[#4f46e5]'));
-    el.classList.add('text-[#4f46e5]');
-  });
-});
-
-// Make top right buttons work with same style
-document.getElementById('btn-top-ingest')?.addEventListener('click',()=>{ document.getElementById('drop')?.scrollIntoView({behavior:'smooth'}); document.getElementById('input')?.focus(); });
-document.getElementById('btn-top-alerts')?.addEventListener('click',()=>{ document.querySelector('[data-view="console"]')?.click(); });
 document.getElementById('btn-top-query')?.addEventListener('click',async()=>{
   const r=await fetch('/api/query',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sql:'SELECT * FROM lake WHERE class_uid=4001'})});
-  const j=await r.json().catch(()=>({})); alert('Query: scanned '+ (j.prune?.scanned_files||0) + ' matched '+ (j.prune?.matched_rows||0) + ' pg '+ (j.pg_count||0));
+  const j=await r.json().catch(()=>({}));
+  alert('Query scanned '+ (j.prune?.scanned_files||0) + ' matched '+ (j.prune?.matched_rows||0) + ' pg '+ (j.pg_count||0));
 });
 document.getElementById('btn-top-history')?.addEventListener('click',async()=>{
   const r=await fetch('/api/stats',{cache:'no-store'}); const j=await r.json().catch(()=>({}));
-  alert('Total: '+(j.total_events||0)+' last 24h: '+(j.last_24h||0)+' buckets: '+(j.buckets||[]).join(','));
-});
-
-// Record last normalize time on classify
-const origDoClassify2 = window.doClassify;
-if(origDoClassify2){
-  window.doClassify = async function(...a){
-    const res = await origDoClassify2(...a);
-    localStorage.setItem('ulpf_last_normalize', Date.now().toString());
-    const el=document.getElementById('last-normalize-time');
-    if(el) el.textContent=new Date().toLocaleString();
-    refreshRealData();
-    return res;
-  };
-}
-// Record last ingest on handleFiles
-const origHandleFiles2 = window.handleFiles;
-if(origHandleFiles2){
-  window.handleFiles = async function(files){
-    const res = await origHandleFiles2(files);
-    localStorage.setItem('ulpf_last_ingest', Date.now().toString());
-    const el=document.getElementById('last-ingest-time');
-    if(el) el.textContent=new Date().toLocaleString();
-    refreshRealData();
-    return res;
-  };
-}
-
-// Fix Ingest Activity graph to be real time already handled by refreshStats, but ensure it shows counts not $
-document.querySelectorAll('.bg-\\[\\#ffffff\\]').forEach(card=>{
-  // Find the $ values in Total Ingested etc. and ensure they are not $ for counts
-  card.querySelectorAll('p.text-base').forEach(p=>{
-    if(p.textContent.includes('$') && p.textContent.includes(',')){
-      // Check if parent is Total Ingested etc.   the $ is wrong for counts
-      const label=card.querySelector('p.text-\\[11px\\]')?.textContent||'';
-      if(label.includes('Sources') || label.includes('Time')){
-        // These should be counts, not dollars   remove $
-        p.textContent = p.textContent.replace('$','').replace('.0','');
-      }
-    }
-  });
+  alert('Total '+(j.total_events||0)+' last 24h '+(j.last_24h||0)+' buckets '+(j.buckets||[]).join(','));
 });
 </script>
 
-
 <script>
-// Make remaining fake cards live   ULPF real data
-async function refreshAllCards(){
+let clientTotal = parseInt(localStorage.getItem('ulpf_client_total')||'0')
+let clientVendors = JSON.parse(localStorage.getItem('ulpf_client_vendors')||'{}')
+let clientCats = JSON.parse(localStorage.getItem('ulpf_client_cats')||'{}')
+function saveClient(){
+  localStorage.setItem('ulpf_client_total', String(clientTotal))
+  localStorage.setItem('ulpf_client_vendors', JSON.stringify(clientVendors))
+  localStorage.setItem('ulpf_client_cats', JSON.stringify(clientCats))
+}
+function bumpClient(events){
+  if(!events || !events.length) return
+  clientTotal += events.length
+  for(const e of events){
+    const v = (e.vendor || e.type || 'unknown')
+    clientVendors[v] = (clientVendors[v]||0)+1
+    const c = e.category || 'unknown'
+    clientCats[c] = (clientCats[c]||0)+1
+  }
+  saveClient()
+}
+function getStatsWithFallback(serverStats){
+  if(serverStats && serverStats.total_events && serverStats.total_events>0) return serverStats
+  const vendorCounts = Object.assign({}, clientVendors)
+  const categoryCounts = Object.assign({}, clientCats)
+  const total = clientTotal
+  const normalized = total
+  const failed = 0
+  const rate = total>0 ? 100 : 0
+  const sources = Object.keys(vendorCounts).length
+  const buckets = new Array(12).fill(0)
+  const bucketsNorm = new Array(12).fill(0)
+  if(total>0) buckets[11]=total
+  if(total>0) bucketsNorm[11]=total
+  return { total_events: total, normalized: normalized, failed: failed, rate: rate, sources: sources, vendor_counts: vendorCounts, category_counts: categoryCounts, last_24h: total, buckets: buckets, buckets_normalized: bucketsNorm, buckets_raw: new Array(12).fill(0), pg_count: -1 }
+}
+async function refreshDashboard(){
   try{
-    const stats = await fetch('/api/stats',{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
-    const health = await fetch('/api/health',{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
-    if(stats){
-      const totalSourcesEl = document.getElementById('kpi-total-sources');
-      if(totalSourcesEl) totalSourcesEl.textContent = String(stats.sources ?? Object.keys(stats.vendor_counts||{}).length ?? 0);
-      const avgLatencyEl = document.getElementById('kpi-avg-latency');
-      if(avgLatencyEl && health && health.latencyMs) avgLatencyEl.textContent = health.latencyMs.toFixed(1)+' ms';
-      const recentCount = document.getElementById('recent-ingest-count');
-      if(recentCount) recentCount.textContent = '+' + (stats.total_events||0);
-      // live KPIs  Total Normalized, Normalization Rate, Event Count, Ingested/Failed
-      const totalNormEls = document.querySelectorAll('.bg-\\[\\#ffffff\\] p.text-xl, #donut-center');
-      // donuts + Total Normalized card share same value = normalized
-      const donut=document.getElementById('donut-center');
-      if(donut) donut.textContent = (stats.total_events||0).toLocaleString();
-      // find "Total Normalized" card value (next to lime $)
-      document.querySelectorAll('p.text-xl').forEach(el=>{
-        const label = el.closest('div')?.querySelector('span.text-xs')?.textContent||'';
-        if(label.includes('Total Normalized')) el.textContent = (stats.normalized ?? stats.total_events ?? 0).toLocaleString();
-        if(label.includes('Event Count')) el.textContent = (stats.total_events ?? 0).toLocaleString();
-      });
-      // Normalization Rate 34%  > real rate
-      document.querySelectorAll('span.text-xs').forEach(lbl=>{
-        if(lbl.textContent.includes('Normalization Rate')){
-          const valEl = lbl.closest('div')?.parentElement?.querySelector('p.text-xl');
-          if(valEl) valEl.textContent = (stats.rate ?? 0) + '%';
-        }
-      });
-      // Ingested 1,284 / Failed 11,443 duo  > real
-      const ingestActiveCount=document.getElementById('ingest-active-count');
-      if(ingestActiveCount) ingestActiveCount.textContent = String(stats.normalized ?? 0);
-      const ingestQueuedCount=document.getElementById('ingest-queued-count');
-      if(ingestQueuedCount) ingestQueuedCount.textContent = String(stats.failed ?? 0);
-      // Palo Alto card from real vendor_counts
-      if(stats.vendor_counts){
-        const vc=stats.vendor_counts;
-        const paloKey = Object.keys(vc).find(k=>k.toLowerCase().includes('palo')) || Object.keys(vc)[0];
-        if(paloKey){
-          const paloCount=document.getElementById('palo-count');
-          if(paloCount) paloCount.textContent=String(vc[paloKey]);
-          const paloEvents=document.getElementById('palo-events');
-          if(paloEvents) paloEvents.textContent=String(vc[paloKey]);
-        }
-        const paloSources=document.getElementById('palo-sources');
-        if(paloSources) paloSources.textContent=String(Object.keys(vc).length);
+    let serverStats=null
+    try{ serverStats = await fetch('/api/stats',{cache:'no-store'}).then(r=>r.json()) }catch(e){}
+    const stats = getStatsWithFallback(serverStats)
+    const health = await fetch('/api/health',{cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+    const totalEl=document.getElementById('kpi-total-ingested')
+    if(totalEl) totalEl.textContent = String(stats.total_events)
+    const donut=document.getElementById('donut-center')
+    if(donut) donut.textContent = String(stats.total_events)
+    const totalSourcesEl=document.getElementById('kpi-total-sources')
+    if(totalSourcesEl) totalSourcesEl.textContent = String(stats.sources)
+    const avgLatencyEl=document.getElementById('kpi-avg-latency')
+    if(avgLatencyEl && health && health.latencyMs) avgLatencyEl.textContent = health.latencyMs.toFixed(1)+' ms'
+    const recentCount=document.getElementById('recent-ingest-count')
+    if(recentCount) recentCount.textContent = '+' + String(stats.total_events)
+    document.querySelectorAll('p.text-xl').forEach(el=>{
+      const label = el.closest('div')?.querySelector('span.text-xs')?.textContent||''
+      if(label.includes('Total Normalized')) el.textContent = String(stats.normalized)
+      if(label.includes('Event Count')) el.textContent = String(stats.total_events)
+    })
+    document.querySelectorAll('span.text-xs').forEach(lbl=>{
+      if(lbl.textContent.includes('Normalization Rate')){
+        const valEl = lbl.closest('div')?.parentElement?.querySelector('p.text-xl')
+        if(valEl) valEl.textContent = String(stats.rate)+'%'
       }
-      // also keep last ingest fresh
-      const lastIngestEl=document.getElementById('last-ingest-time');
-      if(lastIngestEl && stats.last_24h>0 && !localStorage.getItem('ulpf_last_ingest')){
-        lastIngestEl.textContent = new Date().toLocaleString() + ' • ' + stats.last_24h + ' in 24h';
+    })
+    const ingestActive=document.getElementById('ingest-active-count')
+    if(ingestActive) ingestActive.textContent = String(stats.normalized)
+    const ingestQueued=document.getElementById('ingest-queued-count')
+    if(ingestQueued) ingestQueued.textContent = String(stats.failed)
+    const duoIng=document.getElementById('kpi-ingested-duo')
+    if(duoIng) duoIng.textContent = String(stats.normalized)
+    const duoFail=document.getElementById('kpi-failed-duo')
+    if(duoFail) duoFail.textContent = String(stats.failed)
+    if(stats.vendor_counts){
+      const vc=stats.vendor_counts
+      const paloKey = Object.keys(vc).find(k=>k.toLowerCase().includes('palo')) || Object.keys(vc)[0]
+      if(paloKey){
+        const pc=document.getElementById('palo-count')
+        if(pc) pc.textContent = String(vc[paloKey])
+        const pe=document.getElementById('palo-events')
+        if(pe) pe.textContent = String(vc[paloKey])
       }
+      const ps=document.getElementById('palo-sources')
+      if(ps) ps.textContent = String(Object.keys(vc).length)
     }
-    // Top 5 Vendors and Parsers real time
-    try{
-      const q = await fetch('/api/query',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sql:'SELECT * FROM lake WHERE class_uid=4001'})}).then(r=>r.json()).catch(()=>null);
-      if(q && q.rows){
-        const vendorCounts={}; const parserCounts={};
-        q.rows.forEach(r=>{
-          const v=(r.metadata&&r.metadata.product&&r.metadata.product.vendor_name)||r.vendor||'unknown';
-          vendorCounts[v]=(vendorCounts[v]||0)+1;
-          const p=r.finding&&r.finding.types?r.finding.types[0]:(r.log_type||'unknown');
-          const pp=Array.isArray(p)?p[0]:p;
-          parserCounts[pp]=(parserCounts[pp]||0)+1;
-        });
-        // Update Top 5 Vendors donut center already done, but also update the list
-        const vendors=Object.entries(vendorCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        const parsers=Object.entries(parserCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-        // Update Top 5 Vendors bars if they exist
-        document.querySelectorAll('[data-parser-row]').forEach((row,i)=>{
-          if(vendors[i]){
-            const pct=Math.round(vendors[i][1]/Math.max(1,q.rows.length)*100);
-            row.querySelector('[data-width]')?.setAttribute('style','width: '+pct+'%');
-            const pctEl=row.querySelector('[data-pct]');
-            if(pctEl) pctEl.textContent=pct+'%';
-            const nameEl=row.querySelector('span.text-xs');
-            if(nameEl) nameEl.textContent=vendors[i][0];
-          }
-        });
-        // Update Top 5 Parsers (the one with NFL)   same rows
-        // For the Palo Alto card
-        const paloCount=document.getElementById('palo-count');
-        if(paloCount && vendorCounts['Palo Alto']) paloCount.textContent=vendorCounts['Palo Alto'].toLocaleString();
-        const paloEvents=document.getElementById('palo-events');
-        if(paloEvents) paloEvents.textContent=vendorCounts['Palo Alto']||0;
-        const paloSources=document.getElementById('palo-sources');
-        if(paloSources) paloSources.textContent=Object.keys(vendorCounts).length;
-      }
-    }catch(e){}
-  }catch(e){ console.warn(e); }
+    const lastIngestEl=document.getElementById('last-ingest-time')
+    if(lastIngestEl){
+      const lastIngest=localStorage.getItem('ulpf_last_ingest')
+      if(lastIngest) lastIngestEl.textContent = new Date(parseInt(lastIngest)).toLocaleString()
+      else if(stats.last_24h>0) lastIngestEl.textContent = new Date().toLocaleString() + ' ' + String(stats.last_24h) + ' in 24h'
+      else lastIngestEl.textContent = 'never drop a file'
+    }
+    const latEl=document.getElementById('onnx-latency')
+    if(latEl && health && health.latencyMs) latEl.textContent = health.latencyMs.toFixed(1)+' ms'
+    const statusEl=document.getElementById('onnx-status')
+    if(statusEl && health) statusEl.textContent = health.status==='ok' ? 'ready' : 'mock'
+    updateVendorBars(stats)
+    updateIngestGraph(stats)
+    updateRecentFromClient()
+  }catch(e){}
 }
-setInterval(refreshAllCards,5000);
-refreshAllCards();
-</script>
-
-
-<script>
-// Make middle 4 tabs (Events, Players, Bets, Plays) show ULPF content with same UI/UX
-document.querySelectorAll('[data-tab-detail]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('[data-tab-detail]').forEach(b=>b.classList.remove('text-[#4f46e5]','border-[#4f46e5]'));
-    btn.classList.add('text-[#4f46e5]');
-    // Hide all tab contents, show selected
-    const map={
-      'events':'tab-events',
-      'players':'tab-palo', // Palo Alto card is the Players tab content
-      'bets':'tab-bets',
-      'plays':'tab-plays'
-    };
-    const target=map[btn.getAttribute('data-tab-detail')];
-    // Hide all
-    document.getElementById('tab-events')?.classList.add('hidden');
-    document.getElementById('tab-bets')?.classList.add('hidden');
-    document.getElementById('tab-plays')?.classList.add('hidden');
-    // Palo Alto card is not in a tab  container, it's the main card
-    const paloCard=document.querySelector('div:has(> div > h3.text-[#111827])');
-    // Simpler  hide/show via display
-    ['tab-events','tab-bets','tab-plays'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el) el.style.display='none';
-    });
-    const showEl=document.getElementById(target);
-    if(showEl) showEl.style.display='block';
-    // For players, also ensure Palo Alto card is visible (it is the default)
-    if(target==='tab-palo'){
-      document.querySelector('.bg-\\[\\#ffffff\\].border').style.display='block';
+function updateVendorBars(stats){
+  const vc = stats.vendor_counts||{}
+  const total = stats.total_events||1
+  const sorted = Object.entries(vc).sort((a,b)=>b[1]-a[1]).slice(0,3)
+  const bars = document.querySelectorAll('.bg-\\[\\#ffffff\\].border.border-\\[\\#E0E7FF\\] .flex.items-center.justify-between.gap-3')
+  bars.forEach((row,i)=>{
+    const entry = sorted[i]
+    if(!entry) return
+    const pct = Math.round(entry[1]/Math.max(1,total)*100)
+    const bar = row.querySelector('div.bg-\\[\\#4f46e5\\]')
+    if(bar) bar.style.width = pct+'%'
+    const pctEl = row.querySelector('span.font-bold.text-\\[\\#111827\\]')
+    if(pctEl) pctEl.textContent = pct+'%'
+    const nameSpans = row.querySelectorAll('span.font-semibold')
+    if(nameSpans[0]) nameSpans[0].textContent = entry[0]
+  })
+}
+function updateIngestGraph(stats){
+  const buckets = stats.buckets||new Array(12).fill(0)
+  const bucketsNorm = stats.buckets_normalized||new Array(12).fill(0)
+  const bucketsRaw = stats.buckets_raw||new Array(12).fill(0)
+  const maxVal = Math.max(1, ...buckets, ...bucketsNorm, ...bucketsRaw)
+  const ptsNorm = bucketsNorm.map((v,i)=>({x:10+i*22, y:105 - (v/maxVal)*90}))
+  const ptsRaw = bucketsRaw.map((v,i)=>({x:10+i*22, y:105 - (v/maxVal)*90}))
+  if(ptsNorm.some(p=>p.y<105)){
+    const svg = document.querySelector('.flex-1.h-28 svg')
+    if(svg){
+      const normPath = svg.querySelector('path[stroke="#4f46e5"]')
+      const rawPath = svg.querySelector('path[stroke="#d49429"]')
+      if(normPath && ptsNorm.length>1){
+        let d='M '+ptsNorm[0].x+' '+ptsNorm[0].y
+        for(let i=1;i<ptsNorm.length;i++) d+=' L '+ptsNorm[i].x+' '+ptsNorm[i].y
+        normPath.setAttribute('d', d)
+      }
+      if(rawPath && ptsRaw.length>1){
+        let d='M '+ptsRaw[0].x+' '+ptsRaw[0].y
+        for(let i=1;i<ptsRaw.length;i++) d+=' L '+ptsRaw[i].x+' '+ptsRaw[i].y
+        rawPath.setAttribute('d', d)
+      }
     }
-  });
-});
-// Ensure Palo Alto card has an id for tab palo
-const paloCard2=document.querySelector('div:has(> div > h3)');
-if(paloCard2 && !document.getElementById('tab-palo')){
-  // Find the Palo Alto card by its h3
-  const h3s=document.querySelectorAll('h3');
+  }
+}
+function updateRecentFromClient(){
+  if(!lastEvents.length) return
+  const last = lastEvents[lastEvents.length-1]
+  const typeEl=document.getElementById('recent-log-type')
+  if(typeEl) typeEl.textContent = (last.type||'CEF').slice(0,12)
+  const vendorEl=document.getElementById('recent-log-vendor')
+  if(vendorEl) vendorEl.textContent = (last.vendor||last.type||'P').slice(0,1)
+  const latEl=document.getElementById('recent-log-latency')
+  if(latEl) latEl.textContent = '~5 ms'
+  const statusEl=document.getElementById('recent-log-status')
+  if(statusEl) statusEl.textContent = last.category==='unknown'?'Failed':'Normalized'
+  const timeEl=document.getElementById('recent-log-time')
+  if(timeEl) timeEl.textContent = new Date().toLocaleString()
+  const countEl=document.getElementById('recent-ingest-count')
+  if(countEl) countEl.textContent = '+' + String(clientTotal)
+}
+const origDoClassify = doClassify
+doClassify = async function(){
+  const lines=inputEl.value.split('\n').map(s=>s.trim()).filter(Boolean)
+  if(!lines.length) return
+  await origDoClassify()
+  try{
+    const evts = lastEvents
+    bumpClient(evts)
+    localStorage.setItem('ulpf_last_ingest', Date.now().toString())
+    localStorage.setItem('ulpf_last_normalize', Date.now().toString())
+    updateRecentFromClient()
+    refreshDashboard()
+  }catch(e){}
+}
+document.getElementById('btn-clear')?.addEventListener('click',()=>{
+  clientTotal=0
+  clientVendors={}
+  clientCats={}
+  saveClient()
+  refreshDashboard()
+})
+refreshDashboard()
+setInterval(refreshDashboard,5000)
+document.querySelectorAll('[data-tab-detail]').forEach(btn=>{
+  if(btn._wiredDetail) return
+  btn._wiredDetail=true
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('[data-tab-detail]').forEach(b=>b.classList.remove('text-[#4f46e5]'))
+    btn.classList.add('text-[#4f46e5]')
+    const map={events:'tab-events', players:'tab-palo', bets:'tab-bets', plays:'tab-plays'}
+    const target=map[btn.getAttribute('data-tab-detail')]
+    ;['tab-events','tab-bets','tab-plays'].forEach(id=>{
+      const el=document.getElementById(id)
+      if(el) el.style.display='none'
+    })
+    const showEl=document.getElementById(target)
+    if(showEl) showEl.style.display='block'
+    if(target==='tab-palo'){
+      const c=document.querySelector('.bg-\\[\\#ffffff\\].border')
+      if(c) c.style.display='block'
+    }
+  })
+})
+const paloCardInit=document.querySelector('h3')
+if(paloCardInit){
+  const h3s=document.querySelectorAll('h3')
   for(const h of h3s){
     if(h.textContent.includes('Palo Alto')){
-      const card=h.closest('.bg-\[\#ffffff\]');
-      if(card) card.id='tab-palo';
+      const card=h.closest('.bg-\\[\\#ffffff\\]')
+      if(card && !document.getElementById('tab-palo')) card.id='tab-palo'
     }
   }
 }
