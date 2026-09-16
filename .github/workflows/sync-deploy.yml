@@ -1,0 +1,162 @@
+# Hourly batched deploy sync for Vercel plus Render
+# Fixed tick each hour on the hour. Pushes inside the window pile up.
+# Each tick ships latest main at most once. New pushes never shift the tick.
+# Idle ticks exit in seconds with zero platform cost.
+name: Hourly Batched Deploy Sync
+on:
+  schedule:
+    - cron: '0 * * * *'
+concurrency:
+  group: deploy-sync
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      head: ${{ steps.head.outputs.sha }}
+      needed: ${{ steps.compare.outputs.needed }}
+    steps:
+      # Read live main SHA with ls remote so idle ticks stay tiny
+      - name: Read live main SHA
+        id: head
+        run: |
+          SHA=$(git ls-remote "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" refs/heads/main | cut -f1)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+      # Ship only when main moved past last shipped SHA
+      - name: Compare with last shipped SHA
+        id: compare
+        run: |
+          if [ -n "${{ vars.LAST_DEPLOYED_SHA }}" ] && [ "${{ steps.head.outputs.sha }}" = "${{ vars.LAST_DEPLOYED_SHA }}" ]; then
+            echo "Idle tick, main already shipped. Exiting."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New commits queued. Deploy needed."
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+  deploy:
+    needs: check
+    if: needs.check.outputs.needed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: write
+    env:
+      HEAD_SHA: ${{ needs.check.outputs.head }}
+      VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      RENDER_SERVICE_ID: ${{ vars.RENDER_SERVICE_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Skip piles that touch only docs tests or workflow files
+      - name: Check for ship worthy files
+        id: paths
+        run: |
+          FROM="${{ vars.LAST_DEPLOYED_SHA }}"
+          if [ -z "$FROM" ]; then
+            echo "First tracked ship. Deploying."
+            echo "ship=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only "$FROM" "$HEAD_SHA" || true)
+          echo "$CHANGED"
+          if [ -z "$CHANGED" ]; then
+            echo "Empty range. Skipping."
+            echo "ship=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          SHIP=false
+          while IFS= read -r f; do
+            case "$f" in
+              docs/*|*.md|tests/*|*_test.go|.github/*) ;;
+              *) SHIP=true; break ;;
+            esac
+          done <<< "$CHANGED"
+          echo "ship=$SHIP" >> "$GITHUB_OUTPUT"
+      - name: Record docs only SHA
+        if: steps.paths.outputs.ship != 'true'
+        run: |
+          echo "Docs only pile. No platform build spent."
+          gh api --method PATCH "/repos/${{ github.repository }}/actions/variables/LAST_DEPLOYED_SHA" -f value="$HEAD_SHA" 2>/dev/null || \
+          gh api --method POST "/repos/${{ github.repository }}/actions/variables" -f name='LAST_DEPLOYED_SHA' -f value="$HEAD_SHA"
+          echo "Recorded $HEAD_SHA as shipped to stop repeat checks."
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Require hook secrets
+        if: steps.paths.outputs.ship == 'true'
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then echo "Add VERCEL_DEPLOY_HOOK_URL secret first."; exit 1; fi
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then echo "Add RENDER_DEPLOY_HOOK_URL secret first."; exit 1; fi
+      # Fire Vercel hook for latest main in one call
+      - name: Fire Vercel deploy hook
+        if: steps.paths.outputs.ship == 'true'
+        run: |
+          curl -fsS -X POST "$VERCEL_DEPLOY_HOOK_URL" -o /dev/null
+          echo "Vercel build triggered for $HEAD_SHA."
+      # Fire Render hook for latest main in one call
+      - name: Fire Render deploy hook
+        if: steps.paths.outputs.ship == 'true'
+        run: |
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" -o /dev/null
+          echo "Render build triggered for $HEAD_SHA."
+      # Poll Render until live build commit equals HEAD
+      - name: Verify Render is live on HEAD
+        if: steps.paths.outputs.ship == 'true' && env.RENDER_API_KEY != ''
+        run: |
+          for i in $(seq 1 40); do
+            INFO=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys?limit=1")
+            LINE=$(echo "$INFO" | python3 -c "import sys,json; d=json.load(sys.stdin); items=d.get('deploys',d) if isinstance(d,dict) else d; f=items[0].get('deploy',items[0]); print(f['status']+' '+f['commit']['id'])")
+            echo "try $i render $LINE"
+            STATUS=$(echo "$LINE" | cut -d' ' -f1)
+            COMMIT=$(echo "$LINE" | cut -d' ' -f2)
+            if [ "$STATUS" = "live" ] && [ "$COMMIT" = "$HEAD_SHA" ]; then exit 0; fi
+            if [ "$STATUS" = "build_failed" ] || [ "$STATUS" = "update_failed" ]; then echo "Render build failed."; exit 1; fi
+            sleep 15
+          done
+          echo "Render verify timed out."
+          exit 1
+      # Poll Vercel until READY build commit equals HEAD
+      - name: Verify Vercel is ready on HEAD
+        if: steps.paths.outputs.ship == 'true' && env.VERCEL_TOKEN != ''
+        run: |
+          for i in $(seq 1 20); do
+            INFO=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&limit=10")
+            LINE=$(echo "$INFO" | python3 -c "import sys,json; d=json.load(sys.stdin); ds=[x for x in d.get('deployments',[]) if x.get('target')=='production']; f=ds[0] if ds else d.get('deployments',[{}])[0]; print(str(f.get('state'))+' '+str((f.get('meta') or {}).get('githubCommitSha')))")
+            echo "try $i vercel $LINE"
+            STATE=$(echo "$LINE" | cut -d' ' -f1)
+            COMMIT=$(echo "$LINE" | cut -d' ' -f2)
+            if [ "$STATE" = "READY" ] && [ "$COMMIT" = "$HEAD_SHA" ]; then exit 0; fi
+            if [ "$STATE" = "ERROR" ] || [ "$STATE" = "CANCELED" ]; then echo "Vercel build failed."; exit 1; fi
+            sleep 15
+          done
+          echo "Vercel verify timed out."
+          exit 1
+      # Confirm both public URLs answer after green API checks
+      - name: Confirm public URLs answer
+        if: steps.paths.outputs.ship == 'true'
+        run: |
+          for i in $(seq 1 6); do
+            A=$(curl -s -o /dev/null -w "%{http_code}" https://logforce.vercel.app || true)
+            B=$(curl -s -o /dev/null -w "%{http_code}" https://logforce.onrender.com || true)
+            echo "try $i vercel $A render $B"
+            if [ "$A" = "200" ] && [ "$B" = "200" ]; then exit 0; fi
+            sleep 10
+          done
+          echo "Public URL check failed."
+          exit 1
+      # Record SHA only after both platforms verified green
+      - name: Record shipped SHA
+        if: steps.paths.outputs.ship == 'true'
+        run: |
+          gh api --method PATCH "/repos/${{ github.repository }}/actions/variables/LAST_DEPLOYED_SHA" -f value="$HEAD_SHA" 2>/dev/null || \
+          gh api --method POST "/repos/${{ github.repository }}/actions/variables" -f name='LAST_DEPLOYED_SHA' -f value="$HEAD_SHA"
+          echo "Recorded $HEAD_SHA as shipped. Ticks suspend till new commits."
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,6 +1,7 @@
 {
   "version": 2,
   "cleanUrls": false,
+  "git": { "deploymentEnabled": false },
   "rewrites": [
     { "source": "/dashboard", "destination": "/ui/dashboard.html" },
     { "source": "/dashboard.html", "destination": "/ui/dashboard.html" },
