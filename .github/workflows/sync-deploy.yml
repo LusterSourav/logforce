@@ -15,20 +15,22 @@ jobs:
     permissions:
       contents: read
     outputs:
-      head: ${{ steps.head.outputs.sha }}
+      head: ${{ steps.refs.outputs.head }}
+      base: ${{ steps.refs.outputs.base }}
       needed: ${{ steps.compare.outputs.needed }}
     steps:
-      # Read live main SHA with ls remote so idle ticks stay tiny
-      - name: Read live main SHA
-        id: head
+      # Read live main plus tracker tag in one call so idle ticks stay tiny
+      - name: Read live refs
+        id: refs
         run: |
-          SHA=$(git ls-remote "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" refs/heads/main | cut -f1)
-          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-      # Ship only when main moved past last shipped SHA
-      - name: Compare with last shipped SHA
+          OUT=$(git ls-remote "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" refs/heads/main refs/tags/last-shipped)
+          echo "head=$(echo "$OUT" | grep 'refs/heads/main$' | cut -f1)" >> "$GITHUB_OUTPUT"
+          echo "base=$(echo "$OUT" | grep 'refs/tags/last-shipped$' | cut -f1 || true)" >> "$GITHUB_OUTPUT"
+      # Ship only when main moved past tracker tag
+      - name: Compare tracker with live main
         id: compare
         run: |
-          if [ -n "${{ vars.LAST_DEPLOYED_SHA }}" ] && [ "${{ steps.head.outputs.sha }}" = "${{ vars.LAST_DEPLOYED_SHA }}" ]; then
+          if [ -n "${{ steps.refs.outputs.base }}" ] && [ "${{ steps.refs.outputs.head }}" = "${{ steps.refs.outputs.base }}" ]; then
             echo "Idle tick, main already shipped. Exiting."
             echo "needed=false" >> "$GITHUB_OUTPUT"
           else
@@ -41,8 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: read
-      actions: write
+      contents: write
     env:
       HEAD_SHA: ${{ needs.check.outputs.head }}
       VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
@@ -59,9 +60,9 @@ jobs:
       - name: Check for ship worthy files
         id: paths
         run: |
-          FROM="${{ vars.LAST_DEPLOYED_SHA }}"
+          FROM="${{ needs.check.outputs.base }}"
           if [ -z "$FROM" ]; then
-            echo "First tracked ship. Deploying."
+            echo "No tracker tag yet. Deploying."
             echo "ship=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -80,15 +81,13 @@ jobs:
             esac
           done <<< "$CHANGED"
           echo "ship=$SHIP" >> "$GITHUB_OUTPUT"
-      - name: Record docs only SHA
+      - name: Move tracker tag past docs only pile
         if: steps.paths.outputs.ship != 'true'
         run: |
           echo "Docs only pile. No platform build spent."
-          gh api --method PATCH "/repos/${{ github.repository }}/actions/variables/LAST_DEPLOYED_SHA" -f value="$HEAD_SHA" 2>/dev/null || \
-          gh api --method POST "/repos/${{ github.repository }}/actions/variables" -f name='LAST_DEPLOYED_SHA' -f value="$HEAD_SHA"
-          echo "Recorded $HEAD_SHA as shipped to stop repeat checks."
-        env:
-          GH_TOKEN: ${{ github.token }}
+          git tag -f last-shipped "$HEAD_SHA"
+          git push --force origin tag last-shipped
+          echo "Tracker tag now at $HEAD_SHA to stop repeat checks."
       - name: Require hook secrets
         if: steps.paths.outputs.ship == 'true'
         run: |
@@ -151,12 +150,10 @@ jobs:
           done
           echo "Public URL check failed."
           exit 1
-      # Record SHA only after both platforms verified green
-      - name: Record shipped SHA
+      # Move tracker tag only after both platforms verified green
+      - name: Move tracker tag to shipped HEAD
         if: steps.paths.outputs.ship == 'true'
         run: |
-          gh api --method PATCH "/repos/${{ github.repository }}/actions/variables/LAST_DEPLOYED_SHA" -f value="$HEAD_SHA" 2>/dev/null || \
-          gh api --method POST "/repos/${{ github.repository }}/actions/variables" -f name='LAST_DEPLOYED_SHA' -f value="$HEAD_SHA"
-          echo "Recorded $HEAD_SHA as shipped. Ticks suspend till new commits."
-        env:
-          GH_TOKEN: ${{ github.token }}
+          git tag -f last-shipped "$HEAD_SHA"
+          git push --force origin tag last-shipped
+          echo "Tracker tag now at $HEAD_SHA. Ticks suspend till new commits."

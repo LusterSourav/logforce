@@ -22,8 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: read
-      actions: write
+      contents: write
     env:
       HEAD_SHA: ${{ github.sha }}
       TARGET: ${{ inputs.target }}
@@ -34,6 +33,9 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
     steps:
+      # Checkout needed so the tracker tag can move at the end
+      - name: Checkout main
+        uses: actions/checkout@v4
       - name: Require hook secrets
         run: |
           if [ "$TARGET" != "render" ] && [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then echo "Add VERCEL_DEPLOY_HOOK_URL secret first."; exit 1; fi
@@ -102,11 +104,9 @@ jobs:
             done
           fi
           echo "Public URLs answer."
-      # Record SHA so hourly ticks suspend till new commits
-      - name: Record shipped SHA
+      # Move tracker tag so hourly ticks suspend till new commits
+      - name: Move tracker tag to shipped HEAD
         run: |
-          gh api --method PATCH "/repos/${{ github.repository }}/actions/variables/LAST_DEPLOYED_SHA" -f value="$HEAD_SHA" 2>/dev/null || \
-          gh api --method POST "/repos/${{ github.repository }}/actions/variables" -f name='LAST_DEPLOYED_SHA' -f value="$HEAD_SHA"
-          echo "Recorded $HEAD_SHA as shipped."
-        env:
-          GH_TOKEN: ${{ github.token }}
+          git tag -f last-shipped "$HEAD_SHA"
+          git push --force origin tag last-shipped
+          echo "Tracker tag now at $HEAD_SHA."
