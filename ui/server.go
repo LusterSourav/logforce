@@ -195,7 +195,6 @@ func isNestedCause(line string) bool {
 
 func isWindowsEventKV(line string) bool {
 	// Key  Value shape, e.g. "LogName  Microsoft Windows PowerShell/Operational"
-	// ponytail  naive colon position heuristic, regex if onboarding more formats
 	idx := strings.Index(line, ":")
 	if idx < 1 || idx > 50 {
 		return false

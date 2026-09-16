@@ -61,7 +61,7 @@ Dark card `#14161b` (single file `ui/dashboard.html` ~1215 lines):
 [ Refresh Connection | ULPF ← ours together with Rethink ]
 ```
 
-**Implementation (Kotlin, ponytail minimal):**
+**Implementation (Kotlin, minimal):**
 ```kotlin
 // app/src/main/java/com/ulpf/capture/ULPFTileService.kt
 class ULPFTileService: TileService() {
