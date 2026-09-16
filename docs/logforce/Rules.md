@@ -1,4 +1,4 @@
-# Rules, ULPF
+# Rules, LogForce
 
 ## 1. Core Rules
 
@@ -11,7 +11,7 @@
 7. Deterministic code owns schema; mock/AI only assists ranking.
 8. Fail safe: missing model → 503 mock, not crash.
 9. No cloud at runtime; models baked + SHA pinned.
-10. Do not add universal features to `ULPF-Perimeter-Prototype/`, use `maincode/`.
+10. Do not add universal features to `LogForce-Perimeter-Prototype/`, use `maincode/`.
 
 ## 2. Technology Rules
 
@@ -37,7 +37,7 @@ For every NDJSON file:
 ```text
 path: output/normalized/perimeter-%Y-%m-%d.ndjson or output/parquet/year=…/class=4001/vendor=…
  future also: logs/auto_captured.log (thin capture) → output/normalized/auto-*.ndjson Hive vendor=phone/laptop/firewall
-source format: paloalto_syslog | cisco_asa | fortinet_fortigate | cef | leef | suricata_eve | zeek_tsv | generic_syslog | csv | xml | ulpf_ocsf
+source format: paloalto_syslog | cisco_asa | fortinet_fortigate | cef | leef | suricata_eve | zeek_tsv | generic_syslog | csv | xml | logforce_ocsf
  future: android_logcat | android_crash | windows_eventlog | macos_diagnostics | linux_journald | ios_sysdiagnose | outer_tune
 ingest path: Vector tail OR POST /api/classify → POST /api/ingest?format=
  future also: POST /capture (any device, 4096 cap via WireGuard 10.0.0.1) → logs/auto_captured.log → miner → same OCSF
@@ -66,7 +66,7 @@ Flag `UNCLASSIFIED` (confidence ~0.2) rather than invent category.
 3. Disk buffer `max_size=2147483648 when_full=block` (forensic block).
 4. VRL `drop_on_abort=true drop_on_error=true`.
 5. Phase 1 is the only device regex; Phase 0 hash + Phase 2 filter + Phase 3 OCSF stay generic.
-6. Sinks: file NDJSON + HTTP `ulpf-server/api/ingest` (retry 5, backoff 2s).
+6. Sinks: file NDJSON + HTTP `logforce-server/api/ingest` (retry 5, backoff 2s).
 
 ## 6. Edge Engine Rules
 
@@ -125,7 +125,7 @@ Never log:
 
 ## 12. Scope Rule
 
-A feature belongs in `ULPF-Perimeter-Prototype/` only if it supports:
+A feature belongs in `LogForce-Perimeter-Prototype/` only if it supports:
 
 > **Ingest → Classify 42 → OCSF NDJSON → Query → Dashboard live**
 
@@ -142,7 +142,7 @@ Everything else → `maincode/` (including `auto_capture/` thin device + `ai_sol
 
 Prototype done (today) when:
 - drop/paste → chip + `Total Ingested 2→3` live;
-- `GET /api/stats` counters correct; `POST /api/query` prune; `parquet_writer` Hive; `ulpf_ocsf.py` `raw` intact; `vector test` 21 pass.
+- `GET /api/stats` counters correct; `POST /api/query` prune; `parquet_writer` Hive; `logforce_ocsf.py` `raw` intact; `vector test` 21 pass.
 
 Device done (next) when:
 - Android APK tap on QS tile beside Rethink (your screenshot) → WireGuard → `POST /capture` → `{fix_endpoint,curl}` toast from `qwen2.5.5b` on Azure B1s;
@@ -154,7 +154,7 @@ Device done (next) when:
 
 ## 14. Ground Reality, Rules 2-6 + Custom ONNX Rules
 
-**Rule 2 Technology (ground truth):** `lumber v0.10.6` Go 1.24 + `onnxruntime_go` + Vector 0.38 + PG 16 are pinned (`go.mod`, `offline/image-list.txt`). Future `ulpf-onnx-hyper` adds: `onnxruntime-gpu 1.18`, `TensorRT 8.6`, `faiss-hnsw`, `quant awq int4`, but prototype stays CPU `23 MB`, no forced GPU for demo.
+**Rule 2 Technology (ground truth):** `lumber v0.10.6` Go 1.24 + `onnxruntime_go` + Vector 0.38 + PG 16 are pinned (`go.mod`, `offline/image-list.txt`). Future `logforce-onnx-hyper` adds: `onnxruntime-gpu 1.18`, `TensorRT 8.6`, `faiss-hnsw`, `quant awq int4`, but prototype stays CPU `23 MB`, no forced GPU for demo.
 
 **Rule 3 Data (ground truth):** Source enum now includes `android_logcat | windows_eventlog | outer_tune`, fingerprint in `normalize_outertune.vrl` will be added, not yet live. Ingest path `POST /capture` already live (`server.py`).
 
@@ -162,6 +162,6 @@ Device done (next) when:
 
 **Rule 5 Ingestion:** File source + disk 2 GB `block` + VRL phases 0-3 real (`vector.toml`), but for 1B/sec, Rule 5 gains: `Kafka 1000 partitions, batch 10k, compression zstd, replication 3`, not file tail.
 
-**Rule 6 Edge Engine (ground truth + Hyper):** Prototype exposes `taxonomyLeaves` + `latencyMs`. Hyper will expose `model: ulpf-onnx-hyper-4L-256d, leaves, dim, seq, quant:int4, leaves_hnsw: pq64, batch`. Never hide `confidence`, Hyper still returns it per leaf (HNSW distance → softmax).
+**Rule 6 Edge Engine (ground truth + Hyper):** Prototype exposes `taxonomyLeaves` + `latencyMs`. Hyper will expose `model: logforce-onnx-hyper-4L-256d, leaves, dim, seq, quant:int4, leaves_hnsw: pq64, batch`. Never hide `confidence`, Hyper still returns it per leaf (HNSW distance → softmax).
 
-**Custom ONNX Rule:** Hyper model lives in `maincode/vector/onnx-hyper/` + `lumber-master/models-hyper/` (new). Training: teacher `bge-large` → student 4L, 5M logs (perimeter+app), loss = MSE(hidden) + KL(logits) + contrastive (leaf desc). Quant: dynamic int8 for CPU pod, AWQ int4 for GPU fleet. Validation: same `corpus.json` 153 + new `ulpf-hyper-corpus.json` 5k. Storage of 1B burst must be sampled: keep 100% `vendor_counts` + `category_counts` in `stats`, 1% `raw` in ClickHouse, Rule 3 already allows `1% raw`.
+**Custom ONNX Rule:** Hyper model lives in `maincode/vector/onnx-hyper/` + `lumber-master/models-hyper/` (new). Training: teacher `bge-large` → student 4L, 5M logs (perimeter+app), loss = MSE(hidden) + KL(logits) + contrastive (leaf desc). Quant: dynamic int8 for CPU pod, AWQ int4 for GPU fleet. Validation: same `corpus.json` 153 + new `logforce-hyper-corpus.json` 5k. Storage of 1B burst must be sampled: keep 100% `vendor_counts` + `category_counts` in `stats`, 1% `raw` in ClickHouse, Rule 3 already allows `1% raw`.

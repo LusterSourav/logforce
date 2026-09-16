@@ -1,10 +1,10 @@
-# Operational, ULPF
+# Operational, LogForce
 
-## 1. Who operates ULPF?
+## 1. Who operates LogForce?
 
 | Stage | Operator | What they run | Evidence |
 |---|---|---|---|
-| **Prototype (today)** | **You, the perimeter developer on your laptop** | `go run./ui/server.go` (``), optional `docker compose up vector postgres` (`docker-compose.yml`), `python storage/parquet_writer.py --watch` | `ulpf-server` health `lumber ready dir=../models leaves=42` `19` log |
+| **Prototype (today)** | **You, the perimeter developer on your laptop** | `go run./ui/server.go` (``), optional `docker compose up vector postgres` (`docker-compose.yml`), `python storage/parquet_writer.py --watch` | `logforce-server` health `lumber ready dir=../models leaves=42` `19` log |
 | **Fleet universal (next)** | **Platform / SRE in the VM pod** (student or on-call engineer) | Single Azure free VM `Standard_B1s/B1ms` (Student Pack) running `maincode/docker-compose.yml` 8 services: `auto_capture`, `miner`, `miner`, `vector.38`, `loki`, `prometheus`, `grafana`, `node-exporter` + host `ollama` `qwen2.5.5b` | `docs/VM_POD.md` pod spec, `docs/SYSTEM_ARCH.md` tier map |
 | **At scale (1B burst)** | **Platform team + KEDA autoscaler + Kafka ops** | 800 H100 fleet + 1000-partition Kafka + ClickHouse, **burst only, not daily** | `Architecture.md` Hyper fleet |
 
@@ -37,13 +37,13 @@
 1. Device agent auto-detects `source` from header/prefix, `auto_capture/server.py` already does `source` enum (`phone`/`laptop`/`firewall` + `app` + `device`). Adding a new app = one substring in `normalize_outertune.vrl:Phase 1` and one entry in `auto_search_problem()` keyword map (`capture.py`), no new agent, no new VM.
 2. If the app's format is truly unknown (new vendor), Drain3 creates `cluster_created` (`miner/miner_service.py` `TemplateMiner`), `SkippedLogs` → `ai_solver/unknown_solver/pipeline.py` 10-step (sampler dedup → sanitizer → Ollama `localhost` → OCSF 4001 → validator 10 checks → tester 0.8/0.1 → Git PR → loader sentinel `generated_rules.vrl`). Next time auto-matched, no AI call.
 
-**Who does it:** Developer adds one regex/fingerprint; PR reviewer checks `vector test` + `pytest`; loader appends `.vrl` via `.ulpf_reload_requested` sentinel (no Vector hot-reload, restart or `SIGHUP`).
+**Who does it:** Developer adds one regex/fingerprint; PR reviewer checks `vector test` + `pytest`; loader appends `.vrl` via `.logforce_reload_requested` sentinel (no Vector hot-reload, restart or `SIGHUP`).
 
 ---
 
 ## 3. What happens when parsing fails?
 
-ULPF never crashes on a bad line. Every tier has a **fail-safe that preserves raw**.
+LogForce never crashes on a bad line. Every tier has a **fail-safe that preserves raw**.
 
 | Layer | Failure signal | What happens | What the user sees | Where raw goes |
 |---|---|---|---|---|
@@ -72,14 +72,14 @@ ULPF never crashes on a bad line. Every tier has a **fail-safe that preserves ra
 ### 4.2 Fleet / high volume (the honest path)
 
 - **Ingest:** Replace `file` source with `kafka` 300→1000 partitions (`Architecture.md`), `Vector buffer disk 2 GB per partition when_full=block`.
-- **Classify:** `ULPF-ONNX-Hyper` 4L/256d int8 (CPU 15k/s) → int4 + HNSW + GPU (A10G 45k/s, H100 120k/s) + gRPC `batch 512, seq 64` + `KEDA` autoscale on Kafka lag (not prototype's single Go).
+- **Classify:** `LogForce-ONNX-Hyper` 4L/256d int8 (CPU 15k/s) → int4 + HNSW + GPU (A10G 45k/s, H100 120k/s) + gRPC `batch 512, seq 64` + `KEDA` autoscale on Kafka lag (not prototype's single Go).
 - **Store:** PG `events` partitioned monthly (`schema.sql` `PARTITION BY RANGE`) is for perimeter TBs; at 100M+/sec switch to **ClickHouse `ReplicatedMergeTree` + S3 Hive** (`storage/parquet_writer.py` already Hive, `query/datafusion_engine.py` is demo).
 - **Backpressure at 1B/sec:** Cannot store 86 PB/day (1 KB×1B×86400). **Sample:** 100% counts in `GET /api/stats` (`vendor_counts`/`category_counts`), 1% raw in ClickHouse, `Rules.md` permits `1% raw`.
-- **Observability:** `KEDA` scales `ulpf-onnx-hyper` pods on `kafka_lag`; `Grafana` panel shows `Shards: 12/83 healthy • Throughput: 118k/GPU • Dropped: 0% sampled 1% raw` (not fake "1B on one VM").
+- **Observability:** `KEDA` scales `logforce-onnx-hyper` pods on `kafka_lag`; `Grafana` panel shows `Shards: 12/83 healthy • Throughput: 118k/GPU • Dropped: 0% sampled 1% raw` (not fake "1B on one VM").
 
 ### 4.3 Runbook (when lag spikes at 3 AM)
 
-1. Tap **ULPF** QS tile → `GET /report` shows `clusters` vs `lag`.
+1. Tap **LogForce** QS tile → `GET /report` shows `clusters` vs `lag`.
 2. Grafana `3000` → Loki `Live Logs` + Prometheus `8000/metrics` → check `vector_top lag` and `miner log_states.txt` `total_clusters`.
 3. If `Kafka lag > threshold` → KEDA already scaled; if GPU lag, `az vmss scale` or `docker compose --profile gpu up`.
 4. Fix is still **Copy curl** from `POST /capture` response, volume does not block decode of the one log you tapped.

@@ -9,8 +9,8 @@ Uncomment in `ingestion/vector.toml`:
 [sinks.wazuh_indexer]
 type = "elasticsearch"
 inputs = ["perimeter_normalized"]
-endpoint = "${WAZUH_INDEXER_ENDPOINT}" # e.g. https://wazuh-indexer:9200
-index = "ulpf-ocsf-%Y-%m-%d"
+endpoint = "${WAZUH_INDEXER_ENDPOINT}" # e.g. https //wazuh indexer
+index = "logforce-ocsf-%Y-%m-%d"
 auth.strategy = "basic"
 auth.user = "admin"
 auth.password = "${WAZUH_INDEXER_PASSWORD}"

@@ -1,4 +1,4 @@
-# ULPF Perimeter Prototype ,  System Design
+# LogForce Perimeter Prototype ,  System Design
 
 This doc explains why the prototype is built this way. Read it top to bottom; each section builds on the last.
 
@@ -54,7 +54,7 @@ flowchart TB
   API --> MOD[models<br/>model_quantized.onnx + vocab + 2_Dense]
   MOD --> API
   API -->|events| UI
-  ND --> PARSE[parsing/ulpf_ocsf.py<br/>class_uid 4001 fast path]
+  ND --> PARSE[parsing/logforce_ocsf.py<br/>class_uid 4001 fast path]
   ND --> DEC[parsing/decoders/perimeter.yml<br/>5 hot-swap decoders]
   DEC --> WAZ[Search Indexer]
   PARSE --> PG[(Postgres<br/>GIN on raw)]
@@ -76,7 +76,7 @@ The tool says `server.go` is too long. We agree. Next split is `server.go -> api
 
 **ingestion** ,  `vector.toml` watches `${PERIMETER_LOG_PATH}` with multiline glue for Java traces and a 2 GB disk buffer that blocks when the VRL or sink stalls. `normalize_perimeter.vrl` has 4 phases: 0 snapshot+hash (SHA-256 over trimmed raw), 1 single regex (the only device-specific line), 2 drop below warning, 3 build OCSF 4001 (`class_uid 4001`, `type_uid 400101`, `integrity`, `unmapped`). New device = one regex, nothing else.
 
-**parsing** ,  `ulpf_ocsf.py` is the fast path: if `class_uid==4001` unwrap and lift to `NormalizedEvent` while keeping everything in `raw`. `perimeter.yml` adds 5 hot-swap decoders (Palo Alto, ASA, FortiGate, CEF, Suricata) with `prematch` + `regex` + `mapping`. The engine swaps them without restart.
+**parsing** ,  `logforce_ocsf.py` is the fast path: if `class_uid==4001` unwrap and lift to `NormalizedEvent` while keeping everything in `raw`. `perimeter.yml` adds 5 hot-swap decoders (Palo Alto, ASA, FortiGate, CEF, Suricata) with `prematch` + `regex` + `mapping`. The engine swaps them without restart.
 
 **storage** ,  `parquet_writer.py` moves NDJSON to Hive `year/month/day/class/vendor` with Snappy if pyarrow is present, otherwise keeps NDJSON under the same hive path so no data is lost. `watch_and_convert` polls every 30s.
 
@@ -103,7 +103,7 @@ Full product keeps Postgres for `events` but adds **ClickHouse** for 100M+ burst
 
 Canonical event from Lumber: `type`, `category`, `severity`, `timestamp`, `summary`, `confidence`, `raw`. OCSF wraps it: `class_uid 4001`, `type_uid 400101`, `severity_id` (F6/E4/W3), `finding {uid, title, type_uid 200401}`, `process {pid, name}`, `metadata {product, log_date, log_time}`, `integrity {hash, canonical, algorithm}`, `unmapped {raw_event}`.
 
-Interfaces: dashboard `POST /api/classify {logs[], verbosity?} -> {events[], latencyMs}` and `GET /api/health` every 30s; search `parse(content) -> Iterator[NormalizedEvent]` claims ULPF NDJSON if `class_uid==4001`; ingest `POST /api/ingest?format=` appends NDJSON + PG + Hive.
+Interfaces: dashboard `POST /api/classify {logs[], verbosity?} -> {events[], latencyMs}` and `GET /api/health` every 30s; search `parse(content) -> Iterator[NormalizedEvent]` claims LogForce NDJSON if `class_uid==4001`; ingest `POST /api/ingest?format=` appends NDJSON + PG + Hive.
 
 ## 8. What we left out ,  and where it goes next
 
@@ -116,8 +116,8 @@ Keeping the bundle small is how the air-gap tar stays under 2 GB.
 
 ## 9. How to run
 
-From the prototype root: `go run ./ui/server.go`, open `dashboard.html`, export `PERIMETER_LOG_PATH` / `PERIMETER_SINK_PATH` / `VECTOR_DATA_DIR` and run `vector --config ingestion/vector.toml`, then `python storage/parquet_writer.py --watch`. For search, drop NDJSON and select format `ulpf_ocsf`.
+From the prototype root: `go run ./ui/server.go`, open `dashboard.html`, export `PERIMETER_LOG_PATH` / `PERIMETER_SINK_PATH` / `VECTOR_DATA_DIR` and run `vector --config ingestion/vector.toml`, then `python storage/parquet_writer.py --watch`. For search, drop NDJSON and select format `logforce_ocsf`.
 
 ## 10. Ground truth
 
-All claims here match files on disk: `ingestion/vector.toml`, `transforms/normalize_perimeter.vrl`, `ui/server.go` length warning is acknowledged, `parsing/ulpf_ocsf.py`, `storage/parquet_writer.py`, `init.sql` GIN, `models/SHA256SUMS` pins 4 hashes. Prototype is ~84% done; remaining 16% is wiring generated VRL and real Parquet, not missing design.
+All claims here match files on disk: `ingestion/vector.toml`, `transforms/normalize_perimeter.vrl`, `ui/server.go` length warning is acknowledged, `parsing/logforce_ocsf.py`, `storage/parquet_writer.py`, `init.sql` GIN, `models/SHA256SUMS` pins 4 hashes. Prototype is ~84% done; remaining 16% is wiring generated VRL and real Parquet, not missing design.

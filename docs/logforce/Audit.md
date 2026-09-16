@@ -1,8 +1,8 @@
 # Docs Audit
 
-Checked `ULPF-Docs` against what is actually on disk. No web search, just local files.
+Checked `LogForce-Docs` against what is actually on disk. No web search, just local files.
 
-I read `Prd.md`, `Architecture.md`, `Design (1).md`, `Memory.md`, `Phases.md`, `Rules.md`, `Security and review.md` and compared them to `ULPF-Perimeter-Prototype`, `maincode`, the deep research report, `lumber-master`, `wazuh-main`, `SIEM-Lite-main`, `Branch of ulpf` and the two docx in `guide`. The goal was simple, does the doc match the code or is it just story.
+I read `Prd.md`, `Architecture.md`, `Design (1).md`, `Memory.md`, `Phases.md`, `Rules.md`, `Security and review.md` and compared them to `LogForce-Perimeter-Prototype`, `maincode`, the deep research report, `lumber-master`, `wazuh-main`, `SIEM-Lite-main`, `Branch of logforce` and the two docx in `guide`. The goal was simple, does the doc match the code or is it just story.
 
 Short answer, it matches. The perimeter half is solid. The future half is plausible but a bit thin. You can run the perimeter demo today, and the WireGuard plus tiny model idea for the full product could work on the Azure free tier, but the docs make the free tier sound forever and skip how the phone stays alive.
 
@@ -53,7 +53,7 @@ No invented infra, the image pins like `prom/prometheus:v2.51.2` are literally i
 
 ### Design (1).md
 
-This one nails the quick settings tile. Your screenshot shows Rethink, Orbot, Outdoor mode etc., and the doc mocks a ULPF tile in the same row with the same shield icon, using the real `android.permission.BIND_QUICK_SETTINGS_TILE`. The Kotlin sketch for `ULPFTileService` with `onClick` going to `STATE_ACTIVE` then IO to the VM then toast then `STATE_INACTIVE` is the same as `PHONE_TILE.md`, not invented. The midnight fix card with `what/why/severity/fix_endpoint [Copy]` also matches `server.py`.
+This one nails the quick settings tile. Your screenshot shows Rethink, Orbot, Outdoor mode etc., and the doc mocks a LogForce tile in the same row with the same shield icon, using the real `android.permission.BIND_QUICK_SETTINGS_TILE`. The Kotlin sketch for `LogForceTileService` with `onClick` going to `STATE_ACTIVE` then IO to the VM then toast then `STATE_INACTIVE` is the same as `PHONE_TILE.md`, not invented. The midnight fix card with `what/why/severity/fix_endpoint [Copy]` also matches `server.py`.
 
 Gaps, iOS is vague. Shortcuts versus share extension and which entitlements are not pinned. The `VpnService` that only routes `10.0.0.0/24` is the right privacy choice but the doc should show `Builder.addRoute("10.0.0.0",24)` so reviewers know it is not a placeholder.
 
@@ -92,7 +92,7 @@ OCSF `class_uid 4001` and `type_uid 400101` are consistent across `Prd`, `Archit
 1. **Azure free note** — add to `Prd.md` 7.3 and `Architecture.md` 6 that B1s at 750 hours free is 12 months plus $100 for 12 months, then about $8 per month pay as you go.
 2. **RAM honesty** — B1s at 1 GB cannot run the half-b model plus the full observability. Either run B1s with prom and loki off, or require B1ms at 2 GB. Add a footnote.
 3. **Model table** — pin to `ollama list` bytes plus quant, e.g. `qwen2.5:0.5b Q4_K_M 494 MB disk, about 1.1 GB RSS`. Right now 0.52 GB is close but not cited.
-4. **WireGuard stub** — commit `auto_capture/wg0.conf.example` plus `apk/ULPFTileService.kt` skeleton so Phase 9 is not docs only.
+4. **WireGuard stub** — commit `auto_capture/wg0.conf.example` plus `apk/LogForceTileService.kt` skeleton so Phase 9 is not docs only.
 5. **iOS path** — pick Shortcuts versus Share Extension entitlement count, or mark as deferred for v1.
 6. **Secrets scan** — no hits today, verified `grep glpat` is 0, but add a CI `gitleaks` badge like in `maincode/.github/workflows/ci.yml` so it stays safe.
 

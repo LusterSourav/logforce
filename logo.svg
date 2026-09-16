@@ -55,7 +55,7 @@
   <!-- Center Ambient Radial Glow -->
   <circle cx="400" cy="360" r="180" fill="url(#neonGlow)" filter="url(#ambientLight)" />
 
-  <!-- ================= SYMMETRICAL EMBLEM (ULPF MESH / FLOW / INFINITY POD) ================= -->
+  <!-- ================= SYMMETRICAL EMBLEM (LogForce MESH / FLOW / INFINITY POD) ================= -->
   <g id="symmetrical-emblem" filter="url(#softGlow)">
     <!-- Outer Curvy Symmetrical Shield / Infinity Loop Ribbon -->
     <!-- Left Wing / Petal (Curvy & Bold) -->
@@ -117,7 +117,7 @@
   </g>
 
   <!-- ================= BOLD & AESTHETIC TYPOGRAPHY ================= -->
-  <!-- Main Title: ULPF -->
+  <!-- Main Title: LogForce -->
   <text x="400" y="640" 
         text-anchor="middle" 
         font-family="system-ui, -apple-system, 'SF Pro Display', 'Inter', sans-serif" 
@@ -125,7 +125,7 @@
         font-weight="900" 
         letter-spacing="16" 
         fill="#ffffff">
-    ULPF
+    LogForce
   </text>
 
   <!-- High-Tech Subtitle & Descriptor -->

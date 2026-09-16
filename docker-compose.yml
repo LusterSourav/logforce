@@ -1,9 +1,9 @@
 services:
-  ulpf-server:
+  logforce-server:
     build:
       context: .
       dockerfile: Dockerfile.lumber
-    container_name: ulpf-perimeter
+    container_name: logforce-perimeter
     ports:
       - "8081:8081"
     volumes:
@@ -12,7 +12,7 @@ services:
       - LUMBER_MODEL_DIR=/app/models
       - STATIC_DIR=/app/ui
       - PORT=8081
-      - PG_DSN=postgres://ulpf:ulpf@postgres:5432/ulpf?sslmode=disable
+      - PG_DSN=postgres://logforce:logforce@postgres:5432/logforce?sslmode=disable
     depends_on:
       postgres:
         condition: service_healthy
@@ -23,18 +23,18 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: ulpf-postgres
+    container_name: logforce-postgres
     environment:
-      - POSTGRES_USER=ulpf
-      - POSTGRES_PASSWORD=ulpf
-      - POSTGRES_DB=ulpf
+      - POSTGRES_USER=logforce
+      - POSTGRES_PASSWORD=logforce
+      - POSTGRES_DB=logforce
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ulpf"]
+      test: ["CMD-SHELL", "pg_isready -U logforce"]
       interval: 5s
       retries: 10
 

@@ -1,5 +1,5 @@
 # tests/test_normalize_perimeter.yaml ,  6 cases for perimeter VRL (see ingestion/transforms/normalize_perimeter.vrl)
-# Run: vector validate --no-environment ingestion/vector.toml
+# Run  vector validate   no environment ingestion/vector.toml
 #      vector test ingestion/vector.toml tests/test_normalize_perimeter.yaml
 tests:
   - name: "TC-01 OuterTune E line -> OCSF 4001 severity 4"
@@ -20,3 +20,6 @@ tests:
   - name: "TC-06 hash present"
     inputs: [{insert_at: perimeter_normalized, type: raw, value: "08-27 20:45:01.210  1234  5678 E OuterTune: ERROR: token expired"}]
     outputs: [{extract_from: perimeter_normalized, conditions: [{type: vrl, source: "assert_eq!(.integrity.algorithm, \"SHA-256\")\nassert!(length(string!(.integrity.hash)) > 0)"}]}]
+  - name: "TC-07 stitched Android crash parses, body kept"
+    inputs: [{insert_at: perimeter_normalized, type: raw, value: "01-16 09:31:11.736  1234  5678 E AndroidRuntime: FATAL EXCEPTION: main\nProcess: com.example.app, PID: 1234"}]
+    outputs: [{extract_from: perimeter_normalized, conditions: [{type: vrl, source: "assert_eq!(.severity_id, 4)\nassert!(contains(string!(.finding.title), \"PID: 1234\"))"}]}]

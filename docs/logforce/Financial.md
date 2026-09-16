@@ -1,7 +1,7 @@
-# Financial, ULPF
+# Financial, LogForce
 
 **Topic:** Infrastructure Requirements, CPU Suitability, and Deployment Cost 
-**Scope:** MVP Perimeter (`ULPF-Perimeter-Prototype/`) + Fleet Universal (`maincode/`) + Custom `ULPF-ONNX-Hyper` Scale Tier 
+**Scope:** MVP Perimeter (`LogForce-Perimeter-Prototype/`) + Fleet Universal (`maincode/`) + Custom `LogForce-ONNX-Hyper` Scale Tier 
 **Category:** Cost & Capacity Planning
 
 ## 1. What infrastructure does the MVP actually require?
@@ -11,7 +11,7 @@
 | Layer | Component (verified path) | Purpose | Mandatory? |
 |---|---|---|---|
 | **Ingest** | Vector `timberio/vector.38.0-debian` (`vector/vector.toml` + `vector.yaml`) | File tail `PERIMETER_LOG_PATH`, multiline `^\s+at\s+`, disk buffer 2 GB `block`, VRL `normalize_outertune.vrl` → OCSF 4001 | Yes |
-| **Classify** | Go `ulpf-server` (`ui/server.go` 5 handlers) + `models/model_quantized.onnx` 215K + `model_quantized.onnx_data` 22M + `libonnxruntime.so/dylib` 34M = **58M total** (`lumber-master/models`) | WordPiece 128 → 3 tensors → mean-pool → 1024d → cosine 42 leaves → `POST /api/classify` `~5 ms` warm, `50-80 ms/100 lines` batch | Yes |
+| **Classify** | Go `logforce-server` (`ui/server.go` 5 handlers) + `models/model_quantized.onnx` 215K + `model_quantized.onnx_data` 22M + `libonnxruntime.so/dylib` 34M = **58M total** (`lumber-master/models`) | WordPiece 128 → 3 tensors → mean-pool → 1024d → cosine 42 leaves → `POST /api/classify` `~5 ms` warm, `50-80 ms/100 lines` batch | Yes |
 | **Store** | `init.sql` Postgres `postgres-alpine` + `events` table + `GIN raw jsonb_path_ops` + `pgdata` volume (`docker-compose.yml`) | Append-only `raw jsonb`, `class_uid`, `vendor`, `ingested_at` indexes; `GET /api/stats` + `POST /api/query` prune | Yes (file `output/normalized` works without PG, but PG gives GIN) |
 | **Ship** | Python `storage/parquet_writer.py` Hive `year/month/day/class/vendor` Snappy (+ NDJSON fallback if no `pyarrow`) | `DataFusion` prune `WHERE class_uid=4001` | Yes (file sink + watcher) |
 | **Observe** | Prometheus `prom/prometheus:v2.51.2`, Loki `grafana/loki.9.8`, Grafana `grafana/grafana.4.2`, Node Exporter `prom/node-exporter:v1.7.0` (`offline/image-list.txt`) + `miner`/`miner-api`/`auto_capture` (`docker-compose.yml,99,114`) | Metrics `/metrics`, `GET /health`, dashboards 18→27 panels, `POST /capture` for devices | Observability: optional for perimeter demo, mandatory for fleet |
@@ -31,7 +31,7 @@
 | **Prototype (today)** | Go host CPU, int8, `intra_op 4` (`onnx.go`) | Any x86_64/ARM64 laptop: 2 vCPU / 2 GB free | ~1.6k lines/sec/instance (100 lines / 60 ms) |
 | **VM-pod Free Tier** | Azure `B1s` 1 vCPU/1 GB or `B1ms` 1 vCPU/2 GB (Student Pack) + same int8 ONNX | Ordinary CPU | Same 1.6k/s; `qwen2.5.5b` decode 0.8s on same CPU, feasible |
 | **Tuned CPU (no GPU)** | `D4s_v3` 4 vCPU, ONNX int8, batch 512, 8 threads, seq 64, trim vocab 12k | Ordinary CPU (no GPU) | **~15k/sec** (Hyper §14) |
-| **Future 1B/sec burst** | `ULPF-ONNX-Hyper` 4L/256d int4 AWQ + CUDA/TensorRT EP + HNSW 400 leaves + gRPC batching | **GPU required**: A10G ~45k/s, H100 ~120k/s per GPU | 100M/sec = 800 H100, 1B/sec = 833 H100 (10-sec burst, not 24/7) |
+| **Future 1B/sec burst** | `LogForce-ONNX-Hyper` 4L/256d int4 AWQ + CUDA/TensorRT EP + HNSW 400 leaves + gRPC batching | **GPU required**: A10G ~45k/s, H100 ~120k/s per GPU | 100M/sec = 800 H100, 1B/sec = 833 H100 (10-sec burst, not 24/7) |
 
 **Why not phone:** `libonnxruntime.dylib` 34M + model 22M = 58M + no NNAPI delegation +电池 drain, phone stays thin `POST` via WireGuard (`SYSTEM_ARCH.md` `never phone`). So "ordinary CPU machine" = dev laptop + free Azure B1s is enough for the prototype and even for 100k logs/day.
 

@@ -7,7 +7,10 @@
 # This is why replays stay identical. Hash the trimmed form so trailing
 # newlines from the file reader do not create fake duplicates.
 raw_event = string!(.message)
-canonical_raw = strip_whitespace(raw_event)
+# Flatten stitched multi line events (Vector halt_before/continue_through joins
+# continuations with \n) so the Phase 1 regex below sees one line. The hash is
+# over this canonical form; the original with newlines survives in unmapped.raw_event.
+canonical_raw = replace(strip_whitespace(raw_event), r'\n', " | ")
 integrity_hash = sha2(canonical_raw, variant: "SHA-256")
 
 # Phase 1. Parse the line. Change only this regex when you onboard a new device.

@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 
 function getStoreDir() {
-  const candidates = ['/tmp/output/normalized', path.join(process.cwd(), 'output/normalized'), path.join(process.cwd(), 'ULPF-Perimeter-Prototype/output/normalized')]
+  const candidates = ['/tmp/output/normalized', path.join(process.cwd(), 'output/normalized'), path.join(process.cwd(), 'LogForce-Perimeter-Prototype/output/normalized'), path.join(process.cwd(), 'ULPF-Perimeter-Prototype/output/normalized')]
   for (const c of candidates) {
     try { fs.mkdirSync(c, { recursive: true }); return c } catch {}
   }

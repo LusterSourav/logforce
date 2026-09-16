@@ -1,4 +1,4 @@
-module ulpf-perimeter/ui
+module logforce-perimeter/ui
 
 go 1.24.0
 

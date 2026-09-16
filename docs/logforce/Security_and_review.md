@@ -1,4 +1,4 @@
-# Security and Review, ULPF
+# Security and Review, LogForce
 
 ## 1. Purpose
 
@@ -19,7 +19,7 @@ Define minimum security, integrity, and review checks for the **Perimeter protot
 
 ## 3. Authentication & Authorization
 
-Prototype today: **no auth**, single-host air-gapped (`ulpf:ulpf`, CORS `*` for `file://`).
+Prototype today: **no auth**, single-host air-gapped (`logforce:logforce`, CORS `*` for `file://`).
 
 Final all-device pod: **WireGuard is the auth.** No user/pass for logs.
 - `VpnService` + WireGuard keys (`wg genkey` per device, `wg-quick@wg0` on Azure B1s `10.0.0.1/24`). Only holder of private key reaches `10.0.0.1` (`POST /capture` not public). Azure NSG only opens `51820/udp`; `8002` bound to `10.0.0.1` inside tunnel.
@@ -129,7 +129,7 @@ Reproducibility: re-running `POST /api/classify` on same raw → same `type/cate
 Record (Go `log.Printf`):
 - `lumber ready … leaves=… took=…ms` / `WARN … not ready`
 - `postgres ready dsn=…` / `WARN ping failed`
-- `ULPF listening on …`
+- `LogForce listening on …`
 
 Not yet file-audited: `scenario creation` equivalent is `ingested count + file path + pg_inserted`. Final should append structured audit to PG `audit` table.
 
@@ -193,7 +193,7 @@ Optimize: pre-embed 42 leaves, `bufio.Scanner` reuse, hive prune.
 - [x] `Total Ingested 2→3` instant after Classify
 - [x] `POST /api/query` prune + `pg_count`
 - [x] Hive promotion via `parquet_writer --watch`
-- [x] `parsing/ulpf_ocsf.py:parse()` yields `NormalizedEvent`
+- [x] `parsing/logforce_ocsf.py:parse()` yields `NormalizedEvent`
 - [x] Copy/Download NDJSON
 
 ### Security

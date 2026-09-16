@@ -1,10 +1,10 @@
-# PRD, Universal Log Pre-processing Framework (ULPF)
+# PRD, LogForce
 
 **Problem Statement:** Unified, lossless normalization of heterogeneous perimeter & enterprise logs to OCSF 4001 for SIEM/ML. 
-**Organization:** ULPF Prototype Team (Perimeter slice) + Full-Stack ULPF 
+**Organization:** LogForce Prototype Team (Perimeter slice) + Full-Stack LogForce 
 **Category:** Software / Security Data Engineering 
 **Theme:** Smart Automation, Log Normalization, Offline AI Classification, Observability 
-**Status:** Prototype LIVE (Perimeter, today → ~1.6k lines/sec) → Final Universal (all devices + Custom ULPF-ONNX-Hyper for 1B lines/sec burst)
+**Status:** Prototype LIVE (Perimeter, today → ~1.6k lines/sec) → Final Universal (all devices + Custom LogForce-ONNX-Hyper for 1B lines/sec burst)
 
 ## 1. Product Vision
 
@@ -40,7 +40,7 @@ forwarded screenshot. The gap is a pre-processing layer that:
 5. is reachable from anywhere with a VPN toggle, like Rethink,
 6. can run on a student free tier (GitHub Student Pack to Azure).
 
-SIEM-Lite, Wazuh and Grafana handle what happens after ingest. ULPF handles
+SIEM-Lite, Wazuh and Grafana handle what happens after ingest. LogForce handles
 what should happen before.
 
 ## 3. Target Users
@@ -70,7 +70,7 @@ Needs:
 
 ## 4. MVP, What the Prototype Already Does (DONE TODAY)
 
-Six live capabilities in `ULPF-Perimeter-Prototype/`:
+Six live capabilities in `LogForce-Perimeter-Prototype/`:
 
 ### 4.1 Edge Classify, Offline ONNX (42 leaves, ~5 ms), DONE
 Quantized `mdbr-leaf-mt` (23 MB int8). WordPiece 128 → 3 tensors → mean-pool → 1024-dim projection (`2_Dense`) → cosine vs 42 leaves. Best >0.5 wins else `UNCLASSIFIED`. Batch 100 → 50-80 ms.
@@ -91,7 +91,7 @@ Single HTML + Go; `GET /api/health`, `POST /api/classify`, `POST /api/ingest?for
 `init.sql` `events(raw jsonb, class_uid, vendor)` GIN. Vector `search_indexer` → `/api/ingest`.
 
 ### 4.6 Parsing Bridges, DONE
-`ulpf_ocsf.py` fast path + `perimeter.yml` 5 decoders hot-swap.
+`logforce_ocsf.py` fast path + `perimeter.yml` 5 decoders hot-swap.
 
 **MVP boundary:** perimeter only, no auto-device agents, no VM-pod small LLM yet (both exist as `maincode/auto_capture/` + `ai_solver/` stubs, see §7).
 
@@ -109,9 +109,9 @@ Device appends to perimeter.log → Vector tails → VRL → NDJSON + PG → sam
 
 ### Journey C, All-Device Auto-Catch + Decode + Fix (FUTURE, the overnight hero)
 ```text
-Every device installs one ULPF agent (one per OS, zero per app):
+Every device installs one LogForce agent (one per OS, zero per app):
 
-Laptop: Win (Event Log tail) / macOS (DiagnosticReports tail) / Linux (journald) → ULPF agent
+Laptop: Win (Event Log tail) / macOS (DiagnosticReports tail) / Linux (journald) → LogForce agent
 Mobile: Android Tile tap / iOS Shortcuts action / auto-crash handler → raw capture
 Server/Firewall: Vector file source (already done)
 Per-app auto-detect: agent fingerprints source via header/prefix (e.g., OuterTune: → tag outer_tune, ASA: → cisco_asa), no user picks format.
@@ -119,7 +119,7 @@ Per-app auto-detect: agent fingerprints source via header/prefix (e.g., OuterTun
  ↓ (auto, no paste)
 
 WireGuard tunnel auto-connects on Tile tap (like Rethink in your screenshot)
- Phone QS tile "ULPF" → VpnService → WireGuard handshake → Azure free VM pod (see §7.3)
+ Phone QS tile "LogForce" → VpnService → WireGuard handshake → Azure free VM pod (see §7.3)
  From anywhere: hostel, 4G, campus NAT, no public IP, no manual VPN app.
 
  ↓ POST /capture {log, source:"phone", device:"pixel-7", app:"outer_tune"} ≤4096 chars, dedup sha16
@@ -156,13 +156,13 @@ At 2 AM you tap Copy, it hits the endpoint, DONE. No panic.
 ### 7.1 Device Fleet, Auto-Catch Every App
 | Device | Agent | How it auto-detects | Log path |
 |---|---|---|---|
-| Windows laptop | ULPF Win service | ETW + Event Log subscription per provider (auto tag) | `EventLog → Vector file source` |
+| Windows laptop | LogForce Win service | ETW + Event Log subscription per provider (auto tag) | `EventLog → Vector file source` |
 | macOS laptop | launchd tail | `~/Library/Logs/DiagnosticReports` + `os_log` stream | `vector/vector.toml` include |
 | Linux laptop/server | systemd tail | `journald` + `logs/*.log` | `Vector tail + multiline` |
 | Android | APK + `TileService` (see Design) | `logcat` tail via Shizuku (or app crash file `filesDir/last_crash.log`), `packageName` → `source` auto | `POST /capture` |
 | iOS | Shortcuts + Share Extension | `os_log` collect, `burst` → `POST /capture` (iOS no tile; Shortcuts action) | `POST /capture` |
 | Firewall/IDS | Vector (already) | header/prefix regex Phase 1 | `PERIMETER_LOG_PATH` |
-| Any custom app | SDK one-liner | `ULPF.log("msg")` wrapper → same `POST` | HTTP |
+| Any custom app | SDK one-liner | `LogForce.log("msg")` wrapper → same `POST` | HTTP |
 
 No per-app config. Header fingerprint in `normalize_outertune.vrl: Phase 1` and `sampler.py` tag it.
 
@@ -196,7 +196,7 @@ Raw and secrets never reach the model.
 
 ### 7.3 Anywhere Connect, Rethink-Style Button via Free Azure VM
 
-**Your screenshot = our target.** Rethink adds a QS tile via `VpnService` + `TileService`. ULPF will add **the same row**: `Refresh Connection, Rethink, Orbot, ULPF`.
+**Your screenshot = our target.** Rethink adds a QS tile via `VpnService` + `TileService`. LogForce will add **the same row**: `Refresh Connection, Rethink, Orbot, LogForce`.
 
 **Azure for ₹0 (GitHub Student Pack):**
 - Claim `education.github.com/pack` → Azure for Students **$100 credit (no CC for $100)** + 12 months free.
@@ -210,10 +210,10 @@ Raw and secrets never reach the model.
 
 **Setup one-liner (student):**
 ```bash
-az vm create -g ulpf-rg -n ulpf-pod --image Ubuntu2204 --size Standard_B1s --admin-username azureuser --generate-ssh-keys
-az vm open-port -g ulpf-rg -n ulpf-pod --port 51820 --priority 100
+az vm create -g logforce-rg -n logforce-pod --image Ubuntu2204 --size Standard_B1s --admin-username azureuser --generate-ssh-keys
+az vm open-port -g logforce-rg -n logforce-pod --port 51820 --priority 100
 # on VM: curl -fsSL https://get.docker.com | sh && docker compose -f maincode/docker-compose.yml up -d
-# on phone: install ULPF.apk → QS → Add Tile ULPF → tap → Connected
+# on phone: install LogForce.apk → QS → Add Tile LogForce → tap → Connected
 ```
 
 Alternatives: Oracle Always Free `VM.Standard.E2.1.Micro` (1 OCPU, 1 GB, forever) or Google Cloud free `e2-micro`; but Azure packs with the pack.
@@ -239,7 +239,7 @@ The phone toast shows truncated fix; full report has the exact curl/URL to paste
 
 - Air-gap capable: baked `models/*` + `SHA256SUMS` + `offline/offline-prepare.sh` tar + skipped HF pull.
 - Latency (prototype): warm single ~5 ms; batch 100 → 50-80 ms (~1.6k/sec per instance), measured `health.latencyMs`.
-- Latency (future Hyper): single GPU `qwen2.5.5b` decode 0.8-2 s, but classify path `ULPF-ONNX-Hyper` 4L/256d/int4 + HNSW → ~45k/sec (A10G) / 120k/sec (H100) per GPU, dynamic batch 512, seq 64.
+- Latency (future Hyper): single GPU `qwen2.5.5b` decode 0.8-2 s, but classify path `LogForce-ONNX-Hyper` 4L/256d/int4 + HNSW → ~45k/sec (A10G) / 120k/sec (H100) per GPU, dynamic batch 512, seq 64.
 - Lossless + dedup: `sha256(canonical)` + `auto_capture/capture.py: dedup sha16 window 200` + 10 MB rotate.
 - Offline decode budget: `qwen2.5.5b` <1 GB RAM; Hyper ONNX 9-11 MB (int4/int8), runs on VM pod, never on phone.
 - Battery: tile tap on-demand, Shizuku non-polling, cap 4096 chars.
@@ -265,16 +265,16 @@ The phone toast shows truncated fix; full report has the exact curl/URL to paste
 
 ## 11. Endpoint Contract, Prototype + Future Auto-Capture
 
-### Prototype (still live, `ULPF-Perimeter-Prototype/ui`, 42 leaves, ~1.6k/sec)
+### Prototype (still live, `LogForce-Perimeter-Prototype/ui`, 42 leaves, ~1.6k/sec)
 
 | Method | Path | Request | Response |
 |---|---|---|---|
 | GET | `/api/health` |, | `{"status":"ok","model":"mdbr-leaf-mt","taxonomyLeaves","latencyMs":float}` |
-| POST | `/api/classify` | `{"logs":[...]}` | `{"events":[{type,category,severity,timestamp,summary,confidence,raw}],"latencyMs":float}`, Hyper will add `model:"ulpf-onnx-hyper-4L-256d"` + `gpu:true` |
+| POST | `/api/classify` | `{"logs":[...]}` | `{"events":[{type,category,severity,timestamp,summary,confidence,raw}],"latencyMs":float}`, Hyper will add `model:"logforce-onnx-hyper-4L-256d"` + `gpu:true` |
 | POST | `/api/ingest[?format=]` | NDJSON | `{"ingested":int,"file":str}` |
 | POST | `/api/query` | `{"sql":"…WHERE class_uid=4001"}` | `{"prune":{…},"rows":[…]}` |
 | GET | `/api/stats` |, | `{"total_events","normalized","rate","sources","buckets",…}` |
-| gRPC | `ulpf-onnx-hyper/Classify` | `ClassifyRequest{logs, batch, seq_bucket}` | `stream ClassifyResponse`, Hyper only, 45k/sec (A10G) / 120k/sec (H100), dynamic batching |
+| gRPC | `logforce-onnx-hyper/Classify` | `ClassifyRequest{logs, batch, seq_bucket}` | `stream ClassifyResponse`, Hyper only, 45k/sec (A10G) / 120k/sec (H100), dynamic batching |
 
 > **Custom Hyper endpoint** is not in prototype `server.go`; it lives in `maincode/vector/onnx-hyper/server.go` (future) with ORT CUDA/TensorRT EP, HNSW 400 leaves, PQ-64.
 

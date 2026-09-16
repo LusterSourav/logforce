@@ -1,15 +1,15 @@
 # vector.toml
-# Perimeter ingestion for ULPF. One file in, one NDJSON out.
+# Perimeter ingestion for LogForce. One file in, one NDJSON out.
 # Vector watches the device log, VRL normalizes to OCSF 4001, file sink appends.
 # All device specifics live in Phase 1 of the VRL file. Everything after that stays generic.
 # This keeps new devices to a single regex change instead of a pipeline rewrite.
 
 # Env you must export before running. Vector will expand them.
 #   PERIMETER_LOG_PATH   path Vector tails. Dev uses logs/perimeter.log. Prod uses /var/log/perimeter.log
-#   PERIMETER_SINK_PATH  NDJSON output with strftime. Example output/normalized/perimeter-%Y-%m-%d.ndjson
+#   PERIMETER_SINK_PATH  NDJSON output with strftime. Example output/normalized/perimeter %Y %m %d.ndjson
 #   VECTOR_DATA_DIR      checkpoint dir for file offsets. Default vector_data
 # Run checks without env
-#   vector validate --no-environment ingestion/vector.toml
+#   vector validate   no environment ingestion/vector.toml
 #   vector test ingestion/vector.toml tests/test_normalize_perimeter.yaml
 
 timezone = "UTC"
@@ -25,13 +25,14 @@ include = ["${PERIMETER_LOG_PATH}"]
 read_from = "beginning"
 glob_minimum_cooldown_ms = 1000
 
-# Glue for Java or Kotlin stack traces. If a line starts with whitespace and
-# looks like a stack frame, it joins the previous event instead of becoming its own.
-# Turn this off if your device never emits multi line traces.
+# Glue for multi line events on mixed vendor streams. A new event starts only on
+# an explicit anchor (logcat date, syslog <pri>, ASA, CEF, JSON, Windows envelope);
+# anything else matching the continuation pattern joins the active block.
+# This is the Logstash negate true/previous equivalent in Vector file source form.
 [sources.perimeter_raw.multiline]
 mode = "continue_through"
-condition_pattern = '^\s+at\s+|^Caused by:|^.*Exception:'
-start_pattern = '^\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+'
+condition_pattern = '^\s+at\s+|(?i)^caused by:|(?i)exception:|^Process: |^\s*\.\.\. \d+ more'
+start_pattern = '^\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+|^<\d+>|^%ASA|^CEF:|^\{|^LogName:'
 timeout_ms = 1000
 
 # Backpressure handling. When the downstream VRL or sink stalls, this buffers
@@ -75,7 +76,7 @@ when_full = "block"
 [sinks.search_indexer]
 type = "http"
 inputs = ["perimeter_normalized"]
-uri = "http://ulpf-server:8081/api/ingest"
+uri = "http://logforce-server:8081/api/ingest"
 encoding.codec = "json"
 framing.method = "newline_delimited"
 request.retry_attempts = 5
@@ -89,7 +90,7 @@ batch.timeout_secs = 2
 # type = "elasticsearch"
 # inputs = ["perimeter_normalized"]
 # endpoint = "${SEARCH_INDEXER_ENDPOINT}"
-# index = "ulpf-ocsf-%Y-%m-%d"
+# index = "logforce ocsf %Y %m %d"
 # auth.strategy = "basic"
 # auth.user = "admin"
 # auth.password = "${SEARCH_INDEXER_PASSWORD}"

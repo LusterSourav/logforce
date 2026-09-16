@@ -148,7 +148,7 @@ func main() {
 	})
 
 	addr := ":" + port
-	log.Printf("ULPF listening on http://localhost%s  static=%s  model=%s", addr, staticDir, modelDir)
+	log.Printf("LogForce listening on http://localhost%s  static=%s  model=%s", addr, staticDir, modelDir)
 	log.Printf("try GET /api/health and POST /api/classify then open /dashboard.html")
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatal(err)
@@ -865,7 +865,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 					classUID = int(fv)
 				}
 			}
-			vendor := "ulpf"
+			vendor := "logforce"
 			if qFmt != "" {
 				vendor = qFmt
 			} else if m, ok := obj["metadata"].(map[string]interface{}); ok {
@@ -918,14 +918,15 @@ func handleQuery(w http.ResponseWriter, r *http.Request) {
 	// normalize the DataFusion style query the prototype docs show
 	// we support two forms that prove prune
 	//   raw SQL like SELECT * FROM lake WHERE class_uid=4001
-	//   simple filter like class_uid=4001 or vendor=ulpf
+	//   simple filter like class_uid=4001 or vendor=logforce
 	classFilter := 0
 	vendorFilter := ""
 	if strings.Contains(sqlStr, "4001") {
 		classFilter = 4001
 	}
-	if strings.Contains(strings.ToLower(sqlStr), "ulpf") {
-		vendorFilter = "ulpf"
+	loweredSql := strings.ToLower(sqlStr)
+	if strings.Contains(loweredSql, "logforce") || strings.Contains(loweredSql, "logforce") {
+		vendorFilter = "logforce"
 	}
 
 	base := outDir()
@@ -959,7 +960,7 @@ func handleQuery(w http.ResponseWriter, r *http.Request) {
 			if line == "" {
 				continue
 			}
-			if vendorFilter != "" && !strings.Contains(strings.ToLower(line), strings.ToLower(vendorFilter)) {
+			if vendorFilter != "" && !strings.Contains(strings.ToLower(line), "logforce") && !strings.Contains(strings.ToLower(line), "logforce") {
 				continue
 			}
 			var obj map[string]interface{}

@@ -1,4 +1,4 @@
-# Architecture, ULPF (Prototype Perimeter → Final Universal, All Devices)
+# Architecture, LogForce (Prototype Perimeter → Final Universal, All Devices)
 
 ## 1. Architecture Strategy
 
@@ -54,7 +54,7 @@ Use a **modular monolith + Vector/VRL ingestion + Go ONNX edge classifier** for 
  │ events GIN raw │
  └──────────────────┘
  ┌──────────────────┐
- │ Search Indexer │ ulpf_ocsf.py + perimeter.yml (5)
+ │ Search Indexer │ logforce_ocsf.py + perimeter.yml (5)
  └──────────────────┘
 ```
 
@@ -63,7 +63,7 @@ Use a **modular monolith + Vector/VRL ingestion + Go ONNX edge classifier** for 
 ```mermaid
 sequenceDiagram
  participant App as App (crash)
- participant Tile as Android Tile (ULPF)
+ participant Tile as Android Tile (LogForce)
  participant WG as WireGuard
  participant AC as auto_capture
  participant M as miner
@@ -97,21 +97,21 @@ sequenceDiagram
 | macOS | launchd daemon | `~/Library/Logs/DiagnosticReports/*.ips` + `log stream --predicate` | install once |
 | Linux | systemd `journald` tail | `journalctl -f` filter `SYSLOG_IDENTIFIER=` | `Vector include` |
 | Android | APK `TileService` + crash handler | `logcat -t 500` via Shizuku fallback else `filesDir/last_crash.log`, `packageName` → `source` | tap tile |
-| iOS | Shortcuts + Share Extension | `os_log` + `sysdiagnose` share → `POST /capture` | share → ULPF |
+| iOS | Shortcuts + Share Extension | `os_log` + `sysdiagnose` share → `POST /capture` | share → LogForce |
 | Firewall/Server | Vector (already) | header/prefix Phase 1 regex | tail file |
 
 Per-app detection: header fingerprint (e.g. `OuterTune:`, `%ASA-`, `CEF:`) in `normalize_outertune.vrl: Phase 1` and `auto_search_problem()`. Adding a new app = one fingerprint string, no new agent.
 
 ## 4. Frontend, Prototype UI + Future Tile
 
-**Prototype today (`ULPF-Perimeter-Prototype/ui`):** paste/drop, type selector `?format=`, `POST /api/classify` → chips, auto `POST /api/ingest` → `GET /api/stats` live KPI, `GET /api/query` prune, Copy/Download.
+**Prototype today (`LogForce-Perimeter-Prototype/ui`):** paste/drop, type selector `?format=`, `POST /api/classify` → chips, auto `POST /api/ingest` → `GET /api/stats` live KPI, `GET /api/query` prune, Copy/Download.
 
 **Future tile (your screenshot target):** new row in Android QS:
 
 ```
 [ OutDoor mode | Camera | High performance | One-Tap Search ]
 [ Select to Sp.. | Bedtime | Rethink | Orbot ]
-[ Refresh Connection | ULPF ] ← our TileService beside Rethink/Orbot
+[ Refresh Connection | LogForce ] ← our TileService beside Rethink/Orbot
 ```
 
 Kotlin `TileService` (`docs/PHONE_TILE.md`): `onClick()` → `qsTile.STATE_ACTIVE` → `IO { postToVm(logcatTail) }` → `showToast(hint+fix)` → `STATE_INACTIVE`. Manifest `BIND_QUICK_SETTINGS_TILE`. No heavy decode on phone, only `POST` via WireGuard `https://10.0.0.1/capture`.
@@ -149,8 +149,8 @@ Phone never touches Ollama: `ai_engine.py` binds `127.0.0.1` only; `sanitizer.py
 - Static public IP free while VM running, NSG: `51820/udp` WireGuard, `8002/tcp` only via tunnel (not public), outbound `443` for ephemeral GitHub runner mirror.
 
 ```bash
-az vm create -g ulpf-rg -n ulpf-pod --image Ubuntu2204 --size Standard_B1s --generate-ssh-keys
-az vm open-port -g ulpf-rg -n ulpf-pod --port 51820 --priority 100
+az vm create -g logforce-rg -n logforce-pod --image Ubuntu2204 --size Standard_B1s --generate-ssh-keys
+az vm open-port -g logforce-rg -n logforce-pod --port 51820 --priority 100
 # VM: docker compose -f maincode/docker-compose.yml up -d && ollama pull qwen2.5.5b
 ```
 
@@ -158,7 +158,7 @@ Alternatives: Oracle Always Free `E2.1.Micro` (1 OCPU/1 GB forever), GCP `e2-mic
 
 **Small-GB best local models for decode (no phone, VM pod only):**
 
-| Model | Disk | RAM idle | JSON valid | ULPF fit |
+| Model | Disk | RAM idle | JSON valid | LogForce fit |
 |---|---|---|---|---|
 | `qwen2.5.5b-instruct` | 0.52 GB | ~1.0 GB | ✅ high | **DEFAULT for B1s**: 0.8s/decode, leaves 500 MB for Loki |
 | `llama3.2b-instruct` | 1.32 GB | ~2.0 GB | ✅ | if B1ms, better reasoning |
@@ -184,24 +184,24 @@ WordPiece 128 → ONNX int8 → mean-pool → projection 1024d → cosine 42. Co
 
 ## 9. Storage, Parsing, Bridge
 
-Hive, DataFusion, `ulpf_ocsf.py`, `perimeter.yml`, unchanged from prototype, now fed by device pods too.
+Hive, DataFusion, `logforce_ocsf.py`, `perimeter.yml`, unchanged from prototype, now fed by device pods too.
 
 ## 10. Project Structure (updated with devices)
 
 ```text
-ULPF-Perimeter-Prototype/ (today)
+LogForce-Perimeter-Prototype/ (today)
 maincode/
 ├── auto_capture/ (server.py, capture.py bounded)
-│ └── apk/ ULPF TileService (future: com.ulpf.capture)
+│ └── apk/ LogForce TileService (future: com.logforce.capture)
 ├── miner/ (miner_service.py Drain3)
 ├── ai_solver/unknown_solver/ (Ollama localhost, qwen2.5.5b)
 ├── vector/ (vector.yaml + normalize_outertune.vrl)
 ├── query/datafusion_engine.py, storage/parquet_writer.py
 ├── observability/{prometheus,loki,grafana}
-├── docker-compose.yml (ulpf-observability net + healthchecks + auto-capture svc)
+├── docker-compose.yml (logforce-observability net + healthchecks + auto-capture svc)
 ├── offline/image-list.txt + offline-prepare.sh (tar + wheels + ~/.ollama/models)
 └── docs/{PHONE_TILE.md, VM_POD.md, SYSTEM_ARCH.md, pipeline.md}
-ULPF-Docs/ (7-file safe docs)
+LogForce-Docs/ (7-file safe docs)
 ```
 
 ## 11. Deployment, Day vs Night
@@ -217,7 +217,7 @@ python storage/parquet_writer.py --watch
 ```bash
 # Azure free VM pod (once)
 az vm create …Standard_B1s && ssh azureuser@<ip> "docker compose up -d"
-# Phone (once): install ULPF.apk → QS → Add Tile ULPF
+# Phone (once): install LogForce.apk → QS → Add Tile LogForce
 # At 3 AM anywhere: crash → tile tap → WireGuard → POST → hint+curl → Copy → fixed
 curl -k https://10.0.0.1/capture -d '{"log":"E OuterTune Source Error 2000","source":"phone"}' | jq.hint
 ```
@@ -233,19 +233,19 @@ Same as prototype plus: WireGuard peers → `wg0` peer list, Vector `file` → `
 | Device | perimeter file/paste only | every laptop/phone/server/firewall, auto per-app |
 | Connect | localhost:8081 | WireGuard 10.0.0.0/24 from anywhere + Azure free B1s |
 | Model where | ONNX on same host | ONNX + small LLM both on VM pod (phone thin) |
-| Model size | 23 MB ONNX 42 leaves (CPU, 5 ms) | **Custom ULPF-ONNX-Hyper**: see §14, 0.52-2.18 GB LLM + custom distilled ONNX for 1B/s |
+| Model size | 23 MB ONNX 42 leaves (CPU, 5 ms) | **Custom LogForce-ONNX-Hyper**: see §14, 0.52-2.18 GB LLM + custom distilled ONNX for 1B/s |
 | Unknown | drop | Drain3 → small LLM → validated VRL/PR + fix endpoint |
 | Midnight fix | none | `POST /capture` → `{fix_endpoint,curl}` toast, copy-paste fix |
 | Throughput | ~1.6k lines/sec/instance (100 lines/60ms) | Phase 1: 100M/s, Phase 2: 1B/s burst (sharded, GPU, see §14) |
 
-## 14. Custom Complex ONNX, ULPF-ONNX-Hyper for 1,000,000,000 lines/sec
+## 14. Custom Complex ONNX, LogForce-ONNX-Hyper for 1,000,000,000 lines/sec
 
 **Ground reality first (no fake perf):** Measured `lumber-master` 100 lines / 50-80 ms on 4 threads = ~1,600 lines/sec per Go instance (CPU). 1B lines/sec ÷ 1,600 = **625,000 instances**. A single B1s VM (1 vCPU) physically cannot do 1B/sec. Anyone claiming "1B/sec on one VM" is fake.
 
 **What the future custom ONNX actually is, to make 1B/sec *burst-credible* (not sustained 24/7 on one box), horizontal by design:**
 
 ```text
-ULPF-ONNX-Hyper (custom, not mdbr-leaf-mt)
+LogForce-ONNX-Hyper (custom, not mdbr-leaf-mt)
  ├─ Student: distilled MiniLM 6-layer → 4-layer (hidden 384 → 256, heads 6, seq 64 not 128)
  │ Teacher: bge-large / MiniLM-L12 → Distill on 5M perimeter+app logs + synthetic CEF/LEEF
  │ Quant: dynamic int8 (CPU) + int4 AWQ (GPU) → 11 MB (CPU) / 9 MB (CUDA)
@@ -255,9 +255,9 @@ ULPF-ONNX-Hyper (custom, not mdbr-leaf-mt)
  │ Index: pre-embedded leaves in FAISS/HNSW (cosine via dot, not 400 loop), quantized PQ-64
  │ Runtime: ORT `SessionOptions` intra_op 8, inter_op 2, `graph_optimization_level ALL`, `enable_mem_pattern`, `execution_mode PARALLEL`
  │
- ├─ Serving: gRPC `ulpf-onnx-hyper:50051` with dynamic batching (8-2048), sequence bucketing (32/64), GPU continuous batching (TensorRT-LLM style)
+ ├─ Serving: gRPC `logforce-onnx-hyper:50051` with dynamic batching (8-2048), sequence bucketing (32/64), GPU continuous batching (TensorRT-LLM style)
  │ → Single A10G (24 GB) = ~45k lines/sec (measured: 64-len, batch 512, int8, ~180 ms). Single H100 = ~120k lines/sec.
- │ → 1B/sec burst = ~833 H100 equivalents, or 22,000 A10Gs, or **~83 ULPF pods × 12 × H100** with Kafka sharding (see below)
+ │ → 1B/sec burst = ~833 H100 equivalents, or 22,000 A10Gs, or **~83 LogForce pods × 12 × H100** with Kafka sharding (see below)
  │
  └─ Ingest fabric (to feed that): Kafka 300 partitions (3 brokers × 100) → Vector `file` → `kafka` sink (batch 10k) → ORT fleet autoscale (KEDA on lag) → OCSF 4001 → ClickHouse/Parquet (not Postgres for 1B/s)
 ```
@@ -272,7 +272,7 @@ ULPF-ONNX-Hyper (custom, not mdbr-leaf-mt)
 | C, Sharded fleet | 100M/sec (8× H100 × 100 pods + Kafka) | 800 H100 + 300-partition Kafka + ClickHouse | **~$2.4k/min burst**, demo as 10-sec burst, not 24h | Post-universal |
 | D, 1B/sec burst | 1,000M/sec (10-sec burst, sampled storage) | 8,300 H100 or 22k A10G, 1000-partition Kafka | **$10-20k per 10-sec burst**, for benchmark slide only | Research tier, not prod |
 
-**Honest claims to write in Prd:** "Prototype: 1.6k/s. Custom ULPF-ONNX-Hyper (distilled 4L/256d/int4 + HNSW + GPU) reaches 120k/s/GPU; 1B/s is a **10-second burst on a sharded fleet** (800+ H100, Kafka 1000 partitions), not a single VM. Day-to-day universal prod target is **100k-1M/s sustained on 1-10 GPUs**, which already dwarfs any SIEM."
+**Honest claims to write in Prd:** "Prototype: 1.6k/s. Custom LogForce-ONNX-Hyper (distilled 4L/256d/int4 + HNSW + GPU) reaches 120k/s/GPU; 1B/s is a **10-second burst on a sharded fleet** (800+ H100, Kafka 1000 partitions), not a single VM. Day-to-day universal prod target is **100k-1M/s sustained on 1-10 GPUs**, which already dwarfs any SIEM."
 
 **What we will ship vs what we will slide:**
 

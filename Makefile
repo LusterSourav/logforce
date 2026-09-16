@@ -17,7 +17,7 @@ verify:
 	@echo "vector syntax"
 	@vector validate --no-environment ingestion/vector.toml 2>&1 | head -n 20 || echo "vector not installed, skipping"
 	@echo "parsing import"
-	@python -c "from parsing.ulpf_ocsf import parse; print('ulpf_ocsf ok')" 2>&1 | head
+	@python -c "from parsing.logforce_ocsf import parse; print('logforce_ocsf ok')" 2>&1 | head
 	@echo "wazuh decoders"
 	@ls parsing/decoders/perimeter.yml 2>&1 | head
 

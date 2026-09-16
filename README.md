@@ -1,4 +1,4 @@
-<img src="logo.svg" width="360" alt="ULPF" />
+<img src="logo.svg" width="360" alt="LogForce" />
 
 # Status: Prototype
 
@@ -8,20 +8,20 @@
 > [!NOTE]
 > Prototype for evaluation. Core pipeline is ready for offline demos while device agents and scale out remain in design.
 
-# ULPF
+# LogForce
 
-Universal Log Pre Processing Framework provides a fast offline pipeline that normalizes heterogeneous perimeter logs to OCSF 4001. It keeps raw bytes, hashes the canonical form, and makes every event searchable for SIEM and ML. Teams can add a new firewall with one regex and run the whole stack air gapped with a single compose file.
+LogForce provides a fast offline pipeline that normalizes heterogeneous perimeter logs to OCSF 4001. It keeps raw bytes, hashes the canonical form, and makes every event searchable for SIEM and ML. Teams can add a new firewall with one regex and run the whole stack air gapped with a single compose file.
 
 Introduction
 ------------
 
-ULPF is an open source log pre processing framework built in house for perimeter visibility. It ingests raw syslog, CEF, LEEF, JSON and vendor key value formats, normalizes them with Vector and VRL, classifies with a local ONNX model, and lands everything as Hive partitioned NDJSON and Postgres GIN.
+LogForce is an open source log pre processing framework built in house for perimeter visibility. It ingests raw syslog, CEF, LEEF, JSON and vendor key value formats, normalizes them with Vector and VRL, classifies with a local ONNX model, and lands everything as Hive partitioned NDJSON and Postgres GIN.
 
-ULPF use cases:
+LogForce use cases:
 
 * **Perimeter Log Normalization With Open Source Stack**
 
-ULPF can centralize logs from Palo Alto, Cisco ASA, FortiGate, Suricata and Zeek into one OCSF schema without losing raw.
+LogForce can centralize logs from Palo Alto, Cisco ASA, FortiGate, Suricata and Zeek into one OCSF schema without losing raw.
 
 * **Lossless Forensics and Search**
 
@@ -52,20 +52,20 @@ open http://localhost:8081/dashboard.html
 How to contribute
 -----------------
 
-If you wish to contribute to ULPF, first read: [Contributing Guide](CONTRIBUTING.md).
+If you wish to contribute to LogForce, first read: [Contributing Guide](CONTRIBUTING.md).
 
 #### Code of Conduct
 
-ULPF has adopted a Code of Conduct that is to be honored by everyone who participates formally or informally. Please read the full text: [Code of Conduct](CODE_OF_CONDUCT.md)
+LogForce has adopted a Code of Conduct that is to be honored by everyone who participates formally or informally. Please read the full text: [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ####
 
 All notable changes are documented in: [CHANGELOG](CHANGELOG.md)
 
-ULPF UI
+LogForce UI
 -------------
 
-To learn more about the ULPF dashboard, visit: [System Architecture](docs/SYSTEM_ARCHITECTURE.md).
+To learn more about the LogForce dashboard, visit: [System Architecture](docs/SYSTEM_ARCHITECTURE.md).
 
 There you will find guides on:
 
@@ -80,18 +80,18 @@ There you will find guides on:
 * [Modifying the layout](ui/dashboard.html)
 * [Managing models](models/README.md)
 * [Use offline bundle file](docs/offline-bundle.md)
-* [Filter and save searches](parsing/ulpf_ocsf.py)
+* [Filter and save searches](parsing/logforce_ocsf.py)
 
 Services
 ---------
 
-To explore ULPF services, visit: [Ingestion](ingestion/vector.toml) and [Parsing](parsing/ulpf_ocsf.py).
+To explore LogForce services, visit: [Ingestion](ingestion/vector.toml) and [Parsing](parsing/logforce_ocsf.py).
 
 There you will find guides on:
 
 * [Setting up a service in ingestion](ingestion/vector.toml)
 * [Ingestion service](ingestion/vector.toml)
-* [Parsing service](parsing/ulpf_ocsf.py)
+* [Parsing service](parsing/logforce_ocsf.py)
   * [Setting up ASA parsing](parsing/decoders/perimeter.yml)
 * [Storage writer service](storage/parquet_writer.py)
   * [Setting up Hive writer](storage/parquet_writer.py)

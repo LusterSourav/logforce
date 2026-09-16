@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
     }
   }catch(e){}
   const classFilter = sqlStr.includes('4001') ? 4001 : 0
-  const vendorFilter = sqlStr.toLowerCase().includes('ulpf') ? 'ulpf' : ''
+  const vendorWanted = sqlStr.toLowerCase().includes('logforce') || sqlStr.toLowerCase().includes('logforce')
   const base = getStoreDir()
   const pattern = path.join(base, '*.ndjson')
   const glob = (p) => {
@@ -65,7 +65,7 @@ module.exports = async (req, res) => {
     for (const lineRaw of content.split('\n')) {
       const line = lineRaw.trim()
       if (!line) continue
-      if (vendorFilter && !line.toLowerCase().includes(vendorFilter.toLowerCase())) continue
+      if (vendorWanted && !(line.toLowerCase().includes('logforce') || line.toLowerCase().includes('logforce'))) continue
       let obj
       try { obj = JSON.parse(line) } catch { continue }
       if (classFilter!==0) {

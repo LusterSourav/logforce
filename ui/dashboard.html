@@ -666,7 +666,7 @@
 </svg>
 </div>
 <div>
-<h2 class="font-bold text-[#111827] text-base">ulpf-perimeter</h2>
+<h2 class="font-bold text-[#111827] text-base">logforce-perimeter</h2>
 <p class="text-[11px] text-[#575e70] mt-1">Last ingest:</p>
 <p class="text-[11px] text-[#6B7280] font-medium"><span id="last-ingest-time">never</span></p>
 </div>
@@ -815,7 +815,7 @@
 </div>
 </div>
 
-<!-- BEGIN  ULPF Necessary   only what prototype needs, styled exactly like Sports card -->
+<!-- BEGIN  LogForce Necessary   only what prototype needs, styled exactly like Sports card -->
 <div class="col-span-12 bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col gap-4">
 <div class="flex items-center justify-between">
 <h2 class="text-sm font-semibold text-[#111827]">Perimeter Log Ingest — Live Pipeline</h2>
@@ -840,7 +840,7 @@ Drop log file here or paste below — live <span class="text-[#9CA3AF]">output/m
 <button data-format="generic_json" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Generic JSON</button>
 <button data-format="csv" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">CSV</button>
 <button data-format="xml" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">XML</button>
-<button data-format="ulpf_ocsf" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#4f46e5]">ULPF OCSF 4001</button>
+<button data-format="logforce_ocsf" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#4f46e5]">LogForce OCSF 4001</button>
 <button data-format="json" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">JSON</button>
 <button data-format="vendor" class="text-left px-3 py-2 rounded-xl hover:bg-[#ffffff] text-xs text-[#6B7280]">Vendor Custom</button>
 </div>
@@ -895,7 +895,7 @@ Drop log file here or paste below — live <span class="text-[#9CA3AF]">output/m
 <div><span class="text-[#111827]">CEF / LEEF</span> — ArcSight / QRadar common event, pipe delimited</div>
 <div><span class="text-[#111827]">Suricata EVE</span> — IDS alert, event_type alert, signature, severity</div>
 <div><span class="text-[#111827]">Zeek TSV</span> — Bro header driven, #fields/#path, OT enrichment</div>
-<div><span class="text-[#111827]">ULPF OCSF 4001</span> — already normalized, fast path, keep raw in GIN</div>
+<div><span class="text-[#111827]">LogForce OCSF 4001</span> — already normalized, fast path, keep raw in GIN</div>
 </div>
 </div>
 </div>
@@ -909,7 +909,7 @@ Drop log file here or paste below — live <span class="text-[#9CA3AF]">output/m
 <!-- END  MainDashboardContainer -->
 
 <script>
-// ULPF wire   drop + classify with real Go ONNX
+// LogForce wire   drop + classify with real Go ONNX
 let realONNX=false;
 async function checkHealth(){ try{ const r=await fetch('/api/health',{cache:'no-store'}); const j=await r.json(); realONNX=j.status==='ok'; }catch(e){ realONNX=false; } }
 checkHealth(); setInterval(checkHealth,30000);
@@ -935,9 +935,9 @@ async function doClassify(){
       // persist canonical events so dashboard stats move live (2 >3)   was in memory only
       try{
         const ndjson = lastEvents.map(e=>JSON.stringify(e)).join('\n');
-        const fmt = (typeof selectedFormat!=='undefined' && selectedFormat) ? selectedFormat : 'ulpf_ocsf';
+        const fmt = (typeof selectedFormat!=='undefined' && selectedFormat) ? selectedFormat : 'logforce_ocsf';
         await fetch('/api/ingest?format='+encodeURIComponent(fmt),{method:'POST', headers:{'Content-Type':'application/x-ndjson'}, body: ndjson});
-        localStorage.setItem('ulpf_last_ingest', Date.now().toString());
+        localStorage.setItem('logforce_last_ingest', Date.now().toString());
         if(typeof refreshRealData==='function') refreshRealData();
         if(typeof refreshAllCards==='function') refreshAllCards();
       }catch(e){}
@@ -948,9 +948,9 @@ async function doClassify(){
   renderOutput(lastEvents);
   try{
     const ndjson = lastEvents.map(e=>JSON.stringify(e)).join('\n');
-    const fmt = (typeof selectedFormat!=='undefined' && selectedFormat) ? selectedFormat : 'ulpf_ocsf';
+    const fmt = (typeof selectedFormat!=='undefined' && selectedFormat) ? selectedFormat : 'logforce_ocsf';
     await fetch('/api/ingest?format='+encodeURIComponent(fmt),{method:'POST', headers:{'Content-Type':'application/x-ndjson'}, body: ndjson});
-    localStorage.setItem('ulpf_last_ingest', Date.now().toString());
+    localStorage.setItem('logforce_last_ingest', Date.now().toString());
     if(typeof refreshRealData==='function') refreshRealData();
     if(typeof refreshAllCards==='function') refreshAllCards();
   }catch(e){}
@@ -959,7 +959,7 @@ document.getElementById('btn-classify')?.addEventListener('click',doClassify);
 document.getElementById('btn-batch')?.addEventListener('click',doClassify);
 document.getElementById('btn-clear')?.addEventListener('click',()=>{inputEl.value=''; outputEl.textContent='— cleared —'; chipsEl.innerHTML='';});
 document.getElementById('btn-copy')?.addEventListener('click',()=>{ navigator.clipboard.writeText(lastEvents.map(e=>JSON.stringify(e)).join('\n')); });
-document.getElementById('btn-download')?.addEventListener('click',()=>{ const blob=new Blob([lastEvents.map(e=>JSON.stringify(e)).join('\n')],{type:'application/x-ndjson'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ulpf-'+new Date().toISOString().slice(0,10)+'.ndjson'; a.click(); });
+document.getElementById('btn-download')?.addEventListener('click',()=>{ const blob=new Blob([lastEvents.map(e=>JSON.stringify(e)).join('\n')],{type:'application/x-ndjson'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='logforce-'+new Date().toISOString().slice(0,10)+'.ndjson'; a.click(); });
 async function handleFiles(files){
   if(!files.length) return;
   let all=''; for(const f of files){ if(f.name.endsWith('.gz')) continue; all+=(all?'\n':'')+await f.text().catch(()=> ''); }
@@ -982,7 +982,7 @@ inputEl.addEventListener('paste',e=>{
 });
 const logMenu=document.getElementById('log-type-menu');
 const dropWrap=document.getElementById('drop-wrap');
-let selectedFormat='ulpf_ocsf';
+let selectedFormat='logforce_ocsf';
 if(dropWrap && logMenu){
   dropWrap.addEventListener('mouseenter',()=>logMenu.classList.remove('hidden'));
   dropWrap.addEventListener('mouseleave',()=>logMenu.classList.add('hidden'));
@@ -1022,13 +1022,13 @@ document.getElementById('btn-top-history')?.addEventListener('click',async()=>{
 </script>
 
 <script>
-let clientTotal = parseInt(localStorage.getItem('ulpf_client_total')||'0')
-let clientVendors = JSON.parse(localStorage.getItem('ulpf_client_vendors')||'{}')
-let clientCats = JSON.parse(localStorage.getItem('ulpf_client_cats')||'{}')
+let clientTotal = parseInt(localStorage.getItem('logforce_client_total')||'0')
+let clientVendors = JSON.parse(localStorage.getItem('logforce_client_vendors')||'{}')
+let clientCats = JSON.parse(localStorage.getItem('logforce_client_cats')||'{}')
 function saveClient(){
-  localStorage.setItem('ulpf_client_total', String(clientTotal))
-  localStorage.setItem('ulpf_client_vendors', JSON.stringify(clientVendors))
-  localStorage.setItem('ulpf_client_cats', JSON.stringify(clientCats))
+  localStorage.setItem('logforce_client_total', String(clientTotal))
+  localStorage.setItem('logforce_client_vendors', JSON.stringify(clientVendors))
+  localStorage.setItem('logforce_client_cats', JSON.stringify(clientCats))
 }
 function bumpClient(events){
   if(!events || !events.length) return
@@ -1105,7 +1105,7 @@ async function refreshDashboard(){
     }
     const lastIngestEl=document.getElementById('last-ingest-time')
     if(lastIngestEl){
-      const lastIngest=localStorage.getItem('ulpf_last_ingest')
+      const lastIngest=localStorage.getItem('logforce_last_ingest')
       if(lastIngest) lastIngestEl.textContent = new Date(parseInt(lastIngest)).toLocaleString()
       else if(stats.last_24h>0) lastIngestEl.textContent = new Date().toLocaleString() + ' ' + String(stats.last_24h) + ' in 24h'
       else lastIngestEl.textContent = 'never drop a file'
@@ -1185,8 +1185,8 @@ doClassify = async function(){
   try{
     const evts = lastEvents
     bumpClient(evts)
-    localStorage.setItem('ulpf_last_ingest', Date.now().toString())
-    localStorage.setItem('ulpf_last_normalize', Date.now().toString())
+    localStorage.setItem('logforce_last_ingest', Date.now().toString())
+    localStorage.setItem('logforce_last_normalize', Date.now().toString())
     updateRecentFromClient()
     refreshDashboard()
   }catch(e){}

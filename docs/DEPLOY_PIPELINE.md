@@ -1,6 +1,6 @@
 # Deploy Pipeline
 
-Repo `LusterSourav/ulpf` branch `main` is the single source of truth.
+Repo `LusterSourav/logforce` branch `main` is the single source of truth.
 Two pipelines ship it to Vercel (`logforce.vercel.app`) and Render (`logforce.onrender.com`).
 
 ## Pipelines

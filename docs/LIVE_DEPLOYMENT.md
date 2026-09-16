@@ -1,6 +1,6 @@
 # LIVE DEPLOYMENT  Vercel plus Render
 
-This doc records the live combo that makes ULPF perfect outside local docker
+This doc records the live combo that makes LogForce perfect outside local docker
 
 ## Overview
 
@@ -14,7 +14,7 @@ Browser
   |
   +--> Render logforce.onrender.com  Go server plus Alpine mock fallback
   |
-  GitHub LusterSourav/ulpf main  single source both auto deploy
+  GitHub LusterSourav/logforce main  single source both auto deploy
 ```
 
 Both share `ui/dashboard.html` `ui/server.go` `models` `Dockerfile.lumber` `vercel.json` `api`
@@ -58,7 +58,7 @@ NETWORK traffic_flow 0.93 for TRAFFIC allow
 ## Render LogForce
 
 Service `srv-dakmdtqd0e5s73eft03g` name `logforce` owner `tea-d13963je5dus73ehabo0`
-Repo `https://github.com/LusterSourav/ulpf` branch `main` autoDeploy yes
+Repo `https://github.com/LusterSourav/logforce` branch `main` autoDeploy yes
 Region `singapore` plan `free` runtime `docker` dockerfile `./Dockerfile.lumber`
 
 Live URL `https://logforce.onrender.com`
@@ -66,7 +66,7 @@ Dashboard `https://dashboard.render.com/web/srv-dakmdtqd0e5s73eft03g`
 
 Docker `Dockerfile.lumber`
 ```
-builder golang 1.24 alpine build ulpf-server
+builder golang 1.24 alpine build logforce-server
 final alpine 3.19 ca-certificates libgomp plus models baked
 ENV LUMBER_MODEL_DIR=/app/models STATIC_DIR=/app/ui PORT=8081
 healthCheckPath /api/health
@@ -78,9 +78,9 @@ Same routers as Vercel so `POST /api/classify` with `%ASA-4-106023` returns `fir
 ## Combo How It Happened
 
 ```
-Local ULPF-Perimeter-Prototype  api plus vercel.json plus Dockerfile.lumber
+Local LogForce-Perimeter-Prototype  api plus vercel.json plus Dockerfile.lumber
         |
-        +-- push to LusterSourav/ulpf main
+        +-- push to LusterSourav/logforce main
         |       |
         |       +-- Render auto deploy on commit 7cb75e7
         |       +-- Vercel manual deploy npx vercel deploy name logforce prod
@@ -143,6 +143,6 @@ Add when free tier allows larger image or use Fly.io with volume for `output/nor
 
 Vercel `https://logforce.vercel.app`
 Render `https://logforce.onrender.com`
-GitHub `https://github.com/LusterSourav/ulpf`
+GitHub `https://github.com/LusterSourav/logforce`
 Vercel Inspect `https://vercel.com/morningstarxcdcodes-projects/logforce`
 Render Dashboard `https://dashboard.render.com/web/srv-dakmdtqd0e5s73eft03g`

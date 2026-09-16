@@ -1,12 +1,12 @@
-# Memory, ULPF
+# Memory, LogForce
 
 ## 1. Project Identity
 
-**Project:** Universal Log Pre-processing Framework (ULPF) 
+**Project:** LogForce 
 **Problem:** Heterogeneous log normalization → OCSF 4001 → queryable lake + SIEM, lossless & offline 
-**Prototype Folder:** `ULPF-Perimeter-Prototype/` (perimeter slice) 
+**Prototype Folder:** `LogForce-Perimeter-Prototype/` (perimeter slice) 
 **Full Codebase:** `maincode/` + branches + `SIEM-Lite-main/`, `wazuh-main/`, `lumber-master/` 
-**Docs:** `SYSTEM_DESIGN.md`, `SYSTEM_ARCHITECTURE.md`, `README.md`, `ULPF-Deep-Research-Report.md`, this memory 
+**Docs:** `SYSTEM_DESIGN.md`, `SYSTEM_ARCHITECTURE.md`, `README.md`, `LogForce-Deep-Research-Report.md`, this memory 
 **Category:** Software, Data Engineering / Security Analytics 
 **Theme:** Smart Automation
 
@@ -36,13 +36,13 @@ The final demonstrates:
 - NDJSON + Hive Parquet (watcher 30s)
 - Dashboard + API (:8081) with live KPI (2→3 wired)
 - Postgres `events` + search mirror
-- Parsing bridges (`ulpf_ocsf.py` + `perimeter.yml` 5 decoders)
+- Parsing bridges (`logforce_ocsf.py` + `perimeter.yml` 5 decoders)
 
 ### Initial corpus
-Palo Alto Syslog, Cisco ASA, FortiGate, CEF, LEEF, Suricata EVE, Zeek TSV, Generic Syslog/JSON, CSV, XML, ULPF OCSF.
+Palo Alto Syslog, Cisco ASA, FortiGate, CEF, LEEF, Suricata EVE, Zeek TSV, Generic Syslog/JSON, CSV, XML, LogForce OCSF.
 
 ### Demo context
-Single host air-gapped; `output/normalized/perimeter-*.ndjson` + `PG_DSN=postgres://ulpf:ulpf@postgres/ulpf`.
+Single host air-gapped; `output/normalized/perimeter-*.ndjson` + `PG_DSN=postgres://logforce:logforce@postgres/logforce`.
 
 ---
 
@@ -65,7 +65,7 @@ Complement, not replace:
 - Wazuh / Wazuh manager (decoders)
 - SIEM-Lite (NormalizedEvent bridge + `generic_json` fallback)
 - Grafana / Loki / Prometheus (full observability branch)
-- Existing SIEM/storage, ULPF is the normalizer before them.
+- Existing SIEM/storage, LogForce is the normalizer before them.
 
 Differentiation: **lossless OCSF fabric with integrity + Hive pruning.**
 
@@ -153,7 +153,7 @@ Query with prune stats
  ↓
 See Parquet promotion
  ↓
-Parse via ulpf_ocsf.py with raw intact
+Parse via logforce_ocsf.py with raw intact
  ↓
 Verify hash echo -n canonical | sha256sum
 ```
@@ -166,7 +166,7 @@ with reproducible results, provenance, and no cloud call.
 
 - ✅ Auto-capture `maincode/auto_capture/`, now Phase 8, not deferred (thin phone + pod decode)
 - ✅ Small LLM pin, default `qwen2.5.5b` on Azure free pod, switchable via `SOLVER_OLLAMA_MODEL`
-- ◻ Full Grafana 27 panels (branch `ulpf-soumita-grafana-observability`), per-device source filter pending
+- ◻ Full Grafana 27 panels (branch `logforce-soumita-grafana-observability`), per-device source filter pending
 - ◻ Miner Drain3 at fleet scale beyond perimeter
 - ◻ SIEM correlation Storm topology
 - ✕ Grants/hackathon management, public social network, stays deferred
@@ -183,12 +183,12 @@ with reproducible results, provenance, and no cloud call.
 
 **2 Product Direction (ground truth):** `Ingest→Classify 42→OCSF→Hive` is shipped (`ui/server.go` + `vector.toml` + `parquet_writer.py`). `Any device auto → WireGuard → small LLM → fix` is roadmapped, `auto_capture/server.py` + `PHONE_TILE.md` stubs exist, APK not yet built. Not fake, but not DONE.
 
-**3 Confirmed MVP:** 6 modules live, corpus 11 formats, demo on `output/normalized` + PG `ulpf:ulpf`. Verified by `go run./ui/server.go` health 42 leaves.
+**3 Confirmed MVP:** 6 modules live, corpus 11 formats, demo on `output/normalized` + PG `logforce:logforce`. Verified by `go run./ui/server.go` health 42 leaves.
 
-**4 Principles (ground truth):** 1-9 are enforced (`sha256`, `block` not drop, `SHA256SUMS`). Principle 10 "MVP stays narrow" explains why device agents live in `maincode/`, not `ULPF-Perimeter-Prototype/`.
+**4 Principles (ground truth):** 1-9 are enforced (`sha256`, `block` not drop, `SHA256SUMS`). Principle 10 "MVP stays narrow" explains why device agents live in `maincode/`, not `LogForce-Perimeter-Prototype/`.
 
 **5 Ecosystem:** Wazuh/SIEM-Lite/Grafana are real siblings (`wazuh-main 5.1.0`, `SIEM-Lite 29 parsers`), not vendors to invent.
 
 **6 Data Direction (ground truth):** `logs/auto_captured.log` path real (`server.py`), device tags `source=phone/laptop` real enum, future `vendor=phone` will appear in `vendor_counts`.
 
-**Custom ONNX truth:** Current `mdbr-leaf-mt` 23 MB is a **student baseline** (MiniLM distilled). Future `ULPF-ONNX-Hyper` will be **custom distilled 4L/256d, 11 MB int8 / 9 MB int4, HNSW 400 leaves, PQ-64**, built from 5M perimeter+app logs (guide Issue #2 6-family schema), ORT CUDA→TensorRT, dynamic batch 512, seq 64. This is not a rename, it is a new model in `maincode/vector/onnx-hyper/` + `lumber-master/models-hyper/`. 1B/sec claim is **10-sec burst on 800+ H100 + 1000 Kafka partitions** (see Architecture §14), not one VM. Day-to-day real target 100k-1M/sec on 1-10 GPUs.
+**Custom ONNX truth:** Current `mdbr-leaf-mt` 23 MB is a **student baseline** (MiniLM distilled). Future `LogForce-ONNX-Hyper` will be **custom distilled 4L/256d, 11 MB int8 / 9 MB int4, HNSW 400 leaves, PQ-64**, built from 5M perimeter+app logs (guide Issue #2 6-family schema), ORT CUDA→TensorRT, dynamic batch 512, seq 64. This is not a rename, it is a new model in `maincode/vector/onnx-hyper/` + `lumber-master/models-hyper/`. 1B/sec claim is **10-sec burst on 800+ H100 + 1000 Kafka partitions** (see Architecture §14), not one VM. Day-to-day real target 100k-1M/sec on 1-10 GPUs.

@@ -1,4 +1,4 @@
-# ULPF, Architecture Document (Max 2 Pages)
+# LogForce, Architecture Document (Max 2 Pages)
 
 
 ---
@@ -59,7 +59,7 @@ Modular monolith + Vector 0.38/VRL ingestion + Go ONNX edge classifier for the *
  │ events GIN raw │
  └──────────────────┘
  ┌──────────────────┐
- │ Search Indexer │ ulpf_ocsf.py + perimeter.yml (5)
+ │ Search Indexer │ logforce_ocsf.py + perimeter.yml (5)
  └──────────────────┘
 ```
 
@@ -68,7 +68,7 @@ Modular monolith + Vector 0.38/VRL ingestion + Go ONNX edge classifier for the *
 ```mermaid
 sequenceDiagram
  participant App as App (crash)
- participant Tile as Android Tile (ULPF)
+ participant Tile as Android Tile (LogForce)
  participant WG as WireGuard
  participant AC as auto_capture
  participant M as miner
@@ -102,7 +102,7 @@ sequenceDiagram
 | macOS | launchd daemon | `~/Library/Logs/DiagnosticReports/*.ips` + `log stream` | install once |
 | Linux | systemd `journald` tail | `journalctl -f` `SYSLOG_IDENTIFIER=` | `Vector include` |
 | Android | APK `TileService` + crash handler | `logcat -t 500` via Shizuku else `filesDir/last_crash.log`, `packageName → source` | tap tile |
-| iOS | Shortcuts + Share Extension | `os_log` + `sysdiagnose` share → `POST /capture` | share → ULPF |
+| iOS | Shortcuts + Share Extension | `os_log` + `sysdiagnose` share → `POST /capture` | share → LogForce |
 | Firewall/Server | Vector (already) | header/prefix Phase 1 regex (`OuterTune:`, `%ASA-`, `CEF:`) | tail file |
 
 Per-app detection is one fingerprint string in `normalize_outertune.vrl` / `sampler.py`, no new agent.
@@ -111,7 +111,7 @@ Per-app detection is one fingerprint string in `normalize_outertune.vrl` / `samp
 
 **Today (`perimeter/ui`):** `dashboard.html 1270L` single file (Tailwind CDN, `file://` + served), format `?format=` selector, drag file → `POST /api/classify` → chips + Canonical NDJSON + Copy/Download, auto `POST /api/ingest` → `GET /api/stats` live KPI, `POST /api/query` prune, 30s health badge warm/mock.
 
-**Future tile (screenshot target):** new QS row `[ Refresh Connection | ULPF ]` beside Rethink/Orbot. Kotlin `TileService BIND_QUICK_SETTINGS_TILE` `onClick() → STATE_ACTIVE → IO{postToVm(logcatTail)} → toast(hint+fix) → INACTIVE` (`docs/PHONE_TILE.md`). `VpnService` routes only `10.0.0.0/24` (unlike Rethink `0.0.0.0/0`).
+**Future tile (screenshot target):** new QS row `[ Refresh Connection | LogForce ]` beside Rethink/Orbot. Kotlin `TileService BIND_QUICK_SETTINGS_TILE` `onClick() → STATE_ACTIVE → IO{postToVm(logcatTail)} → toast(hint+fix) → INACTIVE` (`docs/PHONE_TILE.md`). `VpnService` routes only `10.0.0.0/24` (unlike Rethink `0.0.0.0/0`).
 
 ### 5. Backend, Perimeter Go + Pod Auto-Capture
 
@@ -151,28 +151,28 @@ Phone never touches `127.0.0.1` (`ai_engine.py`), sanitizer 21+9 (`sanitizer.py`
 
 **VM pod, free-tier + small-GB model:**
 
-* GitHub Student Pack `education.github.com/pack → $100 + 12mo free B1s 1/1GB 750h/mo` or `B1ms 1/2GB`; static IP free while VM running, NSG `51820/udp` WG, `8002` only via `10.0.0.x` not public, outbound `443` for ephemeral runner. `az vm create -g ulpf-rg -n ulpf-pod --image Ubuntu2204 --size Standard_B1s` then `docker compose -f maincode/docker-compose.yml up -d && ollama pull qwen2.5.5b` (`Architecture.md`). Alternatives: Oracle `E2.1.Micro` forever, GCP `e2-micro`.
+* GitHub Student Pack `education.github.com/pack → $100 + 12mo free B1s 1/1GB 750h/mo` or `B1ms 1/2GB`; static IP free while VM running, NSG `51820/udp` WG, `8002` only via `10.0.0.x` not public, outbound `443` for ephemeral runner. `az vm create -g logforce-rg -n logforce-pod --image Ubuntu2204 --size Standard_B1s` then `docker compose -f maincode/docker-compose.yml up -d && ollama pull qwen2.5.5b` (`Architecture.md`). Alternatives: Oracle `E2.1.Micro` forever, GCP `e2-micro`.
 * Best small locals (disk→RAM ~1.3×, all `SOLVER_OLLAMA_MODEL` env swappable, none on phone): `qwen2.5.5b 0.52GB→~1GB DEFAULT B1s 0.8s/decode`, `llama3.2b 1.32GB→~2GB if B1ms`, `gemma2b 1.64GB→~3GB if B2s`, `phi3.8b 2.18GB→~4GB if 8GB pod`. Pipeline 10 steps `pipeline.py Sampler→Sanitizer→Prompt nonce→AI→OCSF→Validator10→Tester0.8/0.1→Git→Loader` gates before commit.
 
 **Stack:** Go 1.24 + `lumber v0.10.6` + `onnxruntime_go` + Vector 0.38 + VRL + Python `parquet_writer --watch` (pyarrow optional) + PG16 GIN + single HTML Tailwind CDN // future: Drain3, Ollama `0.5.7`, Loki/Prom/Grafana 27 panels, `onnxruntime-gpu 1.18` + TensorRT + `faiss-hnsw`.
 
-**Project structure:** `ULPF-Perimeter-Prototype/ (models 58M + ingestion + parsing + storage + ui)` + `maincode/ (vector+miner 8001+auto_capture 8002+ai_solver+storage/query+observability+prototype overlay+docs/)` + `ULPF-Docs/` 7-file safe set. `Branch of ulpf/ 99 files` 5 branches merged.
+**Project structure:** `LogForce-Perimeter-Prototype/ (models 58M + ingestion + parsing + storage + ui)` + `maincode/ (vector+miner 8001+auto_capture 8002+ai_solver+storage/query+observability+prototype overlay+docs/)` + `LogForce-Docs/` 7-file safe set. `Branch of logforce/ 99 files` 5 branches merged.
 
 **Deployment, Day vs Night:**
 
 Day (prototype, local): `go run./ui/server.go && open http://localhost/dashboard.html` + `vector --config ingestion/vector.toml` + `python storage/parquet_writer.py --watch`.
 
-Night (future, anywhere): `az vm create...Standard_B1s` then phone `install ULPF.apk → QS → Add Tile ULPF → tap → WireGuard → POST hint+curl → Copy → fixed` `curl -k https://10.0.0.1/capture -d '{"log":"E OuterTune Source Error 2000","source":"phone"}' | jq.hint`.
+Night (future, anywhere): `az vm create...Standard_B1s` then phone `install LogForce.apk → QS → Add Tile LogForce → tap → WireGuard → POST hint+curl → Copy → fixed` `curl -k https://10.0.0.1/capture -d '{"log":"E OuterTune Source Error 2000","source":"phone"}' | jq.hint`.
 
 **Scaling path (honest):** Siembol Storm as **slide not ship** (`SYSTEM_DESIGN.md`). No K8s in prototype (KISS). Ingest `file → kafka 300→1000 partitions batch10k zstd`, store `PG GIN → ClickHouse`, autoscale `KEDA on Kafka lag`.
 
-### 7. Prototype vs Final delta + Custom `ULPF-ONNX-Hyper` for 1B/sec
+### 7. Prototype vs Final delta + Custom `LogForce-ONNX-Hyper` for 1B/sec
 
 | Layer | Prototype today | Final (all devices) |
 |---|---|---|
 | Device | perimeter file/paste only | every laptop/phone/server/firewall, auto per-app |
 | Connect | localhost:8081 | WireGuard `10.0.0.0/24` + Azure free B1s |
-| Model where | ONNX 23MB 42 leaves CPU 5ms on same host | `ULPF-ONNX-Hyper` see below + LLM on VM pod (phone thin) |
+| Model where | ONNX 23MB 42 leaves CPU 5ms on same host | `LogForce-ONNX-Hyper` see below + LLM on VM pod (phone thin) |
 | Model size | `mdbr-leaf-mt int8 42 23MB` | Hyper + `qwen2.5.5b 0.52GB` default (swap via env) |
 | Unknown | drop | Drain3 → LLM `qwen2.5.5b` → validated VRL/PR + fix endpoint |
 | Midnight fix | none | `POST /capture → {fix_endpoint,curl}` toast |

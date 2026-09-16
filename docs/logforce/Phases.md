@@ -1,4 +1,4 @@
-# Phases, ULPF
+# Phases, LogForce
 
 ## Guiding Principle
 
@@ -12,7 +12,7 @@ Ship one complete ingest→classify→store→query→dashboard loop for perimet
 Remove ambiguity before expanding.
 
 ### Tasks
-- confirm 5 device families (Palo Alto, ASA, FortiGate, CEF, Suricata/Zeek) + 6 generic (syslog/JSON/CSV/XML/LEEF/ULPF OCSF);
+- confirm 5 device families (Palo Alto, ASA, FortiGate, CEF, Suricata/Zeek) + 6 generic (syslog/JSON/CSV/XML/LEEF/LogForce OCSF);
 - confirm 42 leaves sufficient for demo;
 - confirm OCSF 4001 envelope (integrity + unmapped);
 - freeze `vector.toml` + `normalize_perimeter.vrl` Phase 1 plug point;
@@ -69,13 +69,13 @@ User can paste any perimeter log and see type/category/confidence + KPI move.
 Normalized data usable by existing detection stacks without rewrite.
 
 ### Tasks
-- `parsing/ulpf_ocsf.py` lift OCSF 4001 + lumber shape to `NormalizedEvent`;
+- `parsing/logforce_ocsf.py` lift OCSF 4001 + lumber shape to `NormalizedEvent`;
 - `parsing/decoders/perimeter.yml` 5 hot-swap decoders;
-- `init.sql` indexes; `docker-compose.yml` `ulpf-server` + `postgres-alpine`;
+- `init.sql` indexes; `docker-compose.yml` `logforce-server` + `postgres-alpine`;
 - Vector `search_indexer` HTTP sink → Go ingest; optional ES mirror commented.
 
 ### Deliverable
-`parse(content)` claims ULPF NDJSON; Wazuh `GET /decoders?decoder=perimeter` active.
+`parse(content)` claims LogForce NDJSON; Wazuh `GET /decoders?decoder=perimeter` active.
 
 ---
 
@@ -87,7 +87,7 @@ Prove pruning & health.
 ### Tasks
 - `POST /api/query` Hive glob prune + PG count;
 - `GET /api/stats` 12×2h buckets;
-- `ulpf-dashboard.json` (branch grafana) counters; miner metrics baseline.
+- `logforce-dashboard.json` (branch grafana) counters; miner metrics baseline.
 
 ### Deliverable
 Queries prune 90% files on `WHERE class_uid=4001`; dashboard replicates file + PG counts.
@@ -166,7 +166,7 @@ Security and review report (this doc set's Security and review.md PASS/WARN/FAIL
 
 - **Azure free VM (Student Pack):** `education.github.com/pack` → `$100` + `B1s` 750h free; NSG `51820/udp` WireGuard; `10.0.0.0/24` pod network.
 - WireGuard pod `wg-quick@wg0` (10.0.0.1) + phone `wireguard-android` tile tap = handshake everywhere; laptop `wg-quick`/Tailscale; `adb reverse` + Syncthing fallback for lab.
-- `observability/grafana` 27 panels + `loki` + `prometheus` + `miner/metrics` 8000; `wazuh-main`/`lumber-master` scale; `ulpf-soham-outertune` taxonomy.
+- `observability/grafana` 27 panels + `loki` + `prometheus` + `miner/metrics` 8000; `wazuh-main`/`lumber-master` scale; `logforce-soham-outertune` taxonomy.
 
 ## Phase 10, Midnight Decode→Fix & Platform
 
@@ -194,7 +194,7 @@ Highest risks:
 
 **Phase 2 Edge Classify (ground truth):** `ui/server.go` `ClassifyBatch` is real, measured 60 ms/100 lines → 1.6k/sec/instance. Not 1B/sec.
 
-**Phase 3 Bridge (ground truth):** `ulpf_ocsf.py` 5 decoders hot-swap real. Not 400 leaves yet.
+**Phase 3 Bridge (ground truth):** `logforce_ocsf.py` 5 decoders hot-swap real. Not 400 leaves yet.
 
 **Phase 4 Query (ground truth):** Hive prune 90% is real for `class=4001`, but on 4 NDJSON files, not on 1B/sec (needs ClickHouse).
 
@@ -206,7 +206,7 @@ Highest risks:
 
 | Phase | What ships | Throughput honest | Cost honest |
 |---|---|---|---|
-| 6a | Distill `ulpf-onnx-hyper-4L-256d` (6L→4L, 384→256, seq 64, trim vocab 12k), quant int8 11 MB | 15k/sec/CPU (D4s_v3) | One-time training on 5M logs |
+| 6a | Distill `logforce-onnx-hyper-4L-256d` (6L→4L, 384→256, seq 64, trim vocab 12k), quant int8 11 MB | 15k/sec/CPU (D4s_v3) | One-time training on 5M logs |
 | 6b | + int4 AWQ 9 MB + ORT CUDA/TensorRT + HNSW 400 leaves PQ-64 + dynamic batch 512 | 45k/sec (A10G), 120k/sec (H100) per GPU | ~$3/hr per H100 |
 | 6c | + Kafka 300 partitions + KEDA autoscale + gRPC batching → 100M/sec sharded (100 pods ×8 H100) | 100M/sec burst 10 sec | ~$2.4k/min (demo slide) |
 | 6d | + 1000 partitions, ClickHouse, sampled store 1% raw → 1B/sec burst 10 sec | 1B/sec burst, not 24/7 | $10-20k/10 sec (benchmark only) |

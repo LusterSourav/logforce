@@ -1,4 +1,4 @@
-# ULPF, Readme with Setup Instructions
+# LogForce, Readme with Setup Instructions
 
 
 > One fix shipped in this iteration: `dashboard.html` now auto-persists `POST /api/ingest` so `Total Ingested 2→3` moves instantly (previously in-memory-only). This readme reflects that fixed path.
@@ -9,10 +9,10 @@
 
 **Prototype:** perimeter firewall/IDS/app logs (Palo Alto, ASA, FortiGate, CEF/LEEF, Suricata, Zeek, syslog, JSON, CSV, XML) in, OCSF 4001 NDJSON out, lossless (`unmapped.raw_event` + `sha256(canonical)` `normalize_perimeter.vrl,107-109`), offline, container-ready. Two runnable roots:
 
-* `ULPF-Perimeter-Prototype/`, Go ONNX `` + Vector + Postgres + Parquet (the judging slice)
+* `LogForce-Perimeter-Prototype/`, Go ONNX `` + Vector + Postgres + Parquet (the judging slice)
 * `maincode/`, Vector+VRL+Drain3+AI-mock+observability+phone Tile ingress `` (the unified/VM-pod slice)
 
-**Product direction:** same OCSF contract extends to every device via thin agents + WireGuard `10.0.0.0/24` to an Azure free VM pod where Drain3 + `qwen2.5.5b` decode to `{fix_endpoint, curl}`, see `ULPF-Architecture-2Page.md` and `ULPF-Docs/Prd.md`.
+**Product direction:** same OCSF contract extends to every device via thin agents + WireGuard `10.0.0.0/24` to an Azure free VM pod where Drain3 + `qwen2.5.5b` decode to `{fix_endpoint, curl}`, see `LogForce-Architecture-2Page.md` and `LogForce-Docs/Prd.md`.
 
 ---
 
@@ -33,8 +33,8 @@
 ### 3.1 Clone & env
 
 ```bash
-# from workspace root "Universal Log Pre-processing Framework"
-cp ULPF-Perimeter-Prototype/.env.example ULPF-Perimeter-Prototype/.env
+# from workspace root "LogForce"
+cp LogForce-Perimeter-Prototype/.env.example LogForce-Perimeter-Prototype/.env
 cp maincode/.env.example maincode/.env
 # edit only if your log path differs:
 # PERIMETER_LOG_PATH=./ingestion/sample.log
@@ -47,8 +47,8 @@ cp maincode/.env.example maincode/.env
 Create missing sample log if needed (one line suffices for the pipeline):
 
 ```bash
-mkdir -p ULPF-Perimeter-Prototype/ingestion ULPF-Perimeter-Prototype/output/normalized
-echo '08-27 20.123 1234 5678 E OuterTune: CRASH: Unhandled exception in PlayerService' > ULPF-Perimeter-Prototype/ingestion/sample.log
+mkdir -p LogForce-Perimeter-Prototype/ingestion LogForce-Perimeter-Prototype/output/normalized
+echo '08-27 20.123 1234 5678 E OuterTune: CRASH: Unhandled exception in PlayerService' > LogForce-Perimeter-Prototype/ingestion/sample.log
 mkdir -p maincode/logs/outertune maincode/output/normalized maincode/vector_data
 echo '08-27 20.123 1234 5678 E OuterTune: CRASH: Unhandled exception in PlayerService' > maincode/logs/outertune/outertune.log
 ```
@@ -56,11 +56,11 @@ echo '08-27 20.123 1234 5678 E OuterTune: CRASH: Unhandled exception in PlayerSe
 ### 3.2 Validate ingestion (no runtime, no env), must pass
 
 ```bash
-vector validate --no-environment ULPF-Perimeter-Prototype/ingestion/vector.toml
+vector validate --no-environment LogForce-Perimeter-Prototype/ingestion/vector.toml
 vector validate --no-environment maincode/vector/vector.toml
 vector test maincode/vector/vector.toml maincode/tests/test_normalize_outertune.yaml # 21 TC: W3/E4/F6, V/D/I dropped
 # perimeter equivalent: create tests/test_normalize_perimeter.yaml (same 21 TC) then
-# vector test ULPF-Perimeter-Prototype/ingestion/vector.toml tests/test_normalize_perimeter.yaml
+# vector test LogForce-Perimeter-Prototype/ingestion/vector.toml tests/test_normalize_perimeter.yaml
 ```
 
 ### 3.3 Python deps (air-gap note)
@@ -78,10 +78,10 @@ python3 -m pip install -r maincode/ai_solver/requirements_solver.txt
 ### 3.4 Models (already baked, verify)
 
 ```bash
-ls -lh ULPF-Perimeter-Prototype/models/
+ls -lh LogForce-Perimeter-Prototype/models/
 # expect: model_quantized.onnx (215K header) + model_quantized.onnx_data (22M) + vocab.txt (226K) + 2_Dense/model.safetensors (1.5M) + libonnxruntime.dylib (34M)
 # re-download if wiped:
-make -C ULPF-Perimeter-Prototype download-models # curl MongoDB/mdbr-leaf-mt: onnx+onnx_data+vocab+safetensors + sha256sum
+make -C LogForce-Perimeter-Prototype download-models # curl MongoDB/mdbr-leaf-mt: onnx+onnx_data+vocab+safetensors + sha256sum
 ```
 
 ---
@@ -91,7 +91,7 @@ make -C ULPF-Perimeter-Prototype download-models # curl MongoDB/mdbr-leaf-mt: on
 ### 4.1 Go perimeter slice (judging default), `go run` + `docker compose`
 
 ```bash
-cd ULPF-Perimeter-Prototype
+cd LogForce-Perimeter-Prototype
 
 # 1. start Go API + Postgres (one compose)
 docker compose up --build -d # + postgres-alpine (+ pgdata)
@@ -111,7 +111,7 @@ open http://localhost/dashboard.html # also works as file:// open ui/dashboard.h
 export PERIMETER_LOG_PATH=./ingestion/sample.log
 export PERIMETER_SINK_PATH=./output/normalized/perimeter-%Y-%m-%d.ndjson
 export VECTOR_DATA_DIR=./vector_data
-vector --config ingestion/vector.toml --dangerously-allow-env-var-interpolation # tails → VRL → NDJSON + HTTP http://ulpf-server/api/ingest (compose net) or http://localhost/api/ingest (bare metal)
+vector --config ingestion/vector.toml --dangerously-allow-env-var-interpolation # tails → VRL → NDJSON + HTTP http://logforce-server/api/ingest (compose net) or http://localhost/api/ingest (bare metal)
 
 # 5. storage
 python storage/parquet_writer.py --watch # polls output/normalized → output/parquet/year=.../class=4001/vendor=generic 30s (NDJSON under hive if no pyarrow)
@@ -122,7 +122,7 @@ python storage/parquet_writer.py output/normalized/perimeter-2025-01-01.ndjson #
 curl -s http://localhost/api/stats | jq # total_events, buckets[12] 2h, vendor_counts
 curl -s -X POST http://localhost/api/query -H 'Content-Type: application/json' -d '{"sql":"SELECT * FROM lake WHERE class_uid=4001"}' | jq
 # parsing bridge (SIEM-Lite compatible):
-python -c "from parsing.ulpf_ocsf import parse; print(list(parse(open('output/normalized/perimeter-2026-09-11.ndjson').read()))[])"
+python -c "from parsing.logforce_ocsf import parse; print(list(parse(open('output/normalized/perimeter-2026-09-11.ndjson').read()))[])"
 
 make health && make classify && make watch # Makefile,27,31
 ```
@@ -145,7 +145,7 @@ uvicorn miner.miner_service:app --host 0.0.0.0 --port 8001
 curl http://localhost/health | jq # total_clusters max_clusters_limit 1024
 curl -X POST http://localhost/parse -H 'Content-Type: application/json' \
  -d '{"log":"%ASA-6-110002: Failed to locate egress interface for TCP from inside.1.2.3/54321 to outside.0.113.42/443"}' | jq
-python miner/ulpf_metrics.py # Prometheus metrics
+python miner/logforce_metrics.py # Prometheus metrics
 
 # phone Tile ingress (VM pod), phone just POSTs raw, VM decodes
 uvicorn auto_capture.server:app --host 0.0.0.0 --port 8002
@@ -178,8 +178,8 @@ docker compose -f docker-compose.yml -f prototype/docker-compose.prototype.yml u
 ### 4.3 Bare-metal without any compose (smallest)
 
 ```bash
-go run ULPF-Perimeter-Prototype/ui/server.go # +./models 42 leaves
-open ULPF-Perimeter-Prototype/ui/dashboard.html # file:// also works (mock fallback if down)
+go run LogForce-Perimeter-Prototype/ui/server.go # +./models 42 leaves
+open LogForce-Perimeter-Prototype/ui/dashboard.html # file:// also works (mock fallback if down)
 ```
 
 ---
@@ -188,7 +188,7 @@ open ULPF-Perimeter-Prototype/ui/dashboard.html # file:// also works (mock fallb
 
 1. `GET /api/health` → 42 leaves, `latencyMs`. `POST /api/classify` `Palo Alto CEF → REQUEST.success`, `Cisco ASA → ERROR.connection_failure`, garbage → `UNCLASSIFIED 0.2`.
 2. Drop/paste same log → `POST /api/ingest` → `GET /api/stats` `Total Ingested 2→3` live + `vendor_counts` + `buckets[12] 2h`.
-3. `POST /api/query WHERE class_uid=4001` prune + `pg_count` + `raw` intact (`ulpf_ocsf.py`).
+3. `POST /api/query WHERE class_uid=4001` prune + `pg_count` + `raw` intact (`logforce_ocsf.py`).
 4. `parquet_writer --watch` Hive `year/month/day/class=4001/vendor=generic`.
 5. `POST /capture` phone hint `E OuterTune Source Error 2000 → Auth failure 2000, check token and allow list` `capture.py` and miner `POST /parse → template`.
 
@@ -200,15 +200,15 @@ Determinism: same raw → same `sha256(trim(raw))` `echo -n "canonical" | sha256
 
 ```bash
 # connected host
-./maincode/offline/offline-prepare.sh # pulls prom/prometheus:v2.51.2 prom/node-exporter:v1.7.0 grafana/loki.9.8 timberio/vector.38.0-debian grafana/grafana.4.2 && docker save | gzip → ulpf-observability-images.tar.gz
-docker pull ollama/ollama.5.7 postgres && docker save ollama/ollama.5.7 postgres | gzip > ulpf-prototype-extra.tar.gz
+./maincode/offline/offline-prepare.sh # pulls prom/prometheus:v2.51.2 prom/node-exporter:v1.7.0 grafana/loki.9.8 timberio/vector.38.0-debian grafana/grafana.4.2 && docker save | gzip → logforce-observability-images.tar.gz
+docker pull ollama/ollama.5.7 postgres && docker save ollama/ollama.5.7 postgres | gzip > logforce-prototype-extra.tar.gz
 pip download -r maincode/requirements.txt -d maincode/offline/wheels
 pip download -r maincode/ai_solver/requirements_solver.txt -d maincode/offline/wheels
-make -C ULPF-Perimeter-Prototype download-models # 58M
-# optional: run once, then docker run --rm -v ulpf_ollama-data:/data -v $PWD:/backup alpine tar czf /backup/ollama-models.tar.gz /data
+make -C LogForce-Perimeter-Prototype download-models # 58M
+# optional: run once, then docker run --rm -v logforce_ollama-data:/data -v $PWD:/backup alpine tar czf /backup/ollama-models.tar.gz /data
 
 # air-gapped host
-docker load < ulpf-observability-images.tar.gz && docker load < ulpf-prototype-extra.tar.gz
+docker load < logforce-observability-images.tar.gz && docker load < logforce-prototype-extra.tar.gz
 # pip install --no-index --find-links=maincode/offline/wheels -r maincode/requirements.txt
 docker compose up -d # or: go run./ui/server.go (no pull, models baked perimeter/Dockerfile.lumber,15-16)
 ```
@@ -232,16 +232,16 @@ No HF pull at runtime (`ui/server.go 503 mock` if missing, `README air-gapped no
 * `model not loaded → 503 mock` (`server.go,139,158`), dashboard shows fallback chips; check `LUMBER_MODEL_DIR=./perimeter/models` + `make download-models`.
 * `zlib truncated log_states.txt`, auto-handled `miner_service.py` unlink-guard; `rm miner/log_states.txt` if stale.
 * Bare ` at com.example...` → dropped `VRL, yaml TC-08`; with Logcat header → emitted as E-level `VRL`.
-* `Total Ingested` not moving, confirm `docker compose ps` `ulpf-perimeter/postgres healthy` + `curl POST /api/ingest` returns `ingested>0` (`server.go`).
+* `Total Ingested` not moving, confirm `docker compose ps` `logforce-perimeter/postgres healthy` + `curl POST /api/ingest` returns `ingested>0` (`server.go`).
 
 ---
 
 ## 9. Repo map (evaluator opens)
 
 ```
-ULPF-Perimeter-Prototype/ui/server.go + dashboard.html (judging surface)
+LogForce-Perimeter-Prototype/ui/server.go + dashboard.html (judging surface)
  ingestion/vector.toml + transforms/normalize_perimeter.vrl
- parsing/ulpf_ocsf.py + decoders/perimeter.yml parsing bridge + 5 decoders
+ parsing/logforce_ocsf.py + decoders/perimeter.yml parsing bridge + 5 decoders
  storage/parquet_writer.py Hive + 30s watcher init.sql PG GIN
  models/ 58M baked Dockerfile.lumber Makefile SYSTEM_ARCHITECTURE.md + SYSTEM_DESIGN.md
 maincode/vector/vector.toml + transforms/normalize_outertune.vrl (OuterTune)

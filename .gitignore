@@ -75,13 +75,13 @@ config-editor/config-editor-ui/src/config/*
 # REST config files
 config-editor/config-editor-rest/src/main/resources/application.properties
 
-# ULPF
+# LogForce
 output/
 vector_data/
 
 !ingestion/sample.log
 
-# ULPF prototype
+# LogForce prototype
 __pycache__/
 *.pyc
 models/*.onnx_data

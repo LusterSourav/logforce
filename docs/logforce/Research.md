@@ -1,4 +1,4 @@
-# Research, ULPF
+# Research, LogForce
 
 **Topic:** Evidence Base for Roadmap Decisions (Device Auto-Catch, Small LLM Pod, 1B/sec Scale) 
 **Method:** Local file:line evidence + referenced branch evidence + design-doc cross-check (no web scrape)
@@ -7,7 +7,7 @@
 
 | Question | Why it matters | Where evidence lives |
 |---|---|---|
-| Is Vector + VRL the right ingest for heterogeneous logs? | Need "one fingerprint string per new device" | `maincode/vector/transforms/normalize_outertune.vrl,74` + `vector/vector.toml` + `ULPF-Deep-Research-Report.md` |
+| Is Vector + VRL the right ingest for heterogeneous logs? | Need "one fingerprint string per new device" | `maincode/vector/transforms/normalize_outertune.vrl,74` + `vector/vector.toml` + `LogForce-Deep-Research-Report.md` |
 | Can ONNX run on CPU for perimeter and on GPU for 1B/sec? | Need 5 ms today and 120k/s/GPU tomorrow | `lumber-master/internal/engine/embedder/onnx.go` + `ui/server.go` + `Architecture.md` Hyper bench |
 | Does "phone thin, pod thick" actually hold? | Phones cannot load 58M ONNX + 0.52-4 GB LLM | `libonnxruntime.dylib` 34M + `model_quantized.onnx_data` 22M = 58M, `auto_capture/server.py` 4096 cap, `ai_engine.py` localhost |
 | Is Rethink-style QS tile feasible? | User screenshot shows Refresh/Rethink/Orbot in QS | `maincode/docs/PHONE_TILE.md` `TileService`, `VpnService` pattern, `BIND_QUICK_SETTINGS_TILE` |
@@ -18,7 +18,7 @@
 
 ### 2.1 Vector + VRL is the correct perimeter ingestion (ground truth)
 
-- `normalize_outertune.vrl` Phase 0 forensic seal `raw_event` + `sha2(canonical)` + `unmapped.raw_event` + `integrity` is already lossless per `ULPF-Deep-Research-Report.md` TC-09/10/21 pass.
+- `normalize_outertune.vrl` Phase 0 forensic seal `raw_event` + `sha2(canonical)` + `unmapped.raw_event` + `integrity` is already lossless per `LogForce-Deep-Research-Report.md` TC-09/10/21 pass.
 - `vector.toml` `drop_on_abort=true` + disk buffer 2 GB `block` is forensic-safe (stall not drop), verified `vector.yaml` in `maincode/observability`.
 - **Research takeaway:** Keep VRL Phase 1 as the only device plug point. For 1B/sec replace `file` source with `kafka` 1000 partitions, but keep same `.vrl`, no pipeline rewrite.
 
@@ -37,7 +37,7 @@
 
 ### 2.4 Which small LLM for the pod on free tier (ground truth)
 
-| Model (Ollama) | Disk | RAM needed | ULPF fit (tested in `prototype/docker-compose.prototype.yml`) |
+| Model (Ollama) | Disk | RAM needed | LogForce fit (tested in `prototype/docker-compose.prototype.yml`) |
 |---|---|---|---|
 | `qwen2.5.5b-instruct` | 397 MB | ~1 GB | **Fits B1s 1 GB** if Loki disabled; valid JSON high |
 | `qwen2.5.5b` | ~0.9 GB | ~1.8 GB | Fits B1ms 2 GB (recommended) |
@@ -49,7 +49,7 @@
 
 ### 2.5 Rethink-style tile (ground truth)
 
-- Screenshot Rethink/Orbot row rechecked: `Rethink` and `Orbot` are `VpnService` + `TileService` entries, appearing in QS after `BIND_QUICK_SETTINGS_TILE` permission. ULPF will add `ULPF` tile identically (`PHONE_TILE.md` manifest `<service android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">`).
+- Screenshot Rethink/Orbot row rechecked: `Rethink` and `Orbot` are `VpnService` + `TileService` entries, appearing in QS after `BIND_QUICK_SETTINGS_TILE` permission. LogForce will add `LogForce` tile identically (`PHONE_TILE.md` manifest `<service android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">`).
 - Our tile differs: routes only `10.0.0.0/24` (`Builder.addRoute`) vs Rethink `0.0.0.0/0` full-tunnel, more private, less battery.
 
 ### 2.6 1B/sec feasibility (ground truth, not marketing)
@@ -63,16 +63,16 @@
 
 ## 3. Methodology
 
-- File inventory `ls -R` + `find` on `maincode/` + `lumber-master/` + `ULPF-Perimeter-Prototype/` + `Branch of ulpf/` + `guide/` Docx metadata.
-- Read `ULPF-Deep-Research-Report.md` full (local evidence only, no web).
+- File inventory `ls -R` + `find` on `maincode/` + `lumber-master/` + `LogForce-Perimeter-Prototype/` + `Branch of logforce/` + `guide/` Docx metadata.
+- Read `LogForce-Deep-Research-Report.md` full (local evidence only, no web).
 - Grepped `ai_engine.py`, `pipeline.py` 10-step, `config.py` env, `vector.toml`, `normalize_outertune.vrl`, `miner_service.py` Drain3, `storage/parquet_writer.py`, `query/datafusion_engine.py`.
-- Compared ULPF-Docs claims vs those bytes, hallucination if file:line missing.
+- Compared LogForce-Docs claims vs those bytes, hallucination if file:line missing.
 
 ## 4. Gaps Still Open (for next research spike)
 
 - Shizuku vs `last_crash.log` only, measure `logcat` latency without `READ_LOGS` on Android 14.
 - iOS Shortcuts entitlement count for `os_log` collection.
-- Hyper training dataset: 5M logs not yet collected, need `ULPF-Deep-Research-Report.md` 29 parsers as seed.
+- Hyper training dataset: 5M logs not yet collected, need `LogForce-Deep-Research-Report.md` 29 parsers as seed.
 
 ## 5. Principle
 
