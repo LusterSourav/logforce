@@ -1012,8 +1012,101 @@ func handleQuery(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// statsFromPG reads counters from Postgres when PG_DSN is set and the table
+// has rows. Returns false on any failure or empty table so the caller falls
+// back to files. Never mixes both sources so events are never double counted.
+func statsFromPG() (map[string]interface{}, bool) {
+	if pg == nil {
+		return nil, false
+	}
+	const norm = `((raw->>'type' not in ('','UNCLASSIFIED') and raw ? 'category') or (raw ? 'class_uid'))`
+	var total, last24, normalized int
+	err := pg.QueryRow(`select count(*),
+		count(*) filter (where ingested_at > now() - interval '24 hours'),
+		count(*) filter (where `+norm+`) from events`).Scan(&total, &last24, &normalized)
+	if err != nil || total == 0 {
+		return nil, false
+	}
+	buckets := make([]int, 12)
+	bucketsNorm := make([]int, 12)
+	bucketsRaw := make([]int, 12)
+	rows, err := pg.Query(`select floor(extract(epoch from (now() - ingested_at))/7200)::int,
+		count(*), count(*) filter (where `+norm+`)
+		from events where ingested_at > now() - interval '24 hours' group by 1`)
+	if err != nil {
+		return nil, false
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var b, c, cn int
+		if err := rows.Scan(&b, &c, &cn); err != nil {
+			return nil, false
+		}
+		if b >= 0 && b < 12 {
+			buckets[11-b] += c
+			bucketsNorm[11-b] += cn
+			bucketsRaw[11-b] += c - cn
+		}
+	}
+	sources := map[string]struct{}{}
+	vendorCounts := map[string]int{}
+	vrows, err := pg.Query(`select vendor, count(*) from events where vendor <> '' group by vendor`)
+	if err != nil {
+		return nil, false
+	}
+	defer vrows.Close()
+	for vrows.Next() {
+		var v string
+		var c int
+		if err := vrows.Scan(&v, &c); err != nil {
+			return nil, false
+		}
+		sources[v] = struct{}{}
+		vendorCounts[v] = c
+	}
+	categoryCounts := map[string]int{}
+	crows, err := pg.Query(`select coalesce(nullif(raw->>'category',''), raw->>'vendor', ''), count(*) from events group by 1`)
+	if err != nil {
+		return nil, false
+	}
+	defer crows.Close()
+	for crows.Next() {
+		var cat string
+		var c int
+		if err := crows.Scan(&cat, &c); err != nil {
+			return nil, false
+		}
+		if cat != "" {
+			categoryCounts[cat] = c
+		}
+	}
+	failed := total - normalized
+	rate := 0
+	if total > 0 {
+		rate = normalized * 100 / total
+	}
+	return map[string]interface{}{
+		"total_events": total,
+		"normalized": normalized,
+		"failed": failed,
+		"rate": rate,
+		"sources": len(sources),
+		"last_24h": last24,
+		"buckets": buckets,
+		"buckets_normalized": bucketsNorm,
+		"buckets_raw": bucketsRaw,
+		"vendor_counts": vendorCounts,
+		"category_counts": categoryCounts,
+		"pg_count": total,
+	}, true
+}
+
 func handleStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	if m, ok := statsFromPG(); ok {
+		json.NewEncoder(w).Encode(m)
+		return
+	}
 	base := outDir()
 	files, _ := filepath.Glob(filepath.Join(base, "*.ndjson"))
 	var total, last24, normalized int
