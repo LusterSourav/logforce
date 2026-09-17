@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en" data-device="desktop">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Docs — LogForce Perimeter Prototype</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+@import url(https://fonts.bunny.net/css?family=krub:200i,300);
+@layers demo,base;
+
+
+@layer demo{
+
+  .topbar{
+    width: min(100%, 600px);
+    margin: 0 auto 0.5rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .backlink{
+    display: inline-block;
+    font-size: 0.8rem;
+    text-decoration: none;
+    color: inherit;
+    opacity: 0.7;
+  }
+  .backlink:hover{ opacity: 1; }
+
+
+
+  /* truck delivery scene */
+  .depot{
+    width: min(100%, 600px);
+    margin: 0 auto;
+    position: relative;
+  }
+  #truckStage{
+    transition: opacity 0.3s ease;
+  }
+  #truckStage.hidden{
+    opacity: 0;
+    pointer-events: none;
+  }
+  .replay-link{
+    display: none;
+    text-align: center;
+    margin-top: 0.4rem;
+  }
+  .replay-link.show{ display: block; }
+  .replay-link a{
+    font-size: 0.72rem;
+    color: var(--clr-accent);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .replay-link a:hover{ opacity: 0.7; }
+  .dl-button {
+    --c-color: #000;
+    --c-background: #20D8F9;
+    --c-light: #FCBB33;
+    --c-light-shine: linear-gradient(90deg, rgba(252, 187, 51, 0.9), rgba(252, 187, 51, 0));
+    --c-base: #0D6E9D;
+    --c-wheel: #0D6E9D;
+    --c-wheel-inner: #004e71;
+    --c-wheel-dot: #fff;
+    --c-back: #F2F6FE;
+    --c-back-inner: #2790C3;
+    --c-front: #F2F6FE;
+    --c-front-shadow: #CDD1D9;
+    --c-window: #000;
+    --c-box: #DCB97A;
+    --rotate: 0deg;
+    --y: 0px;
+    --scale: 1;
+    --truck-y: 0px;
+    --truck-base-x: -186px;
+    --truck-wrapper-y: 70px;
+    --light-opacity: 1;
+    --box-x: 0px;
+    --box-y: 0px;
+    --box-r: 0deg;
+    padding: 15px 0;
+    width: 260px;
+    max-width: 100%;
+    border-radius: 27px;
+    cursor: pointer;
+    position: relative;
+    border: none;
+    outline: none;
+    background: var(--c-background);
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    transform-style: preserve-3d;
+    transform: translateY(var(--y)) rotateX(var(--rotate)) scale(var(--scale)) translateZ(0);
+    margin: 0 auto;
+    display: block;
+  }
+  .dl-button:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    margin-top: -2px;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    display: block;
+    background: var(--c-background);
+    transform-origin: 0 100%;
+    transform: rotateX(90deg);
+  }
+  .dl-button .truck-wrapper {
+    position: absolute;
+    pointer-events: none;
+    top: -140px;
+    left: -20px;
+    right: -40px;
+    bottom: 0px;
+    overflow: hidden;
+    transform: translateY(var(--truck-wrapper-y)) rotateX(90deg);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 60px, black);
+    mask-image: linear-gradient(to right, transparent 0%, black 60px, black);
+  }
+  .dl-button .truck-wrapper .truck {
+    position: absolute;
+    top: 24px;
+    left: 70px;
+    width: 72px;
+    height: 60px;
+    transform: translate3d(var(--truck-base-x), var(--truck-y), 0);
+  }
+  .dl-button .truck-wrapper .truck:before,
+  .dl-button .truck-wrapper .truck:after {
+    content: '';
+    position: absolute;
+    bottom: -9px;
+    left: var(--l, 25px);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: inset 0 0 0 3px var(--c-wheel), inset 0 0 0 6px var(--c-wheel-inner);
+    background: var(--c-wheel-dot);
+    transform: translateY(calc(var(--truck-y) * -1)) translateZ(0);
+  }
+  .dl-button .truck-wrapper .truck:after { --l: 85px; }
+  .dl-button .truck-wrapper .truck .wheel,
+  .dl-button .truck-wrapper .truck .wheel:before {
+    position: absolute;
+    bottom: var(--b, -9px);
+    left: var(--l, 6px);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--c-wheel);
+    transform: translateZ(0);
+  }
+  .dl-button .truck-wrapper .truck .wheel { transform: translateY(calc(var(--truck-y) * -1)) translateZ(0); }
+  .dl-button .truck-wrapper .truck .wheel:before { --l: 60px; --b: 0; content: ''; }
+  .dl-button .truck-wrapper .truck .light {
+    position: absolute;
+    right: -41px;
+    bottom: 3px;
+    width: 4px;
+    height: 3px;
+    border-radius: 1px 0 0 1px;
+    background: var(--c-light);
+  }
+  .dl-button .truck-wrapper .truck .light:before,
+  .dl-button .truck-wrapper .truck .light:after {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: -6px;
+    display: block;
+    width: 40px;
+    height: 19px;
+    background: var(--c-light-shine);
+    opacity: var(--light-opacity);
+    clip-path: polygon(0 6px, 100% 0, 100% 80%, 0 9px);
+  }
+  .dl-button .truck-wrapper .truck .light:after {
+    left: -8px;
+    clip-path: polygon(11px 4px, 100% 0, 100% 80%, 11px 11px);
+  }
+  .dl-button .truck-wrapper .truck .front,
+  .dl-button .truck-wrapper .truck .back,
+  .dl-button .truck-wrapper .truck .box { position: absolute; }
+  .dl-button .truck-wrapper .truck .back {
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+    width: 75px;
+    height: 45px;
+    border-radius: 3px 3px 0 0;
+    background: var(--c-back-inner);
+  }
+  .dl-button .truck-wrapper .truck .back:before,
+  .dl-button .truck-wrapper .truck .back:after { content: ''; position: absolute; }
+  .dl-button .truck-wrapper .truck .back:before {
+    left: 17px; top: 0; right: 0; bottom: 0;
+    z-index: 4;
+    border-radius: 0 2px 0 0;
+    background: var(--c-back);
+  }
+  .dl-button .truck-wrapper .truck .back:after {
+    border-radius: 2px;
+    width: 116px;
+    height: 4px;
+    left: -2px;
+    bottom: -4px;
+    background: var(--c-base);
+  }
+  .dl-button .truck-wrapper .truck .back .shadow {
+    height: 44px;
+    width: 14px;
+    position: absolute;
+    top: 0;
+    left: 3px;
+    z-index: 3;
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    background: rgba(0, 0, 0, .15);
+  }
+  .dl-button .truck-wrapper .truck .back .box {
+    position: absolute;
+    width: 17px;
+    height: 17px;
+    right: 54px;
+    bottom: 0;
+    z-index: 2;
+    border-radius: 1px;
+    overflow: hidden;
+    transform-origin: 0 100%;
+    transform: translate(var(--box-x), var(--box-y)) rotate(var(--box-r));
+    background: var(--c-box);
+  }
+  .dl-button .truck-wrapper .truck .back .box:before {
+    content: '';
+    background: rgba(255, 255, 255, .2);
+    left: 0;
+    right: 0;
+    top: 6px;
+    height: 1px;
+  }
+  .dl-button .truck-wrapper .truck .front {
+    left: 75px;
+    bottom: 0;
+    height: 33px;
+    width: 37px;
+    clip-path: polygon(55% 0, 72% 44%, 100% 58%, 100% 100%, 0 100%, 0 0);
+    background: linear-gradient(84deg, var(--c-front-shadow) 0%, var(--c-front-shadow) 10%, var(--c-front) 12%, var(--c-front) 100%);
+  }
+  .dl-button .truck-wrapper .truck .front:before {
+    content: '';
+    position: absolute;
+    width: 11px;
+    height: 12px;
+    left: 11px;
+    top: 3px;
+    clip-path: polygon(0 0, 60% 0%, 100% 100%, 0% 100%);
+    background: var(--c-window);
+  }
+
+  /* parcels: one per doc file, auto-rendered from DOCS */
+  .parcels{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.9rem 1.1rem;
+    width: min(100%, 600px);
+    margin: 1.2rem auto 0 auto;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+  }
+  .parcels.show{ opacity: 1; }
+  .parcel{
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem;
+    font-family: inherit;
+    color: inherit;
+  }
+  .parcel-box{
+    width: 34px;
+    height: 30px;
+    border-radius: 3px;
+    background: #DCB97A;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+  .parcel-box:before{
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 11px;
+    height: 2px;
+    background: rgba(255,255,255,0.35);
+  }
+  .parcel:hover .parcel-box{ transform: translateY(-4px); }
+  .parcel.sel .parcel-box{
+    outline: 3px solid #e5ff00;
+    box-shadow: 0 0 14px rgba(190, 220, 0, 0.8);
+    transform: translateY(-4px);
+  }
+  .parcel-name{
+    font-size: 0.62rem;
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.85;
+  }
+  .parcel-hint{
+    width: min(100%, 600px);
+    margin: 0.6rem auto 0 auto;
+    text-align: center;
+    font-size: 0.72rem;
+    opacity: 0.75;
+    min-height: 1.1em;
+  }
+  .parcels.bump{ animation: parcelBump 0.35s ease; }
+  @keyframes parcelBump {
+    30% { transform: translateX(5px); }
+    60% { transform: translateX(-4px); }
+    100% { transform: none; }
+  }
+
+  /* popup: doc opens in a curved-scrollbar card */
+  .overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 50;
+  }
+  .overlay[hidden]{ display: none; }
+  .popup-card{
+    width: min(94vw, 420px);
+    height: min(76vh, 420px);
+    margin: 0;
+    background: var(--clr-bg);
+    animation: popupIn 0.25s ease-out;
+  }
+  @keyframes popupIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+  .popup-close{
+    position: absolute;
+    top: 0.6rem;
+    right: 0.9rem;
+    z-index: 5;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--clr-lines);
+    background: var(--clr-bg);
+    color: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .popup-filename{
+    position: sticky;
+    top: 0;
+    font-size: 0.72rem;
+    opacity: 0.7;
+  }
+
+  .wrapper{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    height: 500px;
+    width: min(100%, 600px);
+    margin: 0 auto;
+  }
+  html[data-device="tablet"] .wrapper{
+    grid-template-columns: 1fr;
+    width: min(100%, 440px);
+  }
+  html[data-device="mobile"] .wrapper{
+    grid-template-columns: 1fr;
+    width: min(100%, 100%);
+  }
+  @media (max-width: 1023px){
+    .wrapper{ grid-template-columns: 1fr; width: min(100%, 440px); }
+  }
+  @media (max-width: 640px){
+    .wrapper{ width: min(100%, 100%); }
+    .depot{ width: min(100%, 100%); }
+  }
+  .scroll-container {
+		--card-border-radius: 50px;
+
+    --thumb-color: rgb(0, 188, 255);
+    --thumb-color-active: dodgerblue;
+    --thumb-width: 4;
+    --thumb-width-active: 6;
+
+    --track-color: transparent;
+    --track-color-active: light-dark(#EEE,#222);
+    --track-width: 4;
+    --track-width-active: 6;
+
+		/* styling for the second card */
+		&.box-2{
+      --card-border-radius: 20px;
+    	--thumb-color: rgb(154, 230, 0);
+    	--thumb-color-active: rgb(124, 207, 0);
+    }
+
+    html.touch &{
+      --thumb-width: 6;
+      --thumb-width-active: 8;
+    }
+
+    position: relative;
+    width: 100%;
+    contain: layout style;
+    margin: 3rem auto;
+    border: 1px solid var(--clr-lines);
+    border-radius: var(--card-border-radius);
+    overflow: hidden;
+    & h2{
+      text-wrap: balance;
+      font-size: 1.1rem;
+    }
+  }
+
+
+  .scroll-content {
+    height: 100%;
+    overflow-y: auto;
+    padding:1rem 1.5rem 1rem 1rem; /* space on right for scrollbar */
+
+    /* keep scrolling functional */
+    overflow-y: scroll;
+
+    /* hide scrollbars */
+	 	scrollbar-width: none; /* Firefox */
+   	-ms-overflow-style: none; /* IE and Edge Legacy */
+		&::-webkit-scrollbar {
+			display: none; /* Chrome, Safari, and Opera */
+		}
+	}
+  .scrollbar-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    &:has(:active) {
+      --thumb-width: var(--thumb-width-active);
+      --track-width: var(--track-width-active);
+      --track-color: var(--track-color-active);
+    }
+  }
+
+  .scrollbar-track {
+    fill: none;
+    stroke: var(--track-color);
+    stroke-width: var(--track-width);
+    stroke-linecap: round;
+    transition: stroke-width,stroke;
+    transition-duration: 150ms;
+    transition-timing-function:ease-in-out;
+  }
+  .scrollbar-thumb {
+    fill: none;
+    stroke: var(--thumb-color);
+    stroke-width: var(--thumb-width);
+    stroke-linecap: round;
+    pointer-events: auto;
+    cursor: grab;
+    transition: stroke-width,stroke;
+    transition-duration: 150ms;
+    transition-timing-function:ease-in-out;
+    &:active {
+      stroke: var(--thumb-color-active);
+      cursor: grabbing;
+    }
+  }
+
+  code{
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+  }
+  pre{
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.72rem;
+    opacity: 0.95;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .parcels{ transition: none; }
+    .parcels.bump, .popup-card{ animation: none; }
+  }
+
+}
+
+
+@layer base{
+  *{
+  	box-sizing: border-box;
+  }
+  :root {
+    color-scheme: light dark;
+
+    --bg-dark: rgb(11, 11, 11);
+    --bg-light: rgb(248, 244, 238);
+    --txt-light: rgb(10, 10, 10);
+    --txt-dark: rgb(245, 245, 245);
+    --line-light: rgba(0 0 0 / .15);
+    --line-dark: rgba(255 255 255 / .25);
+
+    --clr-bg: light-dark(var(--bg-light), var(--bg-dark));
+    --clr-txt: light-dark(var(--txt-light), var(--txt-dark));
+    --clr-lines: light-dark(var(--line-light), var(--line-dark));
+    --clr-accent: dodgerblue;
+
+  }
+
+  html, body {
+    background-color: var(--clr-bg);
+    color: var(--clr-txt);
+    font-family: 'Krub', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100svh;
+  }
+
+  body {
+    display: block;
+    padding: 1rem;
+    line-height: 1.4;
+  }
+  header{
+    text-align: center;
+    text-wrap: balance;
+    width: min(100%, 60ch);
+    margin: 0 auto;
+  }
+  h1{
+    font-size: 1.2rem;
+    margin: 0;
+    text-align: center;
+		text-transform: capitalize;
+  }
+  p{
+    font-size: 0.8rem;
+    opacity: .9;
+  }
+}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>Docs</h1>
+</header>
+
+<div class="topbar">
+  <a class="backlink" href="dashboard-v2.html">← Dashboard</a>
+</div>
+
+<div class="depot">
+  <button class="dl-button" id="truckStage" type="button" title="Replay delivery">
+    <div class="truck-wrapper">
+      <div class="truck">
+        <div class="wheel"></div>
+        <div class="back">
+          <div class="shadow"></div>
+          <div class="box"></div>
+        </div>
+        <div class="front"></div>
+        <div class="light"></div>
+      </div>
+    </div>
+  </button>
+  <div class="replay-link" id="replayLink"><a href="#">↻ replay delivery</a></div>
+</div>
+<div class="parcels" id="parcels" aria-live="polite"></div>
+<p class="parcel-hint" id="parcelHint">Pick up to 2 parcels — click a parcel to open it</p>
+
+<div class="wrapper">
+  <section class="scroll-container " data-scrollbar>
+    <div class="scroll-content">
+
+      <h2>Grab the scrollbar thumb and scroll up or down.</h2>
+      <h2>1. What we are solving</h2>
+      <p>Firewalls, IDS, switches and apps each log differently. Syslog, JSON, XML, CSV, CEF, LEEF and hand-rolled text arrive together, with different time formats, severity words and multiline traces. Teams today write one parser per device. The parser breaks when firmware updates. SIEM rules drift because the input was never stable.
+      </p>
+      <p>We need a pipeline that takes any perimeter log, keeps the raw bytes for forensics, normalizes to one schema, and makes it usable for SIEM and ML. It must run air-gapped, inside a container, and not lose data when the downstream stalls.
+      </p>
+      <h2>2. Modular monolith for the prototype</h2>
+      <p>
+        The prototype stays a modular monolith, not microservices: a 2–4 person team, one deployable unit, one <code>docker compose</code> to hand to an evaluator, shared Postgres at this scale. Modules talk only through a public <code>api/</code> surface, so the classifier can be pulled out to a sidecar later without a rewrite.
+      </p>
+      <p>
+        <strong>ADR-001:</strong> extract services only if a module needs independent scaling or a team needs independent deploys. Neither is true today.
+      </p>
+      <h2>3. Hard constraints</h2>
+      <p>Air-gapped, one binary — no model pull at runtime, 23 MB quantized model starts in under 500 ms. Budget is 5 ms per log warm; a batch of many lines is one ONNX call. Raw is never lost: hash the canonical line, keep the full original under <code>unmapped</code>. One regex per new device, not one pipeline rewrite. <code>when_full=block</code>, not drop.</p>
+      <h2>4. Edge engine, briefly</h2>
+      <p>
+      WordPiece to 128 tokens, run ONNX with 3 tensors, mean-pool, project to 1024, cosine against 42 pre-embedded leaves, pick the best above 0.5 or <code>UNCLASSIFIED</code>. Batch packs many texts into one call — that is how 100 lines hit 50–80 ms.</p>
+      <p>
+      Canonical event from Lumber: <code>type</code>, <code>category</code>, <code>severity</code>, <code>timestamp</code>, <code>summary</code>, <code>confidence</code>, <code>raw</code>. OCSF wraps it with <code>class_uid 4001</code>, integrity hash and the raw event preserved.
+      </p>
+    </div>
+  </section>
+
+  <section class="scroll-container box-2 " data-scrollbar>
+    <div class="scroll-content">
+      <h2>Quick start &amp; run</h2>
+      <pre># 1. models are already baked; re-download only if wiped
+make download-models
+
+# 2. run the API and open the dashboard
+go run ./ui/server.go
+open http://localhost:8082/dashboard-v2.html
+
+# 3. try Vector ingestion
+export PERIMETER_LOG_PATH=./ingestion/sample.log
+vector --config ingestion/vector.toml
+
+# 4. watch NDJSON become Hive
+python storage/parquet_writer.py --watch</pre>
+      <h2>Folder tour</h2>
+      <p>
+      <code>ui</code> — dashboard and Go API together. One HTML file with mock fallback, real 23 MB ONNX on :8082.
+      </p>
+      <p><code>models</code> — quantized ONNX plus vocab and projection weights, hash-pinned for offline bundles.
+      </p>
+      <p><code>ingestion</code> — Vector config and VRL. The Phase 1 regex is the only line changed per device.</p>
+      <p><code>parsing</code> — SIEM-Lite bridge and 5 hot-swap decoders (Palo Alto, ASA, FortiGate, CEF, Suricata).</p>
+      <p><code>storage</code> — Hive writer <code>year/month/day/class/vendor</code> with a 30s watcher.</p>
+      <h2>Verify</h2>
+      <pre>curl -s http://localhost:8082/api/health
+curl -s -X POST http://localhost:8082/api/classify \
+  -H "Content-Type: application/json" \
+  -d '{"logs":["ERROR UserService, connection refused"]}'</pre>
+      <p>Air-gapped: models are baked into the image. No model pull at runtime.</p>
+      <h2>Design docs</h2>
+      <p>
+      <code>SYSTEM_DESIGN.md</code> — why each folder exists, in order.
+      </p>
+      <p><code>SYSTEM_ARCHITECTURE.md</code> — runtime, deployment and scaling, with diagrams.
+      </p>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="docOverlay" hidden>
+  <div class="scroll-container popup-card" id="popupCard">
+    <button class="popup-close" id="popupClose" type="button" aria-label="Close">×</button>
+    <div class="scroll-content" id="popupContent"></div>
+  </div>
+</div>
+
+<script>
+// ---------- device auto-detect: width decides columns, touch only fattens thumbs ----------
+function detectMode(){
+  const w = window.innerWidth;
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+  const uaMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const mode = w <= 640 ? 'mobile' : (w <= 1024 ? 'tablet' : 'desktop');
+  document.documentElement.dataset.device = mode;
+  document.documentElement.classList.toggle('touch', coarse || uaMobile);
+
+}
+window.addEventListener('resize', detectMode);
+window.addEventListener('orientationchange', detectMode);
+if(window.matchMedia('(pointer: coarse)').addEventListener){
+  window.matchMedia('(pointer: coarse)').addEventListener('change', detectMode);
+}
+detectMode();
+</script>
+<script>
+// ---------- all prototype docs: one entry = one parcel (auto-grows) ----------
+const DOCS = [
+{ file: 'README.md', title: 'Readme — quick start', body: `
+      <h2>LogForce Perimeter Prototype</h2>
+      <p>Perimeter logs in, OCSF out. Keeps the raw, works offline, runs in a container.</p>
+      <pre>make download-models
+go run ./ui/server.go
+open http://localhost:8082/dashboard-v2.html
+export PERIMETER_LOG_PATH=./ingestion/sample.log
+vector --config ingestion/vector.toml
+python storage/parquet_writer.py --watch</pre>
+      <p><code>ui</code> — dashboard + Go API, real 23 MB ONNX on :8082, mock fallback. <code>models</code> — quantized ONNX, vocab, projection weights, hash-pinned. <code>ingestion</code> — Vector config and VRL, one regex per device. <code>parsing</code> — SIEM-Lite bridge + 5 hot-swap decoders. <code>storage</code> — Hive writer with 30s watcher. <code>docs</code> — wiring + offline bundle notes.</p>
+      <p>Verify with <code>GET /api/health</code>, <code>POST /api/classify</code>, then <code>GET /api/stats</code>.</p>` },
+{ file: 'SYSTEM_DESIGN.md', title: 'System design', body: `
+      <h2>What we are solving</h2>
+      <p>Every device logs differently; teams write one parser per device and parsers break on firmware updates. The pipeline takes any perimeter log, keeps raw bytes for forensics, normalizes to one schema for SIEM and ML, runs air-gapped, and never loses data on downstream stall.</p>
+      <h2>Modular monolith + ADR-001</h2>
+      <p>One deployable unit for a 2–4 person team; modules talk only through a public <code>api/</code> surface so the classifier can later move to a sidecar. Extract services only for independent scaling or deploys.</p>
+      <h2>Constraints</h2>
+      <p>One binary, model starts under 500 ms, 5 ms per log warm, batch is one ONNX call, raw hashed and kept under <code>unmapped</code>, <code>when_full=block</code> never drop.</p>
+      <h2>Database</h2>
+      <p>Postgres 16: structured data, ACID dedup, GIN on raw, under 1M rows single node. ClickHouse later for 100M+ burst.</p>
+      <h2>Data shape</h2>
+      <p>Canonical: <code>type category severity timestamp summary confidence raw</code>. OCSF: <code>class_uid 4001</code>, integrity hash, raw preserved. APIs: <code>POST /api/classify</code>, <code>GET /api/health</code>, <code>POST /api/ingest?format=</code>.</p>
+      <h2>Left out</h2>
+      <p>No LLM unknowns, no Storm, no full Loki/Prom here — those live in the event-driven full product. Air-gap tar stays under 2 GB.</p>` },
+{ file: 'SYSTEM_ARCHITECTURE.md', title: 'System architecture', body: `
+      <h2>Three pipes</h2>
+      <p><code>ingest</code> — Vector + VRL, owns raw/hashing/OCSF, no HTTP. <code>classify</code> — Go API + 23 MB ONNX, owns embedding, no file I/O beyond models. <code>store</code> — Hive + Postgres GIN, owns query, no embedding. No pipe imports another pipe's internals.</p>
+      <h2>Runtime path</h2>
+      <p>Device → Vector (multiline glue) → VRL (hash, regex, filter, OCSF 4001) → NDJSON → Hive watcher (Snappy or NDJSON fallback) + Postgres. Dashboard → <code>POST /api/classify</code> (tokenize 128, infer, pool, project 1024, cosine 42) → events + latency. Backpressure always blocks; 2 GB disk buffer.</p>
+      <h2>Deployment</h2>
+      <p>Air-gapped host: 10 MB Go binary, 58 MB pinned models, Vector, NDJSON + Hive, Postgres GIN. Browser dashboard works over <code>file://</code> with mock fallback. One <code>docker compose up</code>.</p>
+      <h2>Verify fast</h2>
+      <p><code>GET /api/health</code> shows 42 leaves, threshold 0.5. Classify three samples, ingest with <code>class_uid 4001</code>, watch stats increment.</p>` },
+{ file: 'docs/LIVE_DEPLOYMENT.md', title: 'Live deployment', body: `
+      <h2>Vercel + Render combo</h2>
+      <p>Two hosts: Vercel serves the static dashboard + Node API shims; Render runs the Go server. One repo, single commit updates both.</p>
+      <p>Vercel: <code>logforce.vercel.app</code> — health, classify, ingest, query, stats shims; deterministic routers mirror the Go server so vendor logs classify perfectly even in mock.</p>
+      <p>Render: <code>logforce.onrender.com</code> — Docker build, models baked, same routers + Hive layout + Postgres GIN.</p>
+      <h2>Verify both live</h2>
+      <pre>curl https://logforce.vercel.app/api/health
+curl -X POST https://logforce.onrender.com/api/classify \
+  -H Content-Type:application/json \
+  -d '{"logs":["LogName: Microsoft-Windows-PowerShell/Operational EventID:4104 Invoke-Mimikatz"]}'</pre>
+      <p>Next upgrade: Debian slim + glibc ONNX for real inference on Render.</p>` },
+{ file: 'docs/offline-bundle.md', title: 'Offline bundle', body: `
+      <h2>Models baked in</h2>
+      <p>Models ship inside <code>Dockerfile.lumber</code> — no model pull at runtime. Wiped bundle? Re-download once on a connected host:</p>
+      <pre>make download-models
+sha256sum models/model_quantized.onnx models/vocab.txt | head</pre>
+      <h2>Containers</h2>
+      <pre>docker compose build
+docker save logforce-perimeter logforce-postgres | gzip &gt; logforce-perimeter.tar.gz
+docker load &lt; logforce-perimeter.tar.gz
+docker compose up</pre>
+      <p>No extra secrets. <code>PG_DSN</code> is the compose default.</p>` },
+{ file: 'docs/wiring-vector-to-wazuh.md', title: 'Vector to Wazuh', body: `
+      <h2>Second sink, no rework</h2>
+      <p>Vector already writes NDJSON. A second sink mirrors it to the indexer without touching the file path — uncomment in <code>ingestion/vector.toml</code>:</p>
+      <pre>[sinks.wazuh_indexer]
+type = "elasticsearch"
+inputs = ["perimeter_normalized"]
+index = "logforce-ocsf-%Y-%m-%d"</pre>
+      <p>Or keep it simple: <code>POST /api/ingest</code> already writes Postgres GIN, and the decoders in <code>parsing/decoders/perimeter.yml</code> read the same NDJSON. Pick one path for the demo, not both.</p>` },
+{ file: 'ui/README.md', title: 'UI readme', body: `
+      <h2>Dashboard + Go API</h2>
+      <p>Single HTML file, no build step. Open <code>dashboard.html</code> directly for mock, run the Go server for real 5 ms inference.</p>
+      <pre># from ui/
+go run server.go
+# open http://localhost:8082/dashboard-v2.html</pre>
+      <p>Env: <code>LUMBER_MODEL_DIR</code> (quantized ONNX home), <code>PORT</code> default 8082 here, <code>STATIC_DIR</code> default <code>.</code>.</p>` }
+];
+
+// ---------- parcels: auto-rendered, one per doc ----------
+const selectedParcels = [];
+const parcelsEl = document.getElementById('parcels');
+const parcelHint = document.getElementById('parcelHint');
+DOCS.forEach((d, i) => {
+  const b = document.createElement('button');
+  b.className = 'parcel';
+  b.type = 'button';
+  b.dataset.doc = i;
+  b.title = d.file;
+  b.innerHTML = '<span class="parcel-box"></span><span class="parcel-name"></span>';
+  b.querySelector('.parcel-name').textContent = d.file;
+  b.addEventListener('click', () => pickParcel(i));
+  parcelsEl.appendChild(b);
+});
+function paintParcels(){
+  parcelsEl.querySelectorAll('.parcel').forEach(el => {
+    el.classList.toggle('sel', selectedParcels.includes(Number(el.dataset.doc)));
+  });
+}
+function pickParcel(i){
+  if(!selectedParcels.includes(i)){
+    selectedParcels.push(i);
+    if(selectedParcels.length > 2){
+      selectedParcels.shift();
+      if(parcelHint) parcelHint.textContent = 'Only 2 parcels at a time — oldest returned';
+      parcelsEl.classList.remove('bump'); void parcelsEl.offsetWidth; parcelsEl.classList.add('bump');
+    } else if(parcelHint){
+      parcelHint.textContent = 'Pick up to 2 parcels — click a parcel to open it';
+    }
+  }
+  paintParcels();
+  openDoc(i);
+}
+
+// ---------- popup: doc opens in a curved-scrollbar card ----------
+const overlay = document.getElementById('docOverlay');
+const popupCard = document.getElementById('popupCard');
+const popupContent = document.getElementById('popupContent');
+let popupInit = false;
+function openDoc(i){
+  const d = DOCS[i]; if(!d) return;
+  popupContent.innerHTML = '<p class="popup-filename">' + d.file + '</p><h2>' + d.title + '</h2>' + d.body;
+  popupContent.scrollTop = 0;
+  overlay.hidden = false;
+  document.body.style.overflow = 'hidden';
+  if(!popupInit){ initCurvedScrollbar(popupCard); popupInit = true; }
+  else { window.dispatchEvent(new Event('resize')); }
+}
+function closeDoc(){
+  overlay.hidden = true;
+  document.body.style.overflow = '';
+}
+document.getElementById('popupClose').addEventListener('click', closeDoc);
+overlay.addEventListener('click', e => { if(e.target === overlay) closeDoc(); });
+window.addEventListener('keydown', e => { if(e.key === 'Escape' && !overlay.hidden) closeDoc(); });
+</script>
+<script>
+// config
+const OFFSET = 7; // distance from edge of container
+const EXTRA_INSET = 2;
+const MIN_START_RATIO = 0.8;
+const MIN_THUMB = 20;
+const SEGMENTS = 50;
+
+// init scrollbars - each has their own scoped functions and settings
+document.querySelectorAll('.wrapper [data-scrollbar]').forEach(container => {
+  initCurvedScrollbar(container);
+});
+
+// function - init scrolled container
+function initCurvedScrollbar(container) {
+  const content = container.querySelector('.scroll-content');
+
+  // create and add SVG
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.classList.add('scrollbar-svg');
+  svg.setAttribute('aria-hidden', 'true');
+
+  const trackPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  trackPath.classList.add('scrollbar-track');
+
+  const thumbPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  thumbPath.classList.add('scrollbar-thumb');
+
+  svg.appendChild(trackPath);
+  svg.appendChild(thumbPath);
+  container.appendChild(svg);
+
+  // state
+  let pathLength = 0;
+  let thumbLength = 50;
+  let dragging = false;
+  let pointerId = null;
+
+  // function - update
+  function updatePath() {
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    const r = parseFloat(getComputedStyle(container).borderRadius) || 0;
+
+    const effectiveRadius = Math.max(r - OFFSET, 0);
+    const trackX = w - OFFSET;
+    const topY = OFFSET;
+    const bottomY = h - OFFSET;
+    const cornerX = trackX - effectiveRadius;
+
+    // calculate x start point - ensure that it is never higher than the corner radius start point
+    const minStartX = w * MIN_START_RATIO;
+    let startX = trackX - effectiveRadius * EXTRA_INSET;
+    if (startX < minStartX) startX = minStartX;
+    if (startX > cornerX) startX = cornerX;
+
+    // create the dynamic path
+    const d = `
+      M ${startX} ${topY}
+      L ${cornerX} ${topY}
+      A ${effectiveRadius} ${effectiveRadius} 0 0 1 ${trackX} ${topY + effectiveRadius}
+      L ${trackX} ${bottomY - effectiveRadius}
+      A ${effectiveRadius} ${effectiveRadius} 0 0 1 ${cornerX} ${bottomY}
+      L ${startX} ${bottomY}
+    `;
+    trackPath.setAttribute('d', d);
+
+    // calculate length of thumb based on content height
+    pathLength = trackPath.getTotalLength();
+    const ratio = content.clientHeight / content.scrollHeight;
+    thumbLength = Math.max(MIN_THUMB, pathLength * ratio);
+
+    updateThumb();
+  }
+
+  // function - thumb update
+  function updateThumb() {
+    const scrollableHeight = content.scrollHeight - content.clientHeight || 1;
+    const scrollRatio = content.scrollTop / scrollableHeight;
+    const startOffset = (pathLength - thumbLength) * scrollRatio;
+    const endOffset = startOffset + thumbLength;
+
+    // the thumb needs to follow the path so we get the generated path points
+    // NOTE - the high number of segments help follow the curves
+    const points = [];
+    for (let i = 0; i <= SEGMENTS; i++) {
+      const t = startOffset + ((endOffset - startOffset) / SEGMENTS) * i;
+      const p = trackPath.getPointAtLength(t);
+      points.push(`${p.x} ${p.y}`);
+    }
+
+    const segmentD = `M ${points[0]} ${points.slice(1).map(pt => `L ${pt}`).join(' ')}`;
+    thumbPath.setAttribute('d', segmentD);
+  }
+
+  //  function - grab thumb
+  thumbPath.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    dragging = true;
+    pointerId = e.pointerId;
+    thumbPath.setPointerCapture(pointerId);
+  });
+
+  // function - drag thumb
+  window.addEventListener('pointermove', e => {
+    if (!dragging || e.pointerId !== pointerId) return;
+    const rect = container.getBoundingClientRect();
+    let ratio = (e.clientY - rect.top) / rect.height;
+    ratio = Math.max(0, Math.min(1, ratio));
+    content.scrollTop = ratio * (content.scrollHeight - content.clientHeight);
+    updateThumb();
+  });
+
+  // function - release thumb
+  window.addEventListener('pointerup', e => {
+    if (!dragging || e.pointerId !== pointerId) return;
+    dragging = false;
+    try { thumbPath.releasePointerCapture(pointerId); } catch {}
+    pointerId = null;
+  });
+
+  // events
+  content.addEventListener('scroll', updateThumb);
+  window.addEventListener('resize', updatePath);
+
+  updatePath();
+}
+</script>
+<script>
+// ---------- truck delivery: drives on load, drops the moment, replays on click ----------
+(function(){
+  const stage = document.getElementById('truckStage');
+  const parcels = document.getElementById('parcels');
+  const replayLink = document.getElementById('replayLink');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function revealParcels(){
+    parcels.classList.add('show');
+  }
+  if(reduceMotion || typeof gsap === 'undefined'){ revealParcels(); return; }
+  const { to } = gsap;
+  let animating = false;
+  function drive(){
+    if(animating) return;
+    animating = true;
+    stage.classList.remove('hidden');
+    replayLink.classList.remove('show');
+    parcels.classList.remove('show');
+    to(stage, { '--rotate': '-90deg', '--y': '25px', duration: 0.2 });
+    to(stage, {
+      keyframes: [
+        { '--truck-base-x': '-4px', duration: 0.5 },
+        { '--truck-base-x': '0px', duration: 0.2 },
+        { '--truck-base-x': '60px', '--box-x': '-60px', duration: 0.5,
+          onStart(){
+            setTimeout(() => {
+              to(stage, { keyframes: [
+                { '--box-y': '10px', '--box-r': '-8deg', duration: 0.2 },
+                { '--box-r': '0deg', duration: 0.2 }
+              ]});
+            }, 200);
+          }
+        },
+        { '--truck-base-x': '56px', '--box-x': '-56px', duration: 0.4 },
+        { '--light-opacity': 0, duration: 0.3, delay: 0.2 }
+      ],
+      onComplete(){
+        setTimeout(() => {
+          stage.classList.add('hidden');
+          replayLink.classList.add('show');
+          to(stage, { '--rotate': '0deg', '--y': '0px', duration: 0.2,
+            onComplete(){ animating = false; } });
+          revealParcels();
+        }, 400);
+      }
+    });
+  }
+  replayLink.addEventListener('click', drive);
+  window.addEventListener('load', () => setTimeout(drive, 350));
+  setTimeout(() => { if(!parcels.classList.contains('show') && !animating) revealParcels(); }, 6000);
+})();
+</script>
+</body>
+</html>
