@@ -45,3 +45,21 @@ Matches the "Just Bored Vol. 3" reference (freefrontend.com). Dark `#121212` bac
 | Souvik Das | `souvik.jpeg` | QA & System Testing |
 | Shreyasee Sahoo | `shreyasee.jpeg` | Multimedia Specialist |
 | Soumita Chatterjee | `soumita.jpeg` | Product Evangelist |
+
+## dashboard v2 pipeline notes
+
+Paste box, output panel, drop banner, and action buttons carry fixed ids
+(`pipe-input`, `pipe-out`, `pipe-drop`, `btn-classify`, `btn-batch`,
+`btn-clear`, `btn-copy`, `btn-download`). Script lookup uses those ids
+directly. Text search discovery is retired because ancestor text matches
+once replaced the whole pipeline card with output.
+
+Classification runs in two tiers. Vendor perimeter lines match a
+deterministic router with fixed scores. All other lines run the ONNX
+cosine path. Scores below 0.5 fall back to unknown. Fixed router scores
+are 0.93 standard, 0.95 metadata, 0.97 critical, 0.2 unknown. Model
+scores are raw cosines, so the two kinds share one number with
+different meaning.
+
+Ingest writes files always and Postgres when `PG_DSN` is set. Stats
+and query read Postgres first with file fallback and never mix both.
