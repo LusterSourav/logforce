@@ -14,6 +14,8 @@
     { "source": "/souvik.jpeg", "destination": "/ui/souvik.jpeg" },
     { "source": "/swarnadeep.jpeg", "destination": "/ui/swarnadeep.jpeg" },
     { "source": "/soham.jpeg", "destination": "/ui/soham.jpeg" },
+    { "source": "/shreyasee.jpeg", "destination": "/ui/shreyasee.jpeg" },
+    { "source": "/soumita.jpeg", "destination": "/ui/soumita.jpeg" },
     { "source": "/", "destination": "/ui/dashboard-v2.html" }
   ],
   "headers": [
