@@ -43,3 +43,5 @@ Matches the "Just Bored Vol. 3" reference (freefrontend.com). Dark `#121212` bac
 | Soham Chakraborty | `soham.jpeg` | Team Lead |
 | Swarnadeep Roy | `swarnadeep.jpeg` | System Designer |
 | Souvik Das | `souvik.jpeg` | QA & System Testing |
+| Shreyasee Sahoo | `shreyasee.jpeg` | Multimedia Specialist |
+| Soumita Chatterjee | `soumita.jpeg` | Product Evangelist |
