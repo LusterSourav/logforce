@@ -137,7 +137,7 @@ All code comments sanitized to avoid `-` and `:` inside comment markers before p
 
 Render image is `debian:bookworm-slim` with `golang:1.24-bookworm` builder plus `libgomp1 libstdc++6`. Build fetches the model trio plus `2_Dense/model.safetensors` from `MongoDB/mdbr-leaf-mt` plus ORT `1.26.0` linux x64 to match `go.mod`. Health reports ok with 1024 dim and 42 leaves. Alpine plus gcompat was tried and failed on missing glibc symbols, so glibc base stays.
 
-Cloud Postgres is Neon project `logforce`, branch production, region Singapore. One time setup is run `init.sql` in the Neon SQL editor, then set `PG_DSN` env on the Render service and redeploy. No Neon CLI, no `neon deploy`, no extra Neon services needed, Postgres only. With `PG_DSN` set, ingest dual writes PG plus files, stats and query read PG first with file fallback, so counters and review survive every deploy on Render and on Vercel through its Render proxy. Without `PG_DSN` everything still works file only. Proof the DB is wired is `pg_count` at zero or above in `/api/stats` instead of minus one.
+Cloud Postgres is Neon project `logforce`, project id `old-butterfly-72250695`, branch production, region Singapore. One time setup is run `init.sql` in the Neon SQL editor, then set `PG_DSN` env on the Render service and redeploy. No Neon CLI, no `neon deploy`, no extra Neon services needed, Postgres only. With `PG_DSN` set, ingest dual writes PG plus files, stats and query read PG first with file fallback, so counters and review survive every deploy on Render and on Vercel through its Render proxy. Without `PG_DSN` everything still works file only. Proof the DB is wired is `pg_count` at zero or above in `/api/stats` instead of minus one.
 
 ## URLs To Share
 
