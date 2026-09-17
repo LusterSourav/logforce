@@ -856,9 +856,16 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintln(f, line)
 		}
 		// try Postgres insert for the C demo. Keep file as fallback if DB is down.
+		// Non JSON lines are wrapped so the raw text is kept for evidence.
 		if pg != nil {
+			pgLine := line
+			var probe interface{}
+			if json.Unmarshal([]byte(line), &probe) != nil {
+				wrapped, _ := json.Marshal(map[string]string{"_raw": line})
+				pgLine = string(wrapped)
+			}
 			var obj map[string]interface{}
-			_ = json.Unmarshal([]byte(line), &obj)
+			_ = json.Unmarshal([]byte(pgLine), &obj)
 			classUID := 4001
 			if v, ok := obj["class_uid"]; ok {
 				if fv, ok := v.(float64); ok {
@@ -880,7 +887,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 				// lumber canonical has no vendor ,  use type as grouping
 				vendor = t
 			}
-			_, err := pg.Exec(`insert into events (raw, class_uid, vendor) values ($1::jsonb, $2, $3)`, line, classUID, vendor)
+			_, err := pg.Exec(`insert into events (raw, class_uid, vendor) values ($1::jsonb, $2, $3)`, pgLine, classUID, vendor)
 			if err == nil {
 				pgCount++
 			} else {
@@ -901,6 +908,55 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		resp["pg_error"] = lastErr
 	}
 	json.NewEncoder(w).Encode(resp)
+}
+
+// queryFromPG reads review rows from Postgres when PG_DSN is set. Returns
+// false on any failure or empty result so the caller falls back to files.
+func queryFromPG(classFilter int, vendorFilter string) ([]map[string]interface{}, int, bool) {
+	if pg == nil {
+		return nil, 0, false
+	}
+	q := `select raw from events where 1=1`
+	args := []interface{}{}
+	if classFilter != 0 {
+		q += ` and class_uid = $1`
+		args = append(args, classFilter)
+	}
+	if vendorFilter != "" {
+		q += ` and (raw::text ilike '%logforce%' or raw::text ilike '%logforce%')`
+	}
+	var matched int
+	cq := `select count(*) from events where 1=1`
+	if classFilter != 0 {
+		cq += ` and class_uid = $1`
+	}
+	if vendorFilter != "" {
+		cq += ` and (raw::text ilike '%logforce%' or raw::text ilike '%logforce%')`
+	}
+	if err := pg.QueryRow(cq, args...).Scan(&matched); err != nil || matched == 0 {
+		return nil, 0, false
+	}
+	rows, err := pg.Query(q+` order by ingested_at desc limit 200`, args...)
+	if err != nil {
+		return nil, 0, false
+	}
+	defer rows.Close()
+	var out []map[string]interface{}
+	for rows.Next() {
+		var raw string
+		if err := rows.Scan(&raw); err != nil {
+			return nil, 0, false
+		}
+		var obj map[string]interface{}
+		if err := json.Unmarshal([]byte(raw), &obj); err != nil {
+			continue
+		}
+		out = append(out, obj)
+	}
+	if out == nil {
+		out = []map[string]interface{}{}
+	}
+	return out, matched, true
 }
 
 func handleQuery(w http.ResponseWriter, r *http.Request) {
@@ -927,6 +983,21 @@ func handleQuery(w http.ResponseWriter, r *http.Request) {
 	loweredSql := strings.ToLower(sqlStr)
 	if strings.Contains(loweredSql, "logforce") || strings.Contains(loweredSql, "logforce") {
 		vendorFilter = "logforce"
+	}
+
+	// Postgres first so review survives redeploys, files as fallback.
+	if prows, pmatched, ok := queryFromPG(classFilter, vendorFilter); ok {
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"sql": sqlStr,
+			"prune": map[string]int{
+				"scanned_files": 0,
+				"pruned_files": 0,
+				"matched_rows": pmatched,
+			},
+			"pg_count": pmatched,
+			"rows": prows,
+		})
+		return
 	}
 
 	base := outDir()
