@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>Perimeter Log Ingest &amp; Security Analytics Dashboard</title>
-<!-- Google Fonts: Inter & JetBrains Mono -->
+<!-- Google Fonts Inter & JetBrains Mono -->
 <link href="https://fonts.googleapis.com" rel="preconnect">
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
@@ -105,7 +105,7 @@
       50% { transform: scale(1.08); filter: brightness(1.35); }
       100% { transform: scale(1); filter: brightness(1); }
     }
-    /* Recent Ingests folding folder: rising papers + split folding flap */
+    /* Recent Ingests folding folder rising papers + split folding flap */
     #recent-stack.is-dragover {
       border-color: #4f46e5;
       border-style: dashed;
@@ -211,16 +211,188 @@
       .ff-folder, .ff-paper, .ff-front, #recent-stack { transition: none !important; }
       #recent-stack.swallow .ff-folder, .recent-row-enter { animation: none !important; }
     }
+    /* Grouped area chart. Scoped fork for ingest activity. Series colors use brand indigo plus amber. */
+    #ingest-activity-card data-chart {
+      --data-chart-bar-bdrs: clamp(0.125rem, -0.35rem + 1cqi, 0.33rem);
+      --data-chart-bar-c: currentColor;
+      --data-chart-bdw: 1px;
+      --data-chart-bds: solid;
+      --data-chart-bdc: light-dark(#CCC, #666);
+      --data-chart-nolabel-bdw: 1px;
+      --data-chart-nolabel-bds: solid;
+      --data-chart-nolabel-bdc: light-dark(#EBEBEB, #444);
+      --data-chart-caption-h: 1.5rem;
+      --data-chart-label-h: 20px;
+      --data-chart-label-w: 5rem;
+      --data-chart-mih: 275px;
+      --data-chart-y-axis-w: 1.5rem;
+      --_min: 0;
+      --_max: 100;
+      --c1: rgba(79,70,229,.45);
+      --c2: rgba(245,158,11,.45);
+      --c3: hsla(100, 40%, 55%, .75);
+      --c4: hsla(60, 40%, 60%, .75);
+      --c5: hsla(35, 50%, 65%, .75);
+      --c6: hsla(15, 55%, 60%, .75);
+      --c7: hsla(350, 50%, 60%, .75);
+      --c8: hsla(280, 40%, 60%, .75);
+      --c9: hsla(240, 45%, 55%, .75);
+      --c10: hsla(200, 30%, 65%, .75);
+      background: var(--data-chart-bg, #FFF0);
+      border-radius: var(--data-chart-bdrs, .5rem);
+      box-sizing: border-box;
+      container-type: inline-size;
+      display: block;
+      font-family: var(--data-chart-ff, ui-sans-serif, system-ui);
+      padding: var(--data-chart-p, 0);
+      & * { box-sizing: border-box; }
+      & caption {
+        display: none;
+        font-size: var(--data-chart-caption-fs, 11px);
+        font-weight: var(--data-chart-caption-fw, 500);
+        grid-area: 1 / 1 / 2 / 2;
+        text-wrap: nowrap;
+      }
+      & table {
+        display: grid;
+        grid-template-rows: var(--_gtr, var(--data-chart-caption-h) 1fr);
+        min-height: var(--data-chart-mih);
+      }
+      & tbody {
+        container-type: size;
+        display: grid;
+        gap: var(--data-chart-bar-gap, .25rem);
+        grid-area: 2 / 1 / 4 / 2;
+        grid-template-columns: repeat(auto-fit, minmax(var(--data-chart-bar-miw, 1.25cqi), 1fr));
+        & td {
+          --_v: 0;
+          --_pv: 0;
+          --_y: calc(1 - ((var(--_v) - var(--_min)) / (var(--_max) - var(--_min))));
+          --_py: calc(1 - ((var(--_pv) - var(--_min)) / (var(--_max) - var(--_min))));
+          background: var(--data-chart-bar-bg, var(--_bg, light-dark(hsla(210, 100%, 70%, .8), hsla(210, 60%, 60%, .8))));
+          color: #0000;
+          font-size: var(--data-chart-bar-fs, clamp(0.5625rem, 0.45rem + .5cqi, 0.75rem));
+          font-weight: var(--data-chart-bar-fw, 400);
+          height: calc(((var(--_v) - var(--_min)) / (var(--_max) - var(--_min))) * 100cqb);
+          padding: var(--data-chart-bar-p, .75ch 0 0 0);
+          text-align: center;
+          &:first-of-type {
+            border-radius: var(--data-chart-bar-bdrs) var(--data-chart-bar-bdrs) 0 0;
+          }
+        }
+        & th {
+          border-block-start: var(--data-chart-x-axis-bdw, 0px) var(--data-chart-x-axis-bds, solid) var(--data-chart-x-axis-bdc, hsla(0, 0%, 41%, .95));
+          color: var(--data-chart-x-axis-c, light-dark(#444, #EEE));
+          display: none;
+          font-size: var(--data-chart-x-axis-fs, clamp(0.5625rem, 0.4rem + .5cqi, 0.6875rem));
+          font-weight: var(--data-chart-x-axis-fw, 400);
+          grid-row: calc(var(--_c, 1) + 1);
+          height: var(--data-chart-label-h);
+          overflow-inline: clip;
+          padding: var(--data-chart-x-axis-p, 0);
+          place-content: center;
+        }
+        & tr {
+          &:has(> td:nth-child(3)) { --_c: 2; }
+          &:has(> td:nth-child(4)) { --_c: 3; }
+          &:has(> td:nth-child(5)) { --_c: 4; }
+          &:has(> td:nth-child(6)) { --_c: 5; }
+          &:has(> td:nth-child(7)) { --_c: 6; }
+          &:has(> td:nth-child(8)) { --_c: 7; }
+          &:has(> td:nth-child(9)) { --_c: 8; }
+          align-content: end;
+          align-items: end;
+          display: grid;
+          overflow-inline: clip;
+        }
+      }
+      & thead {
+        align-items: end;
+        color: #0000;
+        display: none;
+        grid-area: 1 / 1 / 3 / 2;
+        grid-template-rows: var(--data-chart-caption-h) repeat(auto-fit, minmax(1rem, 1fr));
+        & th {
+          font-size: var(--data-chart-y-axis-fs, 10px);
+          font-weight: var(--data-chart-y-axis-fw, 300);
+          text-align: start;
+        }
+        & tr { display: contents; }
+      }
+      &[options*="groups"] tbody tr {
+        & td:nth-of-type(10n+1) { --_bg: var(--c1); }
+        & td:nth-of-type(10n+2) { --_bg: var(--c2); }
+        & td:nth-of-type(10n+3) { --_bg: var(--c3); }
+        & td:nth-of-type(10n+4) { --_bg: var(--c4); }
+        & td:nth-of-type(10n+5) { --_bg: var(--c5); }
+        & td:nth-of-type(10n+6) { --_bg: var(--c6); }
+        & td:nth-of-type(10n+7) { --_bg: var(--c7); }
+        & td:nth-of-type(10n+8) { --_bg: var(--c8); }
+        & td:nth-of-type(10n+9) { --_bg: var(--c9); }
+        & td:nth-of-type(10n+0) { --_bg: var(--c10); }
+      }
+      &[options~="y-grid"] thead {
+        display: grid;
+        & th {
+          border-block-end: var(--data-chart-bdw) var(--data-chart-bds) var(--data-chart-bdc);
+          &:empty {
+            border-block-end: var(--data-chart-nolabel-bdw) var(--data-chart-nolabel-bds) var(--data-chart-nolabel-bdc);
+          }
+        }
+      }
+      &[options*="y-labels"] tbody { padding-inline: var(--data-chart-y-axis-w) 0; }
+      &[options*="y-labels"] thead {
+        color: var(--data-chart-y-axis-c, light-dark(#696969, #EEE));
+        display: grid;
+      }
+      @container (max-width: 400px) {
+        &:is([type="area"])[items-xs="1"] tbody tr:nth-of-type(n+2),
+        &:is([type="area"])[items-xs="2"] tbody tr:nth-of-type(n+3),
+        &:is([type="area"])[items-xs="3"] tbody tr:nth-of-type(n+4),
+        &:is([type="area"])[items-xs="4"] tbody tr:nth-of-type(n+5),
+        &:is([type="area"])[items-xs="5"] tbody tr:nth-of-type(n+6),
+        &:is([type="area"])[items-xs="6"] tbody tr:nth-of-type(n+7),
+        &:is([type="area"])[items-xs="7"] tbody tr:nth-of-type(n+8),
+        &:is([type="area"])[items-xs="8"] tbody tr:nth-of-type(n+9) {
+          display: none;
+        }
+      }
+      @container (min-width: 400px) and (max-width: 700px) {
+        &:is([type="area"])[items-sm="4"] tbody tr:nth-of-type(n+5),
+        &:is([type="area"])[items-sm="5"] tbody tr:nth-of-type(n+6),
+        &:is([type="area"])[items-sm="6"] tbody tr:nth-of-type(n+7),
+        &:is([type="area"])[items-sm="7"] tbody tr:nth-of-type(n+8),
+        &:is([type="area"])[items-sm="8"] tbody tr:nth-of-type(n+9),
+        &:is([type="area"])[items-sm="9"] tbody tr:nth-of-type(n+10),
+        &:is([type="area"])[items-sm="10"] tbody tr:nth-of-type(n+11),
+        &:is([type="area"])[items-sm="11"] tbody tr:nth-of-type(n+12),
+        &:is([type="area"])[items-sm="12"] tbody tr:nth-of-type(n+13) {
+          display: none;
+        }
+      }
+      &[type=area] tbody {
+        --data-chart-bar-gap: 0;
+        & td {
+          clip-path: polygon(-1% 100%,
+              -1% calc(var(--_py) * 100%),
+              101% calc(var(--_y) * 100%),
+              101% 100%);
+          font-size: 0;
+          grid-area: 1 / 1 / 2 / 2;
+          height: calc(100cqb - var(--data-chart-label-h));
+        }
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 bg-[#ebf0f7] p-3 sm:p-5 lg:p-7 flex flex-col items-center justify-start antialiased selection:bg-brand-500 selection:text-white">
-<!-- BEGIN: MainContainerFrame -->
+<!-- BEGIN MainContainerFrame -->
 <div class="relative w-full max-w-[1720px] bg-white rounded-[28px] sm:rounded-[36px] shadow-container border border-slate-200/80 overflow-hidden flex flex-col lg:flex-row flex-1 min-w-0">
-<!-- BEGIN: LeftSidebar / Responsive Rail -->
+<!-- BEGIN LeftSidebar / Responsive Rail -->
 <aside class="w-full lg:w-[88px] bg-white border-b lg:border-b-0 lg:border-r border-slate-100/90 flex flex-row lg:flex-col items-center justify-between py-4 lg:py-7 px-4 sm:px-6 lg:px-0 shrink-0 z-30 sticky top-0 lg:static" data-purpose="primary-sidebar">
 <!-- Top Brand Logo & Nav List -->
 <div class="flex flex-row lg:flex-col items-center gap-4 lg:gap-8 w-full lg:w-auto justify-between lg:justify-start">
-<!-- Logo Badge: Purple circle with '$' -->
+<!-- Logo Badge Purple circle with '$' -->
 <a class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-md shadow-brand-600/30 transition-transform hover:scale-105 active:scale-95 shrink-0" data-purpose="app-logo" href="#overview">
 <span class="">$</span>
 </a>
@@ -281,10 +453,10 @@
 </button>
 </div>
 </aside>
-<!-- END: LeftSidebar -->
-<!-- BEGIN: MainContentArea -->
+<!-- END LeftSidebar -->
+<!-- BEGIN MainContentArea -->
 <main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden px-5 sm:px-8 lg:px-10 py-6 sm:py-8 space-y-7 sm:space-y-9 bg-white min-w-0 max-w-full" data-purpose="dashboard-workspace">
-<!-- BEGIN: TopBar Header -->
+<!-- BEGIN TopBar Header -->
 <header class="flex flex-col xl:flex-row xl:items-center justify-between gap-5 border-b border-slate-100 pb-5" data-purpose="top-navigation-bar">
 <!-- Title & View Tabs -->
 <div class="flex flex-col md:flex-row md:items-center gap-4 lg:gap-8 min-w-0 flex-1">
@@ -355,8 +527,8 @@ Docs
 </div>
 </div>
 </header>
-<!-- END: TopBar Header -->
-<!-- BEGIN: Dashboard Bento Grid (Exact 3 Columns as in Reference) -->
+<!-- END TopBar Header -->
+<!-- BEGIN Dashboard Bento Grid (Exact 3 Columns as in Reference) -->
 <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 min-w-0" data-purpose="primary-overview-grid">
 <!-- ==================== COLUMN 1 (Left 4 cols) ==================== -->
 <div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
@@ -425,13 +597,13 @@ Docs
 <!-- Vibrant Gauge Arc Graphics matching reference -->
 <div class="relative py-2 flex flex-col items-center justify-center w-full max-w-[280px] mx-auto">
 <svg class="w-full h-auto" fill="none" viewBox="0 0 220 125">
-<!-- Arc Segment 1: Red/Coral to Orange -->
+<!-- Arc Segment 1 Red/Coral to Orange -->
 <path d="M 28 115 A 82 82 0 0 1 54 58" fill="none" stroke="#ea384d" stroke-linecap="round" stroke-width="16"></path>
-<!-- Arc Segment 2: Purple / Indigo -->
+<!-- Arc Segment 2 Purple / Indigo -->
 <path d="M 54 58 A 82 82 0 0 1 110 33" fill="none" stroke="#4f46e5" stroke-linecap="round" stroke-width="16"></path>
-<!-- Arc Segment 3: Cyan / Teal -->
+<!-- Arc Segment 3 Cyan / Teal -->
 <path d="M 110 33 A 82 82 0 0 1 166 58" fill="none" stroke="#06b6d4" stroke-linecap="round" stroke-width="16"></path>
-<!-- Arc Segment 4: Emerald / Amber -->
+<!-- Arc Segment 4 Emerald / Amber -->
 <path d="M 166 58 A 82 82 0 0 1 192 115" fill="none" stroke="#f59e0b" stroke-linecap="round" stroke-width="16"></path>
 </svg>
 <div class="absolute inset-0 flex flex-col items-center justify-center pt-8 pointer-events-none">
@@ -473,14 +645,14 @@ Docs
 </button>
 </div>
 </div>
-<!-- Top 5 Parsers Card (ENHANCED: Fully Interactive, Real-Time Capable with Animated Badges & Live Controls) -->
+<!-- Top 5 Parsers Card (ENHANCED Fully Interactive, Real Time Capable with Animated Badges & Live Controls) -->
 <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between relative overflow-hidden group/card" data-purpose="top-parsers-list" id="parsers-widget-card">
 <!-- Background ambient glow for live mode -->
 <div class="absolute -top-16 -right-16 w-32 h-32 bg-brand-500/5 rounded-full blur-2xl pointer-events-none"></div>
 <div class="flex items-center justify-between mb-4">
 <div class="flex items-center gap-2">
 <h4 class="text-base font-bold text-slate-900 tracking-tight">Top 5 Parsers</h4>
-<!-- Real-Time Streaming Indicator Badge -->
+<!-- Real Time Streaming Indicator Badge -->
 <button class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition-colors cursor-pointer" id="parsers-live-toggle" onclick="toggleParsersLiveStream()" title="Click to toggle live auto-update stream">
 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
 <span id="parsers-stream-label" class="">LIVE</span>
@@ -503,10 +675,10 @@ Docs
 </div>
 <!-- Interactive Parsers Progress Meters -->
 <div class="space-y-4">
-<!-- Row 1: NFL item -->
+<!-- Row 1 NFL item -->
 <div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nfl" id="row-nfl">
 <div class="flex items-center gap-3">
-<!-- Animated Badge Circle: NFL with pulse ring and breathing badge -->
+<!-- Animated Badge Circle NFL with pulse ring and breathing badge -->
 <div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nfl', 5)" title="Click badge to boost +5%">
 <div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
 <div class="relative w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-[11px] font-bold text-slate-800 flex items-center justify-center shadow-xs border border-slate-300/80 transition-transform active:scale-90 badge-breathe">
@@ -528,7 +700,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Interactive Percentage with Quick +/- Controls -->
+<!-- Interactive Percentage with Quick +/ Controls -->
 <div class="flex items-center gap-1 shrink-0">
 <button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nfl', -1)" title="Decrease -1%">-</button>
 <span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nfl">43%</span>
@@ -536,10 +708,10 @@ Docs
 </div>
 </div>
 </div>
-<!-- Row 2: NHL item -->
+<!-- Row 2 NHL item -->
 <div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nhl" id="row-nhl">
 <div class="flex items-center gap-3">
-<!-- Animated Badge Circle: NHL -->
+<!-- Animated Badge Circle NHL -->
 <div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nhl', 5)" title="Click badge to boost +5%">
 <div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
 <div class="relative w-8 h-8 rounded-full bg-gradient-to-br from-cyan-50 to-slate-200 text-[11px] font-bold text-slate-800 flex items-center justify-center shadow-xs border border-slate-300/80 transition-transform active:scale-90 badge-breathe" style="animation-delay: 0.6s;">
@@ -561,7 +733,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Interactive Percentage with Quick +/- Controls -->
+<!-- Interactive Percentage with Quick +/ Controls -->
 <div class="flex items-center gap-1 shrink-0">
 <button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nhl', -1)" title="Decrease -1%">-</button>
 <span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nhl">83%</span>
@@ -569,10 +741,10 @@ Docs
 </div>
 </div>
 </div>
-<!-- Row 3: NBA item -->
+<!-- Row 3 NBA item -->
 <div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nba" id="row-nba">
 <div class="flex items-center gap-3">
-<!-- Animated Badge Circle: NBA (soft brand tint with glowing ring) -->
+<!-- Animated Badge Circle NBA (soft brand tint with glowing ring) -->
 <div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nba', 5)" title="Click badge to boost +5%">
 <div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
 <div class="relative w-8 h-8 rounded-full bg-[#eef2ff] text-[11px] font-bold text-brand-600 flex items-center justify-center shadow-xs border border-brand-200/80 transition-transform active:scale-90 badge-breathe" style="animation-delay: 1.2s;">
@@ -594,7 +766,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Interactive Percentage with Quick +/- Controls -->
+<!-- Interactive Percentage with Quick +/ Controls -->
 <div class="flex items-center gap-1 shrink-0">
 <button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nba', -1)" title="Decrease -1%">-</button>
 <span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nba">73%</span>
@@ -614,7 +786,7 @@ Docs
 </div>
 <!-- ==================== COLUMN 2 (Center 4 cols) ==================== -->
 <div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
-<!-- Stat Card 1: Total Normalized -->
+<!-- Stat Card 1 Total Normalized -->
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
 <div class="flex items-center gap-4 min-w-0">
 <span class="w-11 h-11 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-base shadow-sm shadow-brand-600/30 shrink-0">
@@ -632,7 +804,7 @@ Docs
 <path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<!-- Stat Card 2: Normalization Rate -->
+<!-- Stat Card 2 Normalization Rate -->
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
 <div class="flex items-center gap-4 min-w-0">
 <span class="w-11 h-11 rounded-full bg-brand-50 text-brand-600 border border-brand-100 flex items-center justify-center shrink-0">
@@ -652,7 +824,7 @@ Docs
 <path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<!-- Stat Card 3: Event Count -->
+<!-- Stat Card 3 Event Count -->
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
 <div class="flex items-center gap-4 min-w-0">
 <span class="w-11 h-11 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/30">
@@ -672,20 +844,20 @@ Docs
 <path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<!-- Sub-Tabs Row: Events / Players / Bets / Plays (Modern Spotify pill toggle bar) -->
+<!-- Sub Tabs Row Events / Players / Bets / Plays (Modern Spotify pill toggle bar) -->
 <div aria-label="Security Category Tabs" class="bg-slate-100/80 p-1 rounded-2xl flex items-center gap-1 text-sm font-semibold border border-slate-200/60 shadow-inner" role="tablist">
 <button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-events" onclick="switchVendorTab('events')" role="tab" type="button">Events</button>
 <button aria-selected="true" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-white bg-slate-900 shadow-sm transition-all font-semibold text-xs sm:text-sm" id="tab-players" onclick="switchVendorTab('players')" role="tab" type="button">Players</button>
 <button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-bets" onclick="switchVendorTab('bets')" role="tab" type="button">Bets</button>
 <button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-plays" onclick="switchVendorTab('plays')" role="tab" type="button">Plays</button>
 </div>
-<!-- Interactive Security Vendor Card with Spotify-Style Dynamic 'Now Ingesting' Bar -->
+<!-- Interactive Security Vendor Card with Spotify Style Dynamic 'Now Ingesting' Bar -->
 <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-card space-y-3.5 transition-all duration-300" id="vendor-details-card">
-<!-- Spotify-style Dynamic 'Now Ingesting / Live Feed' floating mini bar -->
+<!-- Spotify style Dynamic 'Now Ingesting / Live Feed' floating mini bar -->
 <div class="bg-white rounded-2xl px-3 py-2 flex items-center justify-between shadow-sm border border-emerald-200/80 overflow-hidden"><div class="flex items-center gap-2.5 min-w-0"><div aria-label="Streaming active" class="flex items-end gap-0.5 h-3.5 w-3 shrink-0"><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_1s_infinite_100ms] h-2"></span><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_1.2s_infinite_200ms] h-3.5"></span><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.9s_infinite_300ms] h-1.5"></span></div><div class="min-w-0 flex flex-col"><div class="flex items-center gap-1.5"><span class="text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-full shrink-0">LIVE INGEST</span><span class="w-1 h-1 rounded-full bg-slate-400"></span><span class="text-xs font-bold text-slate-900 truncate" id="spotify-active-name">Palo Alto • Core Traffic</span></div><span class="text-[10px] font-mono text-slate-600 truncate mt-0.5" id="spotify-throughput">0 evt/s • 0.00 KB/s • 0% drop</span></div></div><div class="flex items-center gap-1 shrink-0 text-slate-700"><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" onclick="toggleStreamMute()" title="Toggle Stream Feed" type="button"><svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" id="spotify-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></button><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Stream settings" type="button"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle></svg></button></div></div>
 <!-- Dynamic Vendor Content Panels -->
 <div class="space-y-3.5" id="vendor-tab-content">
-<!-- TAB 1: PLAYERS (Default matching screenshot: Palo Alto x2.0) -->
+<!-- TAB 1 PLAYERS (Default matching screenshot Palo Alto x2.0) -->
 <div class="vendor-pane block" id="pane-players">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3.5">
@@ -717,7 +889,7 @@ Docs
 </svg>
 <span class="">0</span>
 </div>
-<!-- Sub stats: Events 0 & Sources 0 -->
+<!-- Sub stats Events 0 & Sources 0 -->
 <div class="grid grid-cols-2 gap-3">
 <div class="bg-[#f8fafc] rounded-2xl p-3 border border-slate-100 flex items-center gap-3">
 <span class="text-slate-400 shrink-0">
@@ -739,7 +911,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- TAB 2: EVENTS (Palo Alto Syslog - Rich Telemetry) -->
+<!-- TAB 2 EVENTS (Palo Alto Syslog Rich Telemetry) -->
 <div class="vendor-pane hidden" id="pane-events">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3.5">
@@ -786,7 +958,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- TAB 3: BETS (Cisco ASA - Lina data plane) -->
+<!-- TAB 3 BETS (Cisco ASA Lina data plane) -->
 <div class="vendor-pane hidden" id="pane-bets">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3.5">
@@ -833,7 +1005,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- TAB 4: PLAYS (CEF / LEEF & Zeek TSV) -->
+<!-- TAB 4 PLAYS (CEF / LEEF & Zeek TSV) -->
 <div class="vendor-pane hidden" id="pane-plays">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3.5">
@@ -928,7 +1100,7 @@ Docs
 </div>
 <!-- ==================== COLUMN 3 (Right 4 cols) ==================== -->
 <div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
-<!-- Server Status Card: ulpf-perimeter -->
+<!-- Server Status Card ulpf perimeter -->
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center gap-4 min-w-0">
 <div class="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -941,7 +1113,7 @@ Docs
 <p class="text-xs text-slate-500 font-mono font-medium truncate">15/9/2026, 10:24:38 PM</p>
 </div>
 </div>
-<!-- Dual Stat Split: Ingested vs Failed -->
+<!-- Dual Stat Split Ingested vs Failed -->
 <div class="grid grid-cols-2 gap-3">
 <!-- Ingested -->
 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card min-w-0">
@@ -975,8 +1147,8 @@ Docs
 <!-- Ingest Activity Line Chart Card -->
 <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between" data-purpose="ingest-activity-chart" id="ingest-activity-card">
 <div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><h4 class="text-base font-bold text-slate-900 truncate">Ingest Activity</h4><span class="text-[10px] font-mono text-slate-400 hidden sm:inline-block" id="activity-stream-rate">~3.8k/s</span></div><div class="flex items-center gap-1.5 shrink-0"><button class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-600 border border-brand-100 hover:bg-brand-100 transition-colors cursor-pointer" id="chart-live-btn" onclick="toggleActivityLive()" title="Click to toggle live streaming"><span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse" id="chart-live-dot"></span><span id="chart-live-text" class="">live</span></button><button class="text-slate-400 hover:text-amber-600 hover:bg-amber-50 p-1.5 rounded-lg transition-colors cursor-pointer" onclick="simulateActivitySpike()" title="Simulate Traffic Spike Pulse" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><button class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer" onclick="resetActivityStream()" title="Reset chart stream" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div>
-<!-- Dual Curve Wave Line Graph -->
-<div class="relative w-full h-36 my-3"><svg class="w-full h-full" id="activity-chart-svg" preserveAspectRatio="none" viewBox="0 0 320 120"><line stroke="#f1f5f9" stroke-dasharray="3 3" x1="0" x2="320" y1="20" y2="20"></line><line stroke="#f1f5f9" stroke-dasharray="3 3" x1="0" x2="320" y1="50" y2="50"></line><line stroke="#f1f5f9" stroke-dasharray="3 3" x1="0" x2="320" y1="80" y2="80"></line><path d="M 10 90 C 35 85, 55 45, 90 28 C 120 12, 150 20, 180 35 C 200 45, 230 100, 260 90 C 285 80, 305 65, 318 68" fill="none" id="path-raw" stroke="#f59e0b" stroke-linecap="round" stroke-width="2.5"></path><path d="M 10 98 C 45 92, 70 65, 100 55 C 130 45, 150 50, 180 62 C 210 75, 240 88, 270 75 C 295 62, 310 55, 318 52" fill="none" id="path-norm" stroke="#4f46e5" stroke-linecap="round" stroke-width="2.5"></path><g id="chart-dots-group"><circle cx="90" cy="28" fill="#f59e0b" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="180" cy="35" fill="#4f46e5" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="192" cy="40" fill="#4f46e5" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="260" cy="90" fill="#f59e0b" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle></g></svg><div class="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[10px] text-slate-400 pointer-events-none"><span class="">6k</span><span class="">4k</span><span class="">2k</span><span class="">0</span></div></div>
+<!-- Grouped Area Chart (live ingest activity) -->
+<div class="relative w-full my-3"><data-chart aria-label="Ingest activity, normalized versus raw" id="chart-ingest" items-sm="6" items-xs="3" max="100" min="0" options="groups y-grid y-labels" role="figure" style="--data-chart-mih:9rem;--data-chart-y-axis-w:2.2rem" type="area"><table><caption>Ingest activity, normalized versus raw events per 2 hour bucket</caption><thead aria-hidden="true" id="chart-ingest-y"></thead><tbody id="chart-ingest-body"></tbody></table></data-chart></div>
 <!-- X Axis Days -->
 <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium px-2">
 <span class="">Sat</span>
@@ -1000,7 +1172,7 @@ Docs
 </svg>
 </button>
 </div>
-<!-- Folder-stack dropzone + live ingest rows -->
+<!-- Folder stack dropzone + live ingest rows -->
 <div id="recent-stack" class="bg-[#f8fafc] rounded-2xl p-3 border border-slate-100 min-w-0 cursor-pointer transition-colors" title="Drop a log file here or click to pick one">
 <div class="flex items-center gap-3 min-w-0">
 <div class="folder-stage shrink-0" aria-hidden="true">
@@ -1032,8 +1204,8 @@ Docs
 </div>
 </div>
 </section>
-<!-- END: Dashboard Bento Grid -->
-<!-- BEGIN: Lower Pipeline & ONNX Section (from IMAGE_5) -->
+<!-- END Dashboard Bento Grid -->
+<!-- BEGIN Lower Pipeline & ONNX Section (from IMAGE_5) -->
 <section class="space-y-6 min-w-0 w-full pt-4 border-t border-slate-100" data-purpose="perimeter-log-ingest" id="pipeline">
 <!-- 1. Perimeter Log Ingest — Live Pipeline Card -->
 <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-card min-w-0 w-full">
@@ -1044,48 +1216,48 @@ Docs
             42 leaves • 5 ms • Offline
           </span>
 </div>
-<!-- 2-Column Work Area -->
+<!-- 2 Column Work Area -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 min-w-0">
-<!-- Left Column: Dropzone & Input -->
+<!-- Left Column Dropzone & Input -->
 <div class="flex flex-col space-y-4 min-w-0 w-full">
 <!-- Drop File Banner -->
-<div class="border-2 border-dashed border-slate-200 hover:border-brand-400 rounded-2xl p-5 text-center transition-colors bg-slate-50/50 hover:bg-brand-50/20 cursor-pointer">
+<div class="border-2 border-dashed border-slate-200 hover:border-brand-400 rounded-2xl p-5 text-center transition-colors bg-slate-50/50 hover:bg-brand-50/20 cursor-pointer" id="pipe-drop">
 <p class="text-sm font-medium text-slate-600 leading-relaxed">
                 Drop log file here or paste below — live <span class="font-mono text-slate-400">output/multi</span> → <span class="font-mono font-semibold text-brand-600">POST /api/ingest</span>
 </p>
 </div>
 <!-- Textarea -->
 <div class="relative min-w-0 w-full flex-1">
-<textarea class="w-full rounded-2xl bg-white border border-slate-200 hover:border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 font-mono text-sm p-4 text-slate-700 placeholder-slate-400 transition-all resize-none min-h-[190px]" placeholder="Paste raw logs — one per line" rows="7"></textarea>
+<textarea class="w-full rounded-2xl bg-white border border-slate-200 hover:border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 font-mono text-sm p-4 text-slate-700 placeholder-slate-400 transition-all resize-none min-h-[190px]" id="pipe-input" placeholder="Paste raw logs — one per line" rows="7"></textarea>
 </div>
 <!-- Action Buttons Toolbar -->
 <div class="flex flex-wrap items-center gap-3 pt-1">
-<button class="px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold text-sm shadow-md shadow-brand-600/25 transition-all transform active:scale-95" type="button">
+<button class="px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold text-sm shadow-md shadow-brand-600/25 transition-all transform active:scale-95" id="btn-classify" type="button">
                 Classify • ~5 ms
               </button>
-<button class="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm transition-colors shadow-sm" type="button">
+<button class="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm transition-colors shadow-sm" id="btn-batch" type="button">
                 Batch
               </button>
-<button class="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-semibold text-sm transition-colors shadow-sm" type="button">
+<button class="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-semibold text-sm transition-colors shadow-sm" id="btn-clear" type="button">
                 Clear
               </button>
 </div>
 </div>
-<!-- Right Column: Canonical NDJSON Stream Output -->
+<!-- Right Column Canonical NDJSON Stream Output -->
 <div class="flex flex-col h-full space-y-3.5 min-w-0 w-full">
 <div class="flex items-center justify-between gap-2">
 <span class="text-xs font-bold text-slate-700 tracking-wide uppercase">Canonical NDJSON</span>
 <div class="flex items-center gap-2">
-<button class="px-3.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-full border border-slate-200 transition-colors shadow-sm" type="button">
+<button class="px-3.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-full border border-slate-200 transition-colors shadow-sm" id="btn-copy" type="button">
                   Copy
                 </button>
-<button class="px-3.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-full border border-slate-200 transition-colors shadow-sm" type="button">
+<button class="px-3.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-full border border-slate-200 transition-colors shadow-sm" id="btn-download" type="button">
                   Download
                 </button>
 </div>
 </div>
 <!-- Code Output Display Box -->
-<div class="flex-1 rounded-2xl border border-slate-200 bg-[#f8fafc] p-6 font-mono text-sm text-slate-500 min-h-[220px] flex items-center justify-center text-center overflow-x-auto whitespace-pre-wrap break-all w-full">
+<div class="flex-1 rounded-2xl border border-slate-200 bg-[#f8fafc] p-6 font-mono text-sm text-slate-500 min-h-[220px] flex items-center justify-center text-center overflow-x-auto whitespace-pre-wrap break-all w-full" id="pipe-out">
 <span class="">Press Classify — each line becomes a CanonicalEvent</span>
 </div>
 <!-- Flow Subtitle -->
@@ -1108,7 +1280,7 @@ Docs
 </div>
 <!-- 2 Column Technical Details Layout -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 min-w-0">
-<!-- Left: How it normalises live -->
+<!-- Left How it normalises live -->
 <div class="space-y-4 min-w-0 flex flex-col justify-between">
 <div>
 <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">How it normalises live</h4>
@@ -1124,7 +1296,7 @@ Docs
 <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-mono rounded-full shadow-sm">cosine 42</span>
 </div>
 </div>
-<!-- Right: What each log type is for -->
+<!-- Right What each log type is for -->
 <div class="space-y-2 min-w-0">
 <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">What each log type is for</h4>
 <ul class="space-y-1.5 text-xs sm:text-sm text-slate-600 font-mono leading-relaxed">
@@ -1144,11 +1316,11 @@ Docs
         </div>
 </div>
 </section>
-<!-- END: Lower Pipeline Section -->
+<!-- END Lower Pipeline Section -->
 </main>
-<!-- END: MainContentArea -->
+<!-- END MainContentArea -->
 </div>
-<!-- END: MainContainerFrame -->
+<!-- END MainContainerFrame -->
 <!-- Vanilla JavaScript Interactive Tab Switching & Dynamic Live Stream Simulation -->
 <script>
   const vendorData = {
@@ -1226,8 +1398,8 @@ Docs
   }
 
   /* ==========================================================================
-     Top 5 Parsers Real-Time Live Stream & Interactive Tuning Engine
-     ========================================================================== */
+ Top 5 Parsers Real Time Live Stream & Interactive Tuning Engine
+ ========================================================================== */
   const parserState = {
     nfl: { value: 38, rate: 512, baseRate: 500 },
     nhl: { value: 78, rate: 1200, baseRate: 1150 },
@@ -1371,7 +1543,7 @@ Docs
   updateTotalParserRate();
 </script>
 
-<!-- V2-WIRE: local-only backend binding (no prod touch). Relative /api/*, 5s poll. -->
+<!-- V2 wire. Local only backend binding. No prod touch. Relative api paths with 5s poll. -->
 <script>
 (function(){
   const API = (location.protocol==='file:') ? 'http://localhost:8082' : '';
@@ -1381,15 +1553,15 @@ Docs
   let lastEvents = [];
   let chartLive = true;
 
-  // ---- pipeline element discovery (code.html has no IDs here) ----
-  const inputEl = document.querySelector('#pipeline textarea');
-  const outBox = $$('#pipeline div').find(d => (d.textContent||'').includes('Press Classify'));
-  const btnClassify = $$('#pipeline button').find(b => (b.textContent||'').includes('Classify'));
-  const btnBatch = $$('#pipeline button').find(b => (b.textContent||'').trim()==='Batch');
-  const btnClear = $$('#pipeline button').find(b => (b.textContent||'').trim()==='Clear');
-  const btnCopy = $$('#pipeline button').find(b => (b.textContent||'').trim()==='Copy');
-  const btnDownload = $$('#pipeline button').find(b => (b.textContent||'').trim()==='Download');
-  const dropEl = $$('#pipeline div').find(d => (d.textContent||'').includes('Drop log file'));
+  // Pipeline elements resolved by id so handlers always hit the right node
+  const inputEl = document.getElementById('pipe-input');
+  const outBox = document.getElementById('pipe-out');
+  const btnClassify = document.getElementById('btn-classify');
+  const btnBatch = document.getElementById('btn-batch');
+  const btnClear = document.getElementById('btn-clear');
+  const btnCopy = document.getElementById('btn-copy');
+  const btnDownload = document.getElementById('btn-download');
+  const dropEl = document.getElementById('pipe-drop');
 
   function renderOutput(events){
     if(!outBox) return;
@@ -1431,13 +1603,13 @@ Docs
     dropEl.addEventListener('click',()=>{ const i=document.createElement('input'); i.type='file'; i.multiple=true; i.onchange=()=>handleFiles(i.files); i.click(); });
   }
 
-  // ---- missing chart fns referenced by onclick (were dead) ----
+  // Chart fns referenced by onclick that were dead
   window.toggleActivityLive = function(){ chartLive=!chartLive; const t=$('#chart-live-text'); if(t) t.textContent=chartLive?'live':'paused'; };
   window.resetActivityStream = function(){ refreshStats(); };
   window.simulateActivitySpike = function(){ const n=$('#val-activity-norm'), r=$('#val-activity-raw'); if(n) n.textContent=(parseInt(n.textContent.replace(/\D/g,''))||2840)+400; if(r) r.textContent=(parseInt(r.textContent.replace(/\D/g,''))||3920)+500; setTimeout(refreshStats,1200); };
   window.bumpActivityValue = function(which, amt){ const el=$(which==='norm'?'#val-activity-norm':'#val-activity-raw'); if(el) el.textContent=((parseInt(el.textContent.replace(/\D/g,''))||0)+amt).toLocaleString(); };
 
-  // ---- stats binding ----
+  // Stats binding
   function setTrio(total, sources, latMs){
     const h3s = $$('section[data-purpose="primary-overview-grid"] > div:first-child .grid.grid-cols-3 h3');
     if(h3s[0]) h3s[0].textContent = String(total);
@@ -1476,26 +1648,63 @@ Docs
     if(tot && sorted.length) tot.textContent = sorted.reduce((a,[,c])=>a+c,0).toLocaleString()+' evt/s';
     const lbl=document.getElementById('parsers-stream-label'); if(lbl) lbl.textContent='LIVE';
   }
+  // Grouped area chart updater with tween and no dependency
+  let ingestChartBuilt=false, ingestTween=null;
+  const reduceMotionChart = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function niceCeil(v){ if(v<=0) return 100; const p=Math.pow(10,Math.floor(Math.log10(v))); const n=v/p; return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p; }
+  function fmtK(v){ return v>=1000 ? (v/1000).toFixed(v>=10000?0:1).replace(/\.0$/,'')+'k' : String(Math.round(v)); }
+  function buildIngestChart(){
+    const body=$('#chart-ingest-body'), y=$('#chart-ingest-y');
+    if(!body||!y||ingestChartBuilt) return;
+    let rows='';
+    for(let i=0;i<12;i++){ rows+='<tr><th scope="row"></th><td data-pv="0" data-v="0">0</td><td data-pv="0" data-v="0">0</td></tr>'; }
+    body.innerHTML=rows;
+    let head='';
+    for(let i=0;i<9;i++){ head+='<tr><th colspan="2"></th></tr>'; }
+    y.innerHTML=head;
+    ingestChartBuilt=true;
+  }
+  function updateIngestChart(norm, raw){
+    buildIngestChart();
+    const el=$('#chart-ingest'); if(!el) return;
+    const max=niceCeil(Math.max(1,...norm,...raw));
+    el.setAttribute('max',max);
+    el.style.setProperty('--_max',max);
+    const steps=[max,'',Math.round(max*3/4),'',Math.round(max/2),'',Math.round(max/4),'',0];
+    const yths=document.querySelectorAll('#chart-ingest-y th');
+    yths.forEach((th,i)=>{ th.textContent = steps[i]==='' ? '' : fmtK(steps[i]); });
+    const tds=[...document.querySelectorAll('#chart-ingest-body td')];
+    if(!tds.length) return;
+    const targets=[];
+    for(let i=0;i<12;i++){ targets.push(norm[i]||0, raw[i]||0); }
+    if(ingestTween) cancelAnimationFrame(ingestTween);
+    if(reduceMotionChart){
+      tds.forEach((td,i)=>{ td.style.setProperty('--_pv',targets[i]); td.style.setProperty('--_v',targets[i]); td.setAttribute('data-pv',targets[i]); td.setAttribute('data-v',targets[i]); td.textContent=targets[i]; });
+      return;
+    }
+    const starts=tds.map(td=>parseFloat(td.style.getPropertyValue('--_v'))||0);
+    tds.forEach((td,i)=>{ td.style.setProperty('--_pv',starts[i]); td.setAttribute('data-pv',td.getAttribute('data-v')||'0'); });
+    const t0=performance.now(), dur=600;
+    const step=(t)=>{
+      const k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,3);
+      tds.forEach((td,i)=>{ const v=Math.round(starts[i]+(targets[i]-starts[i])*e); td.style.setProperty('--_v',v); td.setAttribute('data-v',v); td.textContent=v; });
+      if(k<1) ingestTween=requestAnimationFrame(step);
+    };
+    ingestTween=requestAnimationFrame(step);
+  }
   function setActivity(s){
     const bn=(s.buckets_normalized||[]).reduce((a,b)=>a+b,0), br=(s.buckets_raw||[]).reduce((a,b)=>a+b,0);
     const n=$('#val-activity-norm'), r=$('#val-activity-raw');
     if(n && bn) n.textContent=bn.toLocaleString();
     if(r && br) r.textContent=br.toLocaleString();
     const sr=$('#activity-stream-rate'); if(sr) sr.textContent='~'+((bn+br)||'0')+'/s';
-    try{
-      const maxV=Math.max(1,...(s.buckets||[]),...(s.buckets_normalized||[]),...(s.buckets_raw||[]));
-      const mk=arr=>arr.map((v,i)=>({x:10+i*22,y:105-(v/maxV)*90}));
-      const pn=mk(s.buckets_normalized||new Array(12).fill(0)), pr=mk(s.buckets_raw||new Array(12).fill(0));
-      const pathN=$('#path-norm'), pathR=$('#path-raw');
-      if(pathN&&pn.length>1){ let d='M '+pn[0].x+' '+pn[0].y; for(let i=1;i<pn.length;i++) d+=' L '+pn[i].x+' '+pn[i].y; pathN.setAttribute('d',d); }
-      if(pathR&&pr.length>1){ let d='M '+pr[0].x+' '+pr[0].y; for(let i=1;i<pr.length;i++) d+=' L '+pr[i].x+' '+pr[i].y; pathR.setAttribute('d',d); }
-    }catch(e){}
+    try{ updateIngestChart(s.buckets_normalized||new Array(12).fill(0), s.buckets_raw||new Array(12).fill(0)); }catch(e){}
   }
   function setRecent(){
     renderRecentStack(false);
   }
 
-  // ---- Recent Ingests folder stack: history + live rows + card dropzone ----
+  // Recent ingests folder stack with history plus live rows plus card dropzone
   let ingestHistory = []; // newest-first events {type,category,vendor,conf,ok,latMs,summary,at}
   let totalIngestedCount = 0;
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
