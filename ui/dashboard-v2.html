@@ -1,0 +1,1612 @@
+<!DOCTYPE html><html class="h-full bg-[#f1f5f9]" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Perimeter Log Ingest &amp; Security Analytics Dashboard</title>
+<!-- Google Fonts: Inter & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+          },
+          boxShadow: {
+            'card': '0 2px 14px -2px rgba(15, 23, 42, 0.04), 0 1px 4px -1px rgba(15, 23, 42, 0.02)',
+            'container': '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-enhancements">
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    /* Scrollbar refinements */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Animated Badge Keyframes & Pulsing Effects */
+    @keyframes subtlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+    @keyframes spinBorder {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes shimmerBar {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .badge-breathe {
+      animation: subtlePulse 3s ease-in-out infinite;
+    }
+    .badge-rotating-halo::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 9999px;
+      background: conic-gradient(from 0deg, #4f46e5, #06b6d4, #f59e0b, #4f46e5);
+      animation: spinBorder 4s linear infinite;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 0;
+    }
+    .badge-wrap:hover .badge-rotating-halo::before,
+    .badge-wrap.is-updating .badge-rotating-halo::before {
+      opacity: 0.85;
+    }
+    .shimmer-active {
+      background-size: 200% 100%;
+      background-image: linear-gradient(90deg, #4f46e5 0%, #818cf8 50%, #4f46e5 100%);
+      animation: shimmerBar 2.2s infinite linear;
+    }
+    .sparkle-pop {
+      animation: popEffect 0.35s ease-out;
+    }
+    @keyframes popEffect {
+      0% { transform: scale(0.92); filter: brightness(1.2); }
+      50% { transform: scale(1.08); filter: brightness(1.35); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
+    /* Recent Ingests folding folder: rising papers + split folding flap */
+    #recent-stack.is-dragover {
+      border-color: #4f46e5;
+      border-style: dashed;
+      background: #eef2ff;
+    }
+    .folder-stage {
+      position: relative;
+      width: 56px;
+      height: 46px;
+    }
+    .ff-folder {
+      position: relative;
+      width: 56px;
+      height: 45px;
+      transition: transform 0.2s ease-in;
+    }
+    .ff-back {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 56px;
+      height: 38px;
+      background: #2c22df;
+      border-radius: 0 4px 4px 4px;
+    }
+    .ff-back::after {
+      position: absolute;
+      bottom: 98%;
+      left: 0;
+      content: "";
+      width: 17px;
+      height: 6px;
+      background: #2c22df;
+      border-radius: 4px 4px 0 0;
+    }
+    .ff-paper {
+      position: absolute;
+      bottom: 12%;
+      left: 50%;
+      transform: translate(-50%, 10%);
+      width: 70%;
+      height: 78%;
+      background: #e5e5e5;
+      border-radius: 3px;
+      border-top: 3px solid transparent;
+      box-sizing: border-box;
+      transition: transform 0.3s ease-in-out, border-top-color 0.3s;
+    }
+    .ff-paper:nth-child(2) {
+      background: #f2f2f2;
+      width: 80%;
+      height: 68%;
+    }
+    .ff-paper:nth-child(3) {
+      background: #ffffff;
+      width: 90%;
+      height: 58%;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06);
+    }
+    .ff-front {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 50%;
+      height: 38px;
+      background: #4f46e5;
+      border-radius: 4px 0 0 4px;
+      transform-origin: bottom;
+      transition: transform 0.3s ease-in-out;
+    }
+    .ff-front.right {
+      left: 50%;
+      border-radius: 0 4px 4px 0;
+    }
+    #recent-stack:hover .ff-folder,
+    #recent-stack.is-open .ff-folder {
+      transform: translateY(-4px);
+    }
+    #recent-stack:hover .ff-paper,
+    #recent-stack.is-open .ff-paper {
+      transform: translate(-50%, -6%);
+    }
+    #recent-stack:hover .ff-front,
+    #recent-stack.is-open .ff-front {
+      transform: skew(15deg) scaleY(0.6);
+    }
+    #recent-stack:hover .ff-front.right,
+    #recent-stack.is-open .ff-front.right {
+      transform: skew(-15deg) scaleY(0.6);
+    }
+    #recent-stack.swallow .ff-folder { animation: folderSwallow 0.45s ease; }
+    @keyframes folderSwallow {
+      30% { transform: translateY(4px) scale(0.94); }
+      60% { transform: translateY(-3px) scale(1.02); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    .recent-row-enter { animation: rowSlideIn 0.3s ease-out; }
+    @keyframes rowSlideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ff-folder, .ff-paper, .ff-front, #recent-stack { transition: none !important; }
+      #recent-stack.swallow .ff-folder, .recent-row-enter { animation: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 bg-[#ebf0f7] p-3 sm:p-5 lg:p-7 flex flex-col items-center justify-start antialiased selection:bg-brand-500 selection:text-white">
+<!-- BEGIN: MainContainerFrame -->
+<div class="relative w-full max-w-[1720px] bg-white rounded-[28px] sm:rounded-[36px] shadow-container border border-slate-200/80 overflow-hidden flex flex-col lg:flex-row flex-1 min-w-0">
+<!-- BEGIN: LeftSidebar / Responsive Rail -->
+<aside class="w-full lg:w-[88px] bg-white border-b lg:border-b-0 lg:border-r border-slate-100/90 flex flex-row lg:flex-col items-center justify-between py-4 lg:py-7 px-4 sm:px-6 lg:px-0 shrink-0 z-30 sticky top-0 lg:static" data-purpose="primary-sidebar">
+<!-- Top Brand Logo & Nav List -->
+<div class="flex flex-row lg:flex-col items-center gap-4 lg:gap-8 w-full lg:w-auto justify-between lg:justify-start">
+<!-- Logo Badge: Purple circle with '$' -->
+<a class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-md shadow-brand-600/30 transition-transform hover:scale-105 active:scale-95 shrink-0" data-purpose="app-logo" href="#overview">
+<span class="">$</span>
+</a>
+<!-- Navigation Icons Rail -->
+<nav class="flex flex-row lg:flex-col items-center gap-2 lg:gap-3.5 overflow-x-auto lg:overflow-visible no-scrollbar py-0.5">
+<!-- 1. Home / Overview (Active with soft pill background) -->
+<a class="relative p-2.5 sm:p-3 rounded-2xl bg-slate-50 text-brand-600 border border-slate-200/70 shadow-sm transition-all duration-150 shrink-0 flex items-center justify-center" href="#overview" title="Dashboard">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<!-- 2. Analytics / Pie -->
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#analytics" title="Analytics">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<!-- 3. Grid / Apps -->
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#vendors" title="Apps">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<!-- 4. Chat / Log Streams -->
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#pipeline" title="Pipeline Streams">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<!-- 5. User Group -->
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#team" title="Team">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<!-- 6. Calendar -->
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#events" title="Events">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<!-- 7. Bookmark -->
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#bookmarks" title="Bookmarks">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+</nav>
+</div>
+<!-- Bottom Settings Gear -->
+<div class="flex items-center justify-center shrink-0 mt-auto pt-4">
+<button class="p-2.5 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all" title="Settings" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</aside>
+<!-- END: LeftSidebar -->
+<!-- BEGIN: MainContentArea -->
+<main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden px-5 sm:px-8 lg:px-10 py-6 sm:py-8 space-y-7 sm:space-y-9 bg-white min-w-0 max-w-full" data-purpose="dashboard-workspace">
+<!-- BEGIN: TopBar Header -->
+<header class="flex flex-col xl:flex-row xl:items-center justify-between gap-5 border-b border-slate-100 pb-5" data-purpose="top-navigation-bar">
+<!-- Title & View Tabs -->
+<div class="flex flex-col md:flex-row md:items-center gap-4 lg:gap-8 min-w-0 flex-1">
+<!-- Page Title with menu and info icons -->
+<div class="flex items-center gap-2.5 shrink-0">
+<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+<button class="text-slate-400 hover:text-slate-600 transition-colors p-1" title="Toggle view" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M4 6h16M4 12h10M4 18h16" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="text-slate-400 hover:text-slate-600 transition-colors p-1" title="Info" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Section Navigation Pills -->
+<nav class="flex items-center gap-2 text-sm font-semibold overflow-x-auto no-scrollbar flex-nowrap min-w-0 py-0.5">
+<a class="relative text-brand-600 px-3.5 py-1.5 rounded-full bg-brand-50 flex items-center gap-1.5 shrink-0 transition-colors" href="#overview">
+<span class="text-brand-600 text-xs">★</span> Overview
+          </a>
+<a class="text-slate-500 hover:text-slate-800 hover:bg-slate-100/70 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5 shrink-0" href="docs.html">
+Docs
+          </a>
+<a class="text-slate-500 hover:text-slate-800 hover:bg-slate-100/70 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5 shrink-0" href="https://github.com/LusterSourav/logforce" target="_blank" rel="noopener noreferrer">
+            Github
+          </a>
+<a class="text-slate-500 hover:text-slate-800 hover:bg-slate-100/70 px-3 py-1.5 rounded-full transition-colors shrink-0" href="team.html">
+            QFR
+          </a>
+</nav>
+</div>
+<!-- Search & Header Action Controls -->
+<div class="flex items-center gap-3 shrink-0 justify-between sm:justify-end">
+<!-- Search Input -->
+<div class="relative w-full sm:w-64 md:w-72">
+<span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<input class="w-full bg-[#f8fafc] hover:bg-slate-100/70 focus:bg-white text-sm pl-10 pr-4 py-2 rounded-full border border-slate-200/80 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-700 placeholder-slate-400 transition-all" placeholder="Search..." type="search">
+</div>
+<!-- Right Quick Action Round Buttons -->
+<div class="flex items-center gap-2 shrink-0">
+<button class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors" title="Add" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors relative" title="Notifications" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="absolute top-2 right-2 w-1.5 h-1.5 bg-brand-600 rounded-full"></span>
+</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors" title="Filter" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors hidden sm:flex" title="History" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</header>
+<!-- END: TopBar Header -->
+<!-- BEGIN: Dashboard Bento Grid (Exact 3 Columns as in Reference) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 min-w-0" data-purpose="primary-overview-grid">
+<!-- ==================== COLUMN 1 (Left 4 cols) ==================== -->
+<div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
+<!-- Trio Mini Stat Cards Row -->
+<div class="grid grid-cols-3 gap-3">
+<!-- Total Ingested -->
+<div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex flex-col justify-between min-w-0">
+<div class="flex items-center justify-between">
+<span class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm shadow-brand-500/30">$</span>
+<svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="mt-3">
+<p class="text-xs font-medium text-slate-400 truncate">Total Ingested</p>
+<h3 class="text-2xl font-bold text-slate-900 mt-0.5">0</h3>
+</div>
+</div>
+<!-- Total Sources -->
+<div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex flex-col justify-between min-w-0">
+<div class="flex items-center justify-between">
+<span class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="mt-3">
+<p class="text-xs font-medium text-slate-400 truncate">Total Sources</p>
+<h3 class="text-2xl font-bold text-slate-900 mt-0.5">0</h3>
+</div>
+</div>
+<!-- Avg Latency -->
+<div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex flex-col justify-between min-w-0">
+<div class="flex items-center justify-between">
+<span class="w-8 h-8 rounded-full bg-orange-50 text-amber-600 flex items-center justify-center text-xs shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="mt-3">
+<p class="text-xs font-medium text-slate-400 truncate">Avg Latency</p>
+<h3 class="text-2xl font-bold text-slate-900 mt-0.5">4.2 <span class="text-xs font-medium text-slate-500">ms</span></h3>
+</div>
+</div>
+</div>
+<!-- Top 5 Vendors Card -->
+<div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between gap-4" data-purpose="vendors-gauge-card">
+<div class="flex items-center justify-between">
+<h4 class="text-base font-bold text-slate-900 tracking-tight">Top 5 Vendors</h4>
+<button class="text-slate-400 hover:text-slate-600 p-1" type="button">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<circle cx="5" cy="12" r="2"></circle>
+<circle cx="12" cy="12" r="2"></circle>
+<circle cx="19" cy="12" r="2"></circle>
+</svg>
+</button>
+</div>
+<!-- Vibrant Gauge Arc Graphics matching reference -->
+<div class="relative py-2 flex flex-col items-center justify-center w-full max-w-[280px] mx-auto">
+<svg class="w-full h-auto" fill="none" viewBox="0 0 220 125">
+<!-- Arc Segment 1: Red/Coral to Orange -->
+<path d="M 28 115 A 82 82 0 0 1 54 58" fill="none" stroke="#ea384d" stroke-linecap="round" stroke-width="16"></path>
+<!-- Arc Segment 2: Purple / Indigo -->
+<path d="M 54 58 A 82 82 0 0 1 110 33" fill="none" stroke="#4f46e5" stroke-linecap="round" stroke-width="16"></path>
+<!-- Arc Segment 3: Cyan / Teal -->
+<path d="M 110 33 A 82 82 0 0 1 166 58" fill="none" stroke="#06b6d4" stroke-linecap="round" stroke-width="16"></path>
+<!-- Arc Segment 4: Emerald / Amber -->
+<path d="M 166 58 A 82 82 0 0 1 192 115" fill="none" stroke="#f59e0b" stroke-linecap="round" stroke-width="16"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center pt-8 pointer-events-none">
+<span class="text-4xl font-extrabold text-slate-900 leading-none">0</span>
+<span class="text-xs text-slate-400 mt-2 font-medium tracking-tight">Total normalized</span>
+</div>
+</div>
+<!-- Bottom Action Buttons Pill Toolbar -->
+<div class="bg-[#f8fafc] rounded-full py-1.5 px-3 border border-slate-100 flex items-center justify-between gap-1 text-slate-400 w-full" data-purpose="vendors-toolbar">
+<button class="w-8 h-8 rounded-full bg-brand-600 hover:bg-brand-700 text-white flex items-center justify-center shadow-sm transition-all shrink-0" title="Overview" type="button">
+<span class="text-xs font-bold">$</span>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-200/70 hover:text-slate-700 text-slate-400 flex items-center justify-center transition-all shrink-0" title="Alerts" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-200/70 hover:text-slate-700 text-slate-400 flex items-center justify-center transition-all shrink-0" title="Target" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="7"></circle>
+<circle cx="12" cy="12" r="2"></circle>
+</svg>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-200/70 hover:text-slate-700 text-slate-400 flex items-center justify-center transition-all shrink-0" title="Refresh" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-200/70 hover:text-slate-700 text-slate-400 flex items-center justify-center transition-all shrink-0" title="Add" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="8"></circle>
+<path d="M12 8v8m-4-4h8" stroke-linecap="round"></path>
+</svg>
+</button>
+<button class="w-8 h-8 rounded-full hover:bg-slate-200/70 hover:text-slate-700 text-slate-400 flex items-center justify-center transition-all shrink-0" title="Search" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Top 5 Parsers Card (ENHANCED: Fully Interactive, Real-Time Capable with Animated Badges & Live Controls) -->
+<div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between relative overflow-hidden group/card" data-purpose="top-parsers-list" id="parsers-widget-card">
+<!-- Background ambient glow for live mode -->
+<div class="absolute -top-16 -right-16 w-32 h-32 bg-brand-500/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<h4 class="text-base font-bold text-slate-900 tracking-tight">Top 5 Parsers</h4>
+<!-- Real-Time Streaming Indicator Badge -->
+<button class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition-colors cursor-pointer" id="parsers-live-toggle" onclick="toggleParsersLiveStream()" title="Click to toggle live auto-update stream">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+<span id="parsers-stream-label" class="">LIVE</span>
+</button>
+</div>
+<div class="flex items-center gap-1">
+<button class="text-slate-400 hover:text-brand-600 hover:bg-brand-50 p-1.5 rounded-lg transition-colors" onclick="randomizeParsersBurst()" title="Simulate Real-time Burst" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors" title="More options" type="button">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<circle cx="5" cy="12" r="2"></circle>
+<circle cx="12" cy="12" r="2"></circle>
+<circle cx="19" cy="12" r="2"></circle>
+</svg>
+</button>
+</div>
+</div>
+<!-- Interactive Parsers Progress Meters -->
+<div class="space-y-4">
+<!-- Row 1: NFL item -->
+<div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nfl" id="row-nfl">
+<div class="flex items-center gap-3">
+<!-- Animated Badge Circle: NFL with pulse ring and breathing badge -->
+<div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nfl', 5)" title="Click badge to boost +5%">
+<div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
+<div class="relative w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-[11px] font-bold text-slate-800 flex items-center justify-center shadow-xs border border-slate-300/80 transition-transform active:scale-90 badge-breathe">
+<span class="">NFL</span>
+<!-- Sport dot indicator -->
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+</div>
+</div>
+<!-- Label and mini throughput subtitle -->
+<div class="w-12 shrink-0">
+<span class="text-sm font-semibold text-slate-800 leading-tight block">NFL</span>
+<span class="text-[9px] font-mono text-slate-400" id="nfl-rate">445/s</span>
+</div>
+<!-- Interactive Progress Bar (Clickable track to adjust anywhere) -->
+<div class="flex-1 relative cursor-pointer py-1 group/track" onclick="handleTrackClick(event, 'nfl')" title="Click anywhere on bar to set value">
+<div class="bg-slate-100 group-hover/track:bg-slate-200/80 transition-colors rounded-full h-2 overflow-hidden relative">
+<div class="bg-brand-600 h-2 rounded-full transition-all duration-300 relative shimmer-active" id="bar-nfl" style="width: 43.040172%;">
+<span class="absolute right-0 top-0 bottom-0 w-2 bg-white/40 rounded-full"></span>
+</div>
+</div>
+</div>
+<!-- Interactive Percentage with Quick +/- Controls -->
+<div class="flex items-center gap-1 shrink-0">
+<button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nfl', -1)" title="Decrease -1%">-</button>
+<span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nfl">43%</span>
+<button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nfl', +1)" title="Increase +1%">+</button>
+</div>
+</div>
+</div>
+<!-- Row 2: NHL item -->
+<div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nhl" id="row-nhl">
+<div class="flex items-center gap-3">
+<!-- Animated Badge Circle: NHL -->
+<div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nhl', 5)" title="Click badge to boost +5%">
+<div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
+<div class="relative w-8 h-8 rounded-full bg-gradient-to-br from-cyan-50 to-slate-200 text-[11px] font-bold text-slate-800 flex items-center justify-center shadow-xs border border-slate-300/80 transition-transform active:scale-90 badge-breathe" style="animation-delay: 0.6s;">
+<span class="">NHL</span>
+<!-- Sport dot indicator -->
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-cyan-500 ring-2 ring-white"></span>
+</div>
+</div>
+<!-- Label and mini throughput subtitle (preserves reference text NFL) -->
+<div class="w-12 shrink-0">
+<span class="text-sm font-semibold text-slate-800 leading-tight block">NFL</span>
+<span class="text-[9px] font-mono text-slate-400" id="nhl-rate">1.9k/s</span>
+</div>
+<!-- Interactive Progress Bar -->
+<div class="flex-1 relative cursor-pointer py-1 group/track" onclick="handleTrackClick(event, 'nhl')" title="Click anywhere on bar to set value">
+<div class="bg-slate-100 group-hover/track:bg-slate-200/80 transition-colors rounded-full h-2 overflow-hidden relative">
+<div class="bg-brand-600 h-2 rounded-full transition-all duration-300 relative shimmer-active" id="bar-nhl" style="width: 82.946741%;">
+<span class="absolute right-0 top-0 bottom-0 w-2 bg-white/40 rounded-full"></span>
+</div>
+</div>
+</div>
+<!-- Interactive Percentage with Quick +/- Controls -->
+<div class="flex items-center gap-1 shrink-0">
+<button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nhl', -1)" title="Decrease -1%">-</button>
+<span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nhl">83%</span>
+<button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nhl', +1)" title="Increase +1%">+</button>
+</div>
+</div>
+</div>
+<!-- Row 3: NBA item -->
+<div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nba" id="row-nba">
+<div class="flex items-center gap-3">
+<!-- Animated Badge Circle: NBA (soft brand tint with glowing ring) -->
+<div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nba', 5)" title="Click badge to boost +5%">
+<div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
+<div class="relative w-8 h-8 rounded-full bg-[#eef2ff] text-[11px] font-bold text-brand-600 flex items-center justify-center shadow-xs border border-brand-200/80 transition-transform active:scale-90 badge-breathe" style="animation-delay: 1.2s;">
+<span class="">NBA</span>
+<!-- Sport dot indicator -->
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-brand-500 ring-2 ring-white"></span>
+</div>
+</div>
+<!-- Label and mini throughput subtitle -->
+<div class="w-12 shrink-0">
+<span class="text-sm font-semibold text-slate-800 leading-tight block">NBA</span>
+<span class="text-[9px] font-mono text-slate-400" id="nba-rate">1.3k/s</span>
+</div>
+<!-- Interactive Progress Bar -->
+<div class="flex-1 relative cursor-pointer py-1 group/track" onclick="handleTrackClick(event, 'nba')" title="Click anywhere on bar to set value">
+<div class="bg-slate-100 group-hover/track:bg-slate-200/80 transition-colors rounded-full h-2 overflow-hidden relative">
+<div class="bg-brand-600 h-2 rounded-full transition-all duration-300 relative shimmer-active" id="bar-nba" style="width: 72.515133%;">
+<span class="absolute right-0 top-0 bottom-0 w-2 bg-white/40 rounded-full"></span>
+</div>
+</div>
+</div>
+<!-- Interactive Percentage with Quick +/- Controls -->
+<div class="flex items-center gap-1 shrink-0">
+<button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nba', -1)" title="Decrease -1%">-</button>
+<span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nba">73%</span>
+<button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nba', +1)" title="Increase +1%">+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Micro Status Bar -->
+<div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+<span class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Click bar or badge to tune
+  </span>
+<span class="font-mono text-slate-500 font-semibold" id="parsers-total-rate">3,663 evt/s</span>
+</div>
+</div>
+</div>
+<!-- ==================== COLUMN 2 (Center 4 cols) ==================== -->
+<div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
+<!-- Stat Card 1: Total Normalized -->
+<div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
+<div class="flex items-center gap-4 min-w-0">
+<span class="w-11 h-11 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-base shadow-sm shadow-brand-600/30 shrink-0">
+              $
+            </span>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-sm font-medium text-slate-500">Total Normalized</span>
+<span class="text-[11px] font-bold bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full">+4,5%</span>
+</div>
+<h3 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-0.5">0</h3>
+</div>
+</div>
+<svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<!-- Stat Card 2: Normalization Rate -->
+<div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
+<div class="flex items-center gap-4 min-w-0">
+<span class="w-11 h-11 rounded-full bg-brand-50 text-brand-600 border border-brand-100 flex items-center justify-center shrink-0">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-sm font-medium text-slate-500">Normalization Rate</span>
+<span class="text-[11px] font-bold bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full">+4,5%</span>
+</div>
+<h3 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-0.5">0%</h3>
+</div>
+</div>
+<svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<!-- Stat Card 3: Event Count -->
+<div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
+<div class="flex items-center gap-4 min-w-0">
+<span class="w-11 h-11 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/30">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="text-sm font-medium text-slate-500">Event Count</span>
+<span class="text-[11px] font-bold bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full">+4,5%</span>
+</div>
+<h3 class="text-2xl sm:text-3xl font-bold text-slate-900 mt-0.5">0</h3>
+</div>
+</div>
+<svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<!-- Sub-Tabs Row: Events / Players / Bets / Plays (Modern Spotify pill toggle bar) -->
+<div aria-label="Security Category Tabs" class="bg-slate-100/80 p-1 rounded-2xl flex items-center gap-1 text-sm font-semibold border border-slate-200/60 shadow-inner" role="tablist">
+<button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-events" onclick="switchVendorTab('events')" role="tab" type="button">Events</button>
+<button aria-selected="true" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-white bg-slate-900 shadow-sm transition-all font-semibold text-xs sm:text-sm" id="tab-players" onclick="switchVendorTab('players')" role="tab" type="button">Players</button>
+<button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-bets" onclick="switchVendorTab('bets')" role="tab" type="button">Bets</button>
+<button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-plays" onclick="switchVendorTab('plays')" role="tab" type="button">Plays</button>
+</div>
+<!-- Interactive Security Vendor Card with Spotify-Style Dynamic 'Now Ingesting' Bar -->
+<div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-card space-y-3.5 transition-all duration-300" id="vendor-details-card">
+<!-- Spotify-style Dynamic 'Now Ingesting / Live Feed' floating mini bar -->
+<div class="bg-white rounded-2xl px-3 py-2 flex items-center justify-between shadow-sm border border-emerald-200/80 overflow-hidden"><div class="flex items-center gap-2.5 min-w-0"><div aria-label="Streaming active" class="flex items-end gap-0.5 h-3.5 w-3 shrink-0"><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_1s_infinite_100ms] h-2"></span><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_1.2s_infinite_200ms] h-3.5"></span><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.9s_infinite_300ms] h-1.5"></span></div><div class="min-w-0 flex flex-col"><div class="flex items-center gap-1.5"><span class="text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-full shrink-0">LIVE INGEST</span><span class="w-1 h-1 rounded-full bg-slate-400"></span><span class="text-xs font-bold text-slate-900 truncate" id="spotify-active-name">Palo Alto • Core Traffic</span></div><span class="text-[10px] font-mono text-slate-600 truncate mt-0.5" id="spotify-throughput">0 evt/s • 0.00 KB/s • 0% drop</span></div></div><div class="flex items-center gap-1 shrink-0 text-slate-700"><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" onclick="toggleStreamMute()" title="Toggle Stream Feed" type="button"><svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" id="spotify-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></button><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Stream settings" type="button"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle></svg></button></div></div>
+<!-- Dynamic Vendor Content Panels -->
+<div class="space-y-3.5" id="vendor-tab-content">
+<!-- TAB 1: PLAYERS (Default matching screenshot: Palo Alto x2.0) -->
+<div class="vendor-pane block" id="pane-players">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3.5">
+<div class="w-11 h-11 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-500 font-bold shrink-0">
+<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+<path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V13H5V8.3l7-3.89v8.58z"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h4 class="text-base font-bold text-slate-900 leading-tight">Palo Alto</h4>
+<span class="text-xs text-slate-400 font-medium">x2.0</span>
+</div>
+<p class="text-xs text-slate-400 font-medium mt-0.5">25% Full</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1" type="button">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<circle cx="12" cy="5" r="2"></circle>
+<circle cx="12" cy="12" r="2"></circle>
+<circle cx="12" cy="19" r="2"></circle>
+</svg>
+</button>
+</div>
+<!-- Flag 0 indicator -->
+<div class="flex justify-end items-center gap-1 text-xs font-semibold text-brand-600">
+<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+<path d="M4 4v16h2v-6h11l-2-5 2-5H6V4H4z"></path>
+</svg>
+<span class="">0</span>
+</div>
+<!-- Sub stats: Events 0 & Sources 0 -->
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-[#f8fafc] rounded-2xl p-3 border border-slate-100 flex items-center gap-3">
+<span class="text-slate-400 shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<div class="min-w-0">
+<p class="text-[11px] text-slate-400 font-medium leading-none">Events</p>
+<p class="text-sm font-bold text-slate-800 mt-1">0</p>
+</div>
+</div>
+<div class="bg-[#f8fafc] rounded-2xl p-3 border border-slate-100 flex items-center gap-3">
+<span class="text-brand-600 font-bold text-xs shrink-0">$</span>
+<div class="min-w-0">
+<p class="text-[11px] text-slate-400 font-medium leading-none">Sources</p>
+<p class="text-sm font-bold text-slate-800 mt-1">0</p>
+</div>
+</div>
+</div>
+</div>
+<!-- TAB 2: EVENTS (Palo Alto Syslog - Rich Telemetry) -->
+<div class="vendor-pane hidden" id="pane-events">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3.5">
+<div class="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+<svg class="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 24 24">
+<path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V13H5V8.3l7-3.89v8.58z"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h4 class="text-base font-bold text-slate-900 leading-tight">Palo Alto Syslog</h4>
+<span class="text-[11px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded-full">Healthy</span>
+</div>
+<p class="text-xs text-slate-500 font-medium mt-0.5">Firewall traffic • allow/deny perimeter</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1" type="button">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<circle cx="12" cy="5" r="2"></circle>
+<circle cx="12" cy="12" r="2"></circle>
+<circle cx="12" cy="19" r="2"></circle>
+</svg>
+</button>
+</div>
+<div class="flex justify-between items-center text-xs font-semibold text-slate-500 pt-0.5">
+<span class="text-slate-400 font-mono text-[11px]">policy: panos-threat-9.1</span>
+<div class="flex items-center gap-1 text-emerald-600">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="">Live ~3.2ms</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Events</p>
+<p class="text-sm font-bold text-slate-800 mt-1">1,420<span class="text-[10px] font-normal text-slate-500">/s</span></p>
+</div>
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Sources</p>
+<p class="text-sm font-bold text-slate-800 mt-1">12</p>
+</div>
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Latency</p>
+<p class="text-sm font-bold text-brand-600 mt-1">3.2 ms</p>
+</div>
+</div>
+</div>
+<!-- TAB 3: BETS (Cisco ASA - Lina data plane) -->
+<div class="vendor-pane hidden" id="pane-bets">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3.5">
+<div class="w-11 h-11 rounded-2xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 font-bold shrink-0">
+<svg class="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h4 class="text-base font-bold text-slate-900 leading-tight">Cisco ASA</h4>
+<span class="text-[11px] font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200 px-1.5 py-0.5 rounded-full">Online</span>
+</div>
+<p class="text-xs text-slate-500 font-medium mt-0.5">Lina data plane • 5-tuple teardown</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1" type="button">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<circle cx="12" cy="5" r="2"></circle>
+<circle cx="12" cy="12" r="2"></circle>
+<circle cx="12" cy="19" r="2"></circle>
+</svg>
+</button>
+</div>
+<div class="flex justify-between items-center text-xs font-semibold text-slate-500 pt-0.5">
+<span class="text-slate-400 font-mono text-[11px]">parser: asa-teardown-302013</span>
+<div class="flex items-center gap-1 text-cyan-600">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+<span class="">Build/Tear ~4.1ms</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Events</p>
+<p class="text-sm font-bold text-slate-800 mt-1">840<span class="text-[10px] font-normal text-slate-500">/s</span></p>
+</div>
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Sources</p>
+<p class="text-sm font-bold text-slate-800 mt-1">8</p>
+</div>
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Latency</p>
+<p class="text-sm font-bold text-slate-800 mt-1">4.1 ms</p>
+</div>
+</div>
+</div>
+<!-- TAB 4: PLAYS (CEF / LEEF & Zeek TSV) -->
+<div class="vendor-pane hidden" id="pane-plays">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3.5">
+<div class="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 font-bold shrink-0">
+<svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h4 class="text-base font-bold text-slate-900 leading-tight">CEF / LEEF &amp; Zeek</h4>
+<span class="text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full">Aggregated</span>
+</div>
+<p class="text-xs text-slate-500 font-medium mt-0.5">ArcSight / QRadar &amp; Bro OT stream</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1" type="button">
+<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+<circle cx="12" cy="5" r="2"></circle>
+<circle cx="12" cy="12" r="2"></circle>
+<circle cx="12" cy="19" r="2"></circle>
+</svg>
+</button>
+</div>
+<div class="flex justify-between items-center text-xs font-semibold text-slate-500 pt-0.5">
+<span class="text-slate-400 font-mono text-[11px]">pipe-delimited + TSV enrich</span>
+<div class="flex items-center gap-1 text-amber-600">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+<span class="">Peak ~4.8ms</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Events</p>
+<p class="text-sm font-bold text-slate-800 mt-1">2,150<span class="text-[10px] font-normal text-slate-500">/s</span></p>
+</div>
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Sources</p>
+<p class="text-sm font-bold text-slate-800 mt-1">24</p>
+</div>
+<div class="bg-[#f8fafc] rounded-2xl p-2.5 border border-slate-100">
+<p class="text-[10px] text-slate-400 font-medium leading-none">Latency</p>
+<p class="text-sm font-bold text-slate-800 mt-1">4.8 ms</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Top Parsers Widget (Pro 4 + avatars + clock) -->
+<div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex items-center justify-between gap-2">
+<div class="shrink-0">
+<div class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+<span class="">☆</span>
+<span class="">Top Parsers</span>
+</div>
+<div class="mt-1">
+<span class="text-[11px] text-slate-400">Pro</span>
+<p class="text-xl font-bold text-slate-900 leading-none mt-0.5">4</p>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<!-- Overlapping Avatars -->
+<div class="flex -space-x-2 overflow-hidden">
+<span class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-slate-700 text-[10px] text-white font-bold flex items-center justify-center">A1</span>
+<span class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-slate-400 text-[10px] text-white font-bold flex items-center justify-center">B2</span>
+<span class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-slate-200 text-[10px] text-slate-600 font-bold flex items-center justify-center">C3</span>
+<span class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-brand-600 text-[10px] text-white font-bold flex items-center justify-center">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+</div>
+<span class="text-xs font-semibold text-slate-500">→ +145</span>
+<button class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold transition-colors shrink-0" type="button">+</button>
+<button class="text-slate-400 hover:text-slate-600" title="History" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Week Ingest Metric Widget -->
+<div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex items-center justify-between">
+<div>
+<h5 class="text-xs font-bold text-slate-900">Week ingest</h5>
+<p class="text-xs text-slate-400 mt-0.5">Last week <span class="text-brand-600 font-semibold">4,5%</span></p>
+</div>
+<span class="text-sm font-bold text-slate-900 bg-slate-50 border border-slate-200/70 rounded-full px-3.5 py-1 shrink-0">
+            2,200
+          </span>
+</div>
+</div>
+<!-- ==================== COLUMN 3 (Right 4 cols) ==================== -->
+<div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
+<!-- Server Status Card: ulpf-perimeter -->
+<div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center gap-4 min-w-0">
+<div class="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="min-w-0 flex-1">
+<h4 class="text-base font-bold text-slate-900 tracking-tight truncate">ulpf-perimeter</h4>
+<p class="text-xs text-slate-400 font-medium mt-0.5 leading-tight">Last ingest:</p>
+<p class="text-xs text-slate-500 font-mono font-medium truncate">15/9/2026, 10:24:38 PM</p>
+</div>
+</div>
+<!-- Dual Stat Split: Ingested vs Failed -->
+<div class="grid grid-cols-2 gap-3">
+<!-- Ingested -->
+<div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card min-w-0">
+<div class="flex items-center justify-between">
+<span class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold shrink-0">$</span>
+<svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="flex items-center gap-1.5 mt-2.5 flex-wrap">
+<span class="text-xs text-slate-400 font-medium">Ingested</span>
+<span class="text-[10px] text-brand-600 font-bold bg-brand-50 px-1.5 py-0.5 rounded-full">+4,5%</span>
+</div>
+<h4 class="text-2xl font-bold text-slate-900 mt-1">0</h4>
+</div>
+<!-- Failed -->
+<div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card min-w-0">
+<div class="flex items-center justify-between">
+<span class="w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0">$</span>
+<svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="flex items-center gap-1.5 mt-2.5 flex-wrap">
+<span class="text-xs text-slate-400 font-medium">Failed</span>
+<span class="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded-full">-5,2%</span>
+</div>
+<h4 class="text-2xl font-bold text-slate-900 mt-1">0</h4>
+</div>
+</div>
+<!-- Ingest Activity Line Chart Card -->
+<div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between" data-purpose="ingest-activity-chart" id="ingest-activity-card">
+<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><h4 class="text-base font-bold text-slate-900 truncate">Ingest Activity</h4><span class="text-[10px] font-mono text-slate-400 hidden sm:inline-block" id="activity-stream-rate">~3.8k/s</span></div><div class="flex items-center gap-1.5 shrink-0"><button class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-600 border border-brand-100 hover:bg-brand-100 transition-colors cursor-pointer" id="chart-live-btn" onclick="toggleActivityLive()" title="Click to toggle live streaming"><span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse" id="chart-live-dot"></span><span id="chart-live-text" class="">live</span></button><button class="text-slate-400 hover:text-amber-600 hover:bg-amber-50 p-1.5 rounded-lg transition-colors cursor-pointer" onclick="simulateActivitySpike()" title="Simulate Traffic Spike Pulse" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><button class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer" onclick="resetActivityStream()" title="Reset chart stream" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div>
+<!-- Dual Curve Wave Line Graph -->
+<div class="relative w-full h-36 my-3"><svg class="w-full h-full" id="activity-chart-svg" preserveAspectRatio="none" viewBox="0 0 320 120"><line stroke="#f1f5f9" stroke-dasharray="3 3" x1="0" x2="320" y1="20" y2="20"></line><line stroke="#f1f5f9" stroke-dasharray="3 3" x1="0" x2="320" y1="50" y2="50"></line><line stroke="#f1f5f9" stroke-dasharray="3 3" x1="0" x2="320" y1="80" y2="80"></line><path d="M 10 90 C 35 85, 55 45, 90 28 C 120 12, 150 20, 180 35 C 200 45, 230 100, 260 90 C 285 80, 305 65, 318 68" fill="none" id="path-raw" stroke="#f59e0b" stroke-linecap="round" stroke-width="2.5"></path><path d="M 10 98 C 45 92, 70 65, 100 55 C 130 45, 150 50, 180 62 C 210 75, 240 88, 270 75 C 295 62, 310 55, 318 52" fill="none" id="path-norm" stroke="#4f46e5" stroke-linecap="round" stroke-width="2.5"></path><g id="chart-dots-group"><circle cx="90" cy="28" fill="#f59e0b" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="180" cy="35" fill="#4f46e5" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="192" cy="40" fill="#4f46e5" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle><circle cx="260" cy="90" fill="#f59e0b" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle></g></svg><div class="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[10px] text-slate-400 pointer-events-none"><span class="">6k</span><span class="">4k</span><span class="">2k</span><span class="">0</span></div></div>
+<!-- X Axis Days -->
+<div class="flex items-center justify-between text-[11px] text-slate-400 font-medium px-2">
+<span class="">Sat</span>
+<span class="">Mon</span>
+<span class="">Tue</span>
+<span class="">Wed</span>
+<span class="">Thr</span>
+<span class="">Fri</span>
+<span class="">Sat</span>
+</div>
+<!-- Chart Legend -->
+<div class="flex items-center justify-around border-t border-slate-100 pt-3 mt-3 text-center"><div class="flex flex-col items-center"><div class="flex items-center gap-1.5"><span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium"><span class="w-2 h-2 rounded-full bg-brand-600"></span> Normalized</span><button class="text-[10px] font-semibold text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-1.5 py-0.5 rounded-full transition-all cursor-pointer" onclick="bumpActivityValue('norm', 400)" title="Boost Normalized +400">+400</button></div><p class="text-base font-bold text-slate-900 mt-0.5 tabular-nums transition-colors" id="val-activity-norm">2,840</p></div><div class="w-px h-7 bg-slate-100"></div><div class="flex flex-col items-center"><div class="flex items-center gap-1.5"><span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Raw</span><button class="text-[10px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded-full transition-all cursor-pointer" onclick="bumpActivityValue('raw', 500)" title="Boost Raw +500">+500</button></div><p class="text-base font-bold text-slate-900 mt-0.5 tabular-nums transition-colors" id="val-activity-raw">3,920</p></div></div>
+</div>
+<!-- Recent Ingests Card -->
+<div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex flex-col justify-between" data-purpose="recent-ingests-card">
+<div class="flex items-center justify-between mb-3">
+<h4 class="text-sm font-bold text-slate-900">Recent Ingests</h4>
+<button class="text-slate-400 hover:text-slate-600" type="button">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 4h18M6 10h12M10 16h4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Folder-stack dropzone + live ingest rows -->
+<div id="recent-stack" class="bg-[#f8fafc] rounded-2xl p-3 border border-slate-100 min-w-0 cursor-pointer transition-colors" title="Drop a log file here or click to pick one">
+<div class="flex items-center gap-3 min-w-0">
+<div class="folder-stage shrink-0" aria-hidden="true">
+<div class="ff-folder">
+<div class="ff-back">
+<div class="ff-paper"></div>
+<div class="ff-paper"></div>
+<div class="ff-paper"></div>
+<div class="ff-front"></div>
+<div class="ff-front right"></div>
+</div>
+</div>
+<span id="recent-stack-count" class="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-slate-900 text-white text-[10px] font-bold hidden items-center justify-center" style="display:none">0</span>
+</div>
+<div class="min-w-0 flex-1">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="text-sm font-bold text-slate-800">CEF</span>
+<span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 items-center justify-center text-[9px] font-bold" id="recent-stack-vendor" style="display:none">P</span>
+<span class="text-xs text-slate-400 font-mono" id="recent-stack-lat">~5 ms</span>
+<span class="text-[10px] font-semibold bg-brand-600 text-white px-2 py-0.5 rounded-full" id="recent-stack-badge" style="display:none">Normalized</span>
+</div>
+<p class="text-xs text-slate-400 font-medium mt-0.5 truncate" id="recent-stack-hint">never — drop a file</p>
+</div>
+<span class="text-sm font-bold text-brand-600 shrink-0" id="recent-stack-total">+0</span>
+</div>
+<div id="recent-rows" class="mt-2 space-y-2"></div>
+<p id="recent-overflow" class="hidden text-[11px] text-slate-400 font-medium mt-2 text-center"></p>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Dashboard Bento Grid -->
+<!-- BEGIN: Lower Pipeline & ONNX Section (from IMAGE_5) -->
+<section class="space-y-6 min-w-0 w-full pt-4 border-t border-slate-100" data-purpose="perimeter-log-ingest" id="pipeline">
+<!-- 1. Perimeter Log Ingest — Live Pipeline Card -->
+<div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-card min-w-0 w-full">
+<!-- Card Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+<h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Perimeter Log Ingest — Live Pipeline</h2>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-200/70 self-start sm:self-auto">
+            42 leaves • 5 ms • Offline
+          </span>
+</div>
+<!-- 2-Column Work Area -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 min-w-0">
+<!-- Left Column: Dropzone & Input -->
+<div class="flex flex-col space-y-4 min-w-0 w-full">
+<!-- Drop File Banner -->
+<div class="border-2 border-dashed border-slate-200 hover:border-brand-400 rounded-2xl p-5 text-center transition-colors bg-slate-50/50 hover:bg-brand-50/20 cursor-pointer">
+<p class="text-sm font-medium text-slate-600 leading-relaxed">
+                Drop log file here or paste below — live <span class="font-mono text-slate-400">output/multi</span> → <span class="font-mono font-semibold text-brand-600">POST /api/ingest</span>
+</p>
+</div>
+<!-- Textarea -->
+<div class="relative min-w-0 w-full flex-1">
+<textarea class="w-full rounded-2xl bg-white border border-slate-200 hover:border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 font-mono text-sm p-4 text-slate-700 placeholder-slate-400 transition-all resize-none min-h-[190px]" placeholder="Paste raw logs — one per line" rows="7"></textarea>
+</div>
+<!-- Action Buttons Toolbar -->
+<div class="flex flex-wrap items-center gap-3 pt-1">
+<button class="px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold text-sm shadow-md shadow-brand-600/25 transition-all transform active:scale-95" type="button">
+                Classify • ~5 ms
+              </button>
+<button class="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm transition-colors shadow-sm" type="button">
+                Batch
+              </button>
+<button class="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 font-semibold text-sm transition-colors shadow-sm" type="button">
+                Clear
+              </button>
+</div>
+</div>
+<!-- Right Column: Canonical NDJSON Stream Output -->
+<div class="flex flex-col h-full space-y-3.5 min-w-0 w-full">
+<div class="flex items-center justify-between gap-2">
+<span class="text-xs font-bold text-slate-700 tracking-wide uppercase">Canonical NDJSON</span>
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-full border border-slate-200 transition-colors shadow-sm" type="button">
+                  Copy
+                </button>
+<button class="px-3.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-full border border-slate-200 transition-colors shadow-sm" type="button">
+                  Download
+                </button>
+</div>
+</div>
+<!-- Code Output Display Box -->
+<div class="flex-1 rounded-2xl border border-slate-200 bg-[#f8fafc] p-6 font-mono text-sm text-slate-500 min-h-[220px] flex items-center justify-center text-center overflow-x-auto whitespace-pre-wrap break-all w-full">
+<span class="">Press Classify — each line becomes a CanonicalEvent</span>
+</div>
+<!-- Flow Subtitle -->
+<p class="text-xs font-mono text-slate-400 break-words leading-relaxed">
+<span class="font-semibold text-slate-600">Flow:</span> RawLog → local infer → cosine 42 → CanonicalEvent • Batch one call
+            </p>
+</div>
+</div>
+</div>
+<!-- 2. ONNX Live Normalisation Technical Panel Card -->
+<div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-card space-y-5 min-w-0 w-full">
+<!-- Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+<h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+            ONNX Live Normalisation — 42 leaves • 23MB quantized • 5 ms
+          </h3>
+<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-100 self-start sm:self-auto">
+            local • offline • no cloud
+          </span>
+</div>
+<!-- 2 Column Technical Details Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 min-w-0">
+<!-- Left: How it normalises live -->
+<div class="space-y-4 min-w-0 flex flex-col justify-between">
+<div>
+<h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">How it normalises live</h4>
+<p class="text-sm text-slate-600 leading-relaxed">
+                Paste any raw log below. The Go engine tokenizes with WordPiece to 128 tokens, runs the 23 MB quantized ONNX (mdbr-leaf-mt) with 3 tensors (input_ids, attention_mask, token_type_ids), mean pools hidden states, projects to 1024 dim, and cosines against 42 pre embedded leaf texts. Best above 0.5 wins or UNCLASSIFIED. Batch is one ONNX call for 100 lines (50 to 80 ms).
+              </p>
+</div>
+<!-- Pill Badges -->
+<div class="flex flex-wrap gap-2 pt-2">
+<span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-mono rounded-full shadow-sm">WordPiece 128</span>
+<span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-mono rounded-full shadow-sm">ONNX int8</span>
+<span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-mono rounded-full shadow-sm">1024 dim</span>
+<span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-mono rounded-full shadow-sm">cosine 42</span>
+</div>
+</div>
+<!-- Right: What each log type is for -->
+<div class="space-y-2 min-w-0">
+<h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">What each log type is for</h4>
+<ul class="space-y-1.5 text-xs sm:text-sm text-slate-600 font-mono leading-relaxed">
+<li class=""><strong class="font-bold text-slate-800 font-sans">Palo Alto Syslog</strong> — firewall traffic, allow/deny perimeter</li>
+<li class=""><strong class="font-bold text-slate-800 font-sans">Cisco ASA</strong> — Lina data plane, connection build/teardown 5 tuple</li>
+<li class=""><strong class="font-bold text-slate-800 font-sans">Fortinet FortiGate</strong> — key=value traffic, proto map, action accept</li>
+<li class=""><strong class="font-bold text-slate-800 font-sans">CEF / LEEF</strong> — ArcSight / QRadar common event, pipe delimited</li>
+<li class=""><strong class="font-bold text-slate-800 font-sans">Suricata EVE</strong> — IDS alert, event_type alert, signature, severity</li>
+<li class=""><strong class="font-bold text-slate-800 font-sans">Zeek TSV</strong> — Bro header driven, #fields/#path, OT enrichment</li>
+<li class=""><strong class="font-bold text-slate-800 font-sans">ULPF OCSF 4001</strong> — already normalized, fast path, keep raw in GIN</li>
+</ul>
+</div>
+</div>
+<!-- Footer Helper Note -->
+<div class="pt-4 border-t border-slate-100 text-xs text-slate-400 font-mono leading-relaxed">
+<span class="font-semibold text-slate-500">Try:</span> paste a Palo Alto CEF line → watch it become <span class="text-brand-600 font-medium">type=REQUEST category=success with confidence</span>, or a Cisco ASA line → <span class="text-amber-600 font-medium">ERROR.connection_failure</span>. Use the drop zone above or POST /api/ingest?format=.
+        </div>
+</div>
+</section>
+<!-- END: Lower Pipeline Section -->
+</main>
+<!-- END: MainContentArea -->
+</div>
+<!-- END: MainContainerFrame -->
+<!-- Vanilla JavaScript Interactive Tab Switching & Dynamic Live Stream Simulation -->
+<script>
+  const vendorData = {
+    players: {
+      name: 'Palo Alto • Standby Mode',
+      rate: '0 evt/s • 0.00 KB/s • 0% drop',
+      activeColor: '#64748b'
+    },
+    events: {
+      name: 'Palo Alto Syslog • Live Feed',
+      rate: '1,420 evt/s • 1.84 MB/s • 0.01% drop',
+      activeColor: '#4f46e5'
+    },
+    bets: {
+      name: 'Cisco ASA • 5-Tuple Stream',
+      rate: '840 evt/s • 980 KB/s • 0.00% drop',
+      activeColor: '#06b6d4'
+    },
+    plays: {
+      name: 'CEF / LEEF & Zeek • Dual Pipeline',
+      rate: '2,150 evt/s • 3.12 MB/s • 0.02% drop',
+      activeColor: '#f59e0b'
+    }
+  };
+
+  let isStreamPlaying = true;
+
+  function switchVendorTab(tabKey) {
+    const tabs = ['players', 'events', 'bets', 'plays'];
+    
+    tabs.forEach(key => {
+      const btn = document.getElementById('tab-' + key);
+      const pane = document.getElementById('pane-' + key);
+      
+      if (key === tabKey) {
+        btn.className = 'vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-white bg-slate-900 shadow-sm transition-all font-semibold text-xs sm:text-sm';
+        btn.setAttribute('aria-selected', 'true');
+        if (pane) {
+          pane.classList.remove('hidden');
+          pane.classList.add('block');
+        }
+      } else {
+        btn.className = 'vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm';
+        btn.setAttribute('aria-selected', 'false');
+        if (pane) {
+          pane.classList.remove('block');
+          pane.classList.add('hidden');
+        }
+      }
+    });
+
+    const config = vendorData[tabKey];
+    if (config) {
+      const nameEl = document.getElementById('spotify-active-name');
+      const rateEl = document.getElementById('spotify-throughput');
+      if (nameEl) nameEl.textContent = config.name;
+      if (rateEl) rateEl.textContent = config.rate;
+    }
+  }
+
+  function toggleStreamMute() {
+    isStreamPlaying = !isStreamPlaying;
+    const playIcon = document.getElementById('spotify-play-icon');
+    if (!playIcon) return;
+
+    if (isStreamPlaying) {
+      playIcon.innerHTML = '<path d="M8 5v14l11-7z"></path>';
+      playIcon.classList.remove('text-slate-400');
+      playIcon.classList.add('text-emerald-400');
+    } else {
+      playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>';
+      playIcon.classList.remove('text-emerald-400');
+      playIcon.classList.add('text-slate-400');
+    }
+  }
+
+  /* ==========================================================================
+     Top 5 Parsers Real-Time Live Stream & Interactive Tuning Engine
+     ========================================================================== */
+  const parserState = {
+    nfl: { value: 38, rate: 512, baseRate: 500 },
+    nhl: { value: 78, rate: 1200, baseRate: 1150 },
+    nba: { value: 78, rate: 940, baseRate: 900 }
+  };
+
+  let parsersLiveInterval = null;
+  let isParsersLive = true;
+
+  function renderParserUI(key, animate = true) {
+    const item = parserState[key];
+    const bar = document.getElementById(`bar-${key}`);
+    const valText = document.getElementById(`val-${key}`);
+    const rateText = document.getElementById(`${key}-rate`);
+    const rowEl = document.getElementById(`row-${key}`);
+
+    if (bar) {
+      bar.style.width = `${item.value}%`;
+      // Soft color shifting if reaching threshold
+      if (item.value >= 85) {
+        bar.className = 'bg-indigo-700 h-2 rounded-full transition-all duration-300 relative shimmer-active';
+      } else {
+        bar.className = 'bg-brand-600 h-2 rounded-full transition-all duration-300 relative shimmer-active';
+      }
+    }
+
+    if (valText) {
+      valText.textContent = `${Math.round(item.value)}%`;
+      if (animate) {
+        valText.classList.remove('sparkle-pop', 'text-brand-600');
+        void valText.offsetWidth; // trigger reflow
+        valText.classList.add('sparkle-pop', 'text-brand-600');
+        setTimeout(() => {
+          valText.classList.remove('text-brand-600');
+        }, 400);
+      }
+    }
+
+    if (rateText) {
+      if (item.rate >= 1000) {
+        rateText.textContent = `${(item.rate / 1000).toFixed(1)}k/s`;
+      } else {
+        rateText.textContent = `${Math.round(item.rate)}/s`;
+      }
+    }
+
+    if (rowEl && animate) {
+      const badgeWrap = rowEl.querySelector('.badge-wrap');
+      if (badgeWrap) {
+        badgeWrap.classList.add('is-updating');
+        setTimeout(() => badgeWrap.classList.remove('is-updating'), 600);
+      }
+    }
+
+    updateTotalParserRate();
+  }
+
+  function updateTotalParserRate() {
+    const totalRateEl = document.getElementById('parsers-total-rate');
+    if (totalRateEl) {
+      const sum = Object.values(parserState).reduce((acc, curr) => acc + curr.rate, 0);
+      totalRateEl.textContent = `${sum.toLocaleString()} evt/s`;
+    }
+  }
+
+  function adjustParserValue(key, delta) {
+    if (!parserState[key]) return;
+    let newVal = parserState[key].value + delta;
+    newVal = Math.max(0, Math.min(100, newVal));
+    parserState[key].value = newVal;
+    parserState[key].rate = Math.round(parserState[key].baseRate * (newVal / 50));
+    renderParserUI(key, true);
+  }
+
+  function cycleParserValue(key, step = 5) {
+    if (!parserState[key]) return;
+    let next = parserState[key].value + step;
+    if (next > 100) next = 15;
+    parserState[key].value = next;
+    parserState[key].rate = Math.round(parserState[key].baseRate * (next / 50));
+    renderParserUI(key, true);
+  }
+
+  function handleTrackClick(event, key) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const pct = Math.max(1, Math.min(100, Math.round((clickX / rect.width) * 100)));
+    parserState[key].value = pct;
+    parserState[key].rate = Math.round(parserState[key].baseRate * (pct / 50));
+    renderParserUI(key, true);
+  }
+
+  function randomizeParsersBurst() {
+    ['nfl', 'nhl', 'nba'].forEach(key => {
+      const delta = (Math.random() * 12 - 6);
+      let next = Math.round(parserState[key].value + delta);
+      next = Math.max(10, Math.min(98, next));
+      parserState[key].value = next;
+      parserState[key].rate = Math.round(parserState[key].baseRate * (next / 50) + (Math.random() * 80 - 40));
+      renderParserUI(key, true);
+    });
+  }
+
+  function startParsersLiveStream() {
+    if (parsersLiveInterval) clearInterval(parsersLiveInterval);
+    parsersLiveInterval = setInterval(() => {
+      // Pick random parser to update smoothly
+      const keys = ['nfl', 'nhl', 'nba'];
+      const pick = keys[Math.floor(Math.random() * keys.length)];
+      const step = (Math.random() * 2 - 1);
+      let cur = parserState[pick].value + step;
+      cur = Math.max(8, Math.min(96, cur));
+      parserState[pick].value = cur;
+      parserState[pick].rate = Math.round(parserState[pick].baseRate * (cur / 50) + (Math.random() * 30 - 15));
+      renderParserUI(pick, false);
+    }, 1800);
+  }
+
+  function toggleParsersLiveStream() {
+    isParsersLive = !isParsersLive;
+    const label = document.getElementById('parsers-stream-label');
+    const toggleBtn = document.getElementById('parsers-live-toggle');
+
+    if (isParsersLive) {
+      if (label) label.textContent = 'LIVE';
+      if (toggleBtn) {
+        toggleBtn.className = 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition-colors cursor-pointer';
+      }
+      startParsersLiveStream();
+    } else {
+      if (parsersLiveInterval) clearInterval(parsersLiveInterval);
+      if (label) label.textContent = 'PAUSED';
+      if (toggleBtn) {
+        toggleBtn.className = 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200/80 transition-colors cursor-pointer';
+      }
+    }
+  }
+
+  // Initialize live streaming updates
+  startParsersLiveStream();
+  updateTotalParserRate();
+</script>
+
+<!-- V2-WIRE: local-only backend binding (no prod touch). Relative /api/*, 5s poll. -->
+<script>
+(function(){
+  const API = (location.protocol==='file:') ? 'http://localhost:8082' : '';
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const findByText = (sel, t) => $$(sel).find(el => (el.textContent||'').includes(t));
+  let lastEvents = [];
+  let chartLive = true;
+
+  // ---- pipeline element discovery (code.html has no IDs here) ----
+  const inputEl = document.querySelector('#pipeline textarea');
+  const outBox = $$('#pipeline div').find(d => (d.textContent||'').includes('Press Classify'));
+  const btnClassify = $$('#pipeline button').find(b => (b.textContent||'').includes('Classify'));
+  const btnBatch = $$('#pipeline button').find(b => (b.textContent||'').trim()==='Batch');
+  const btnClear = $$('#pipeline button').find(b => (b.textContent||'').trim()==='Clear');
+  const btnCopy = $$('#pipeline button').find(b => (b.textContent||'').trim()==='Copy');
+  const btnDownload = $$('#pipeline button').find(b => (b.textContent||'').trim()==='Download');
+  const dropEl = $$('#pipeline div').find(d => (d.textContent||'').includes('Drop log file'));
+
+  function renderOutput(events){
+    if(!outBox) return;
+    outBox.classList.remove('items-center','justify-center','text-center');
+    outBox.style.textAlign='left'; outBox.style.alignItems='flex-start'; outBox.style.justifyContent='flex-start';
+    outBox.textContent = events.map(e=>JSON.stringify(e)).join('\n');
+  }
+
+  async function doClassify(){
+    if(!inputEl) return;
+    const lines = inputEl.value.split('\n').map(s=>s.trim()).filter(Boolean);
+    if(!lines.length && outBox){ outBox.textContent='Paste at least one log line first.'; return; }
+    try{
+      const r = await fetch(API+'/api/classify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({logs:lines})});
+      const j = await r.json();
+      lastEvents = j.events||[];
+      renderOutput(lastEvents);
+      try{
+        await fetch(API+'/api/ingest?format=generic',{method:'POST',headers:{'Content-Type':'application/x-ndjson'},body:lastEvents.map(e=>JSON.stringify(e)).join('\n')});
+        localStorage.setItem('logforce_last_ingest', Date.now().toString());
+        pushRecentBatch(lastEvents, j.latencyMs);
+      }catch(e){}
+      refreshStats();
+    }catch(e){ if(outBox) outBox.textContent='Classify failed: '+e.message+' (is :8082 up?)'; }
+  }
+  btnClassify && btnClassify.addEventListener('click', doClassify);
+  btnBatch && btnBatch.addEventListener('click', doClassify);
+  btnClear && btnClear.addEventListener('click', ()=>{ if(inputEl) inputEl.value=''; if(outBox) outBox.textContent='Press Classify — each line becomes a CanonicalEvent'; });
+  btnCopy && btnCopy.addEventListener('click', ()=>{ try{navigator.clipboard.writeText(lastEvents.map(e=>JSON.stringify(e)).join('\n'));}catch(e){} });
+  btnDownload && btnDownload.addEventListener('click', ()=>{ const b=new Blob([lastEvents.map(e=>JSON.stringify(e)).join('\n')],{type:'application/x-ndjson'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='logforce-'+new Date().toISOString().slice(0,10)+'.ndjson'; a.click(); });
+  function handleFiles(files){
+    if(!files||!files.length||!inputEl) return;
+    (async()=>{ let all=''; for(const f of files){ try{all+=(all?'\n':'')+await f.text();}catch(e){} }
+      if(!all) return; inputEl.value=all.slice(0,200000); doClassify(); })();
+  }
+  if(dropEl){
+    dropEl.addEventListener('dragover',e=>{e.preventDefault();});
+    dropEl.addEventListener('drop',e=>{e.preventDefault(); if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);});
+    dropEl.addEventListener('click',()=>{ const i=document.createElement('input'); i.type='file'; i.multiple=true; i.onchange=()=>handleFiles(i.files); i.click(); });
+  }
+
+  // ---- missing chart fns referenced by onclick (were dead) ----
+  window.toggleActivityLive = function(){ chartLive=!chartLive; const t=$('#chart-live-text'); if(t) t.textContent=chartLive?'live':'paused'; };
+  window.resetActivityStream = function(){ refreshStats(); };
+  window.simulateActivitySpike = function(){ const n=$('#val-activity-norm'), r=$('#val-activity-raw'); if(n) n.textContent=(parseInt(n.textContent.replace(/\D/g,''))||2840)+400; if(r) r.textContent=(parseInt(r.textContent.replace(/\D/g,''))||3920)+500; setTimeout(refreshStats,1200); };
+  window.bumpActivityValue = function(which, amt){ const el=$(which==='norm'?'#val-activity-norm':'#val-activity-raw'); if(el) el.textContent=((parseInt(el.textContent.replace(/\D/g,''))||0)+amt).toLocaleString(); };
+
+  // ---- stats binding ----
+  function setTrio(total, sources, latMs){
+    const h3s = $$('section[data-purpose="primary-overview-grid"] > div:first-child .grid.grid-cols-3 h3');
+    if(h3s[0]) h3s[0].textContent = String(total);
+    if(h3s[1]) h3s[1].textContent = String(sources);
+    if(h3s[2]){ h3s[2].childNodes[0].textContent = latMs!=null ? latMs.toFixed(1)+' ' : h3s[2].childNodes[0].textContent; }
+  }
+  function setCenter(norm, rate, total){
+    const h3s = $$('section[data-purpose="primary-overview-grid"] > div:nth-child(2) h3.text-2xl');
+    if(h3s[0]) h3s[0].textContent = String(norm);
+    if(h3s[1]) h3s[1].textContent = String(rate)+'%';
+    if(h3s[2]) h3s[2].textContent = String(total);
+  }
+  function setSplit(ing, fail){
+    const h4s = $$('.grid.grid-cols-2 h4.text-2xl');
+    if(h4s[0]) h4s[0].textContent = String(ing);
+    if(h4s[1]) h4s[1].textContent = String(fail);
+  }
+  function setGauge(total){ const g=$('[data-purpose="vendors-gauge-card"] span.text-4xl'); if(g) g.textContent=String(total); }
+  function setParsers(vc, total){
+    try{ if(typeof parsersLiveInterval!=='undefined' && parsersLiveInterval){ clearInterval(parsersLiveInterval); parsersLiveInterval=null; } }catch(e){}
+    const sorted = Object.entries(vc||{}).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const keys=['nfl','nhl','nba'];
+    sorted.forEach(([name,count],i)=>{
+      const k=keys[i]; if(!k) return;
+      const pct = Math.max(2, Math.round(count/Math.max(1,total)*100));
+      const bar=document.getElementById('bar-'+k), val=document.getElementById('val-'+k), rate=document.getElementById(k+'-rate');
+      const row=document.getElementById('row-'+k);
+      const label=row && row.querySelector('.w-12 span:first-child');
+      if(label) label.textContent = name.replace(/[^A-Za-z0-9]/g,'').slice(0,5).toUpperCase()||name.slice(0,5).toUpperCase();
+      if(bar) bar.style.width=pct+'%';
+      if(val) val.textContent=pct+'%';
+      if(rate) rate.textContent = count>=1000 ? (count/1000).toFixed(1)+'k/s' : count+'/s';
+      try{ if(typeof parserState!=='undefined' && parserState[k]){ parserState[k].value=pct; } }catch(e){}
+    });
+    const tot=document.getElementById('parsers-total-rate');
+    if(tot && sorted.length) tot.textContent = sorted.reduce((a,[,c])=>a+c,0).toLocaleString()+' evt/s';
+    const lbl=document.getElementById('parsers-stream-label'); if(lbl) lbl.textContent='LIVE';
+  }
+  function setActivity(s){
+    const bn=(s.buckets_normalized||[]).reduce((a,b)=>a+b,0), br=(s.buckets_raw||[]).reduce((a,b)=>a+b,0);
+    const n=$('#val-activity-norm'), r=$('#val-activity-raw');
+    if(n && bn) n.textContent=bn.toLocaleString();
+    if(r && br) r.textContent=br.toLocaleString();
+    const sr=$('#activity-stream-rate'); if(sr) sr.textContent='~'+((bn+br)||'0')+'/s';
+    try{
+      const maxV=Math.max(1,...(s.buckets||[]),...(s.buckets_normalized||[]),...(s.buckets_raw||[]));
+      const mk=arr=>arr.map((v,i)=>({x:10+i*22,y:105-(v/maxV)*90}));
+      const pn=mk(s.buckets_normalized||new Array(12).fill(0)), pr=mk(s.buckets_raw||new Array(12).fill(0));
+      const pathN=$('#path-norm'), pathR=$('#path-raw');
+      if(pathN&&pn.length>1){ let d='M '+pn[0].x+' '+pn[0].y; for(let i=1;i<pn.length;i++) d+=' L '+pn[i].x+' '+pn[i].y; pathN.setAttribute('d',d); }
+      if(pathR&&pr.length>1){ let d='M '+pr[0].x+' '+pr[0].y; for(let i=1;i<pr.length;i++) d+=' L '+pr[i].x+' '+pr[i].y; pathR.setAttribute('d',d); }
+    }catch(e){}
+  }
+  function setRecent(){
+    renderRecentStack(false);
+  }
+
+  // ---- Recent Ingests folder stack: history + live rows + card dropzone ----
+  let ingestHistory = []; // newest-first events {type,category,vendor,conf,ok,latMs,summary,at}
+  let totalIngestedCount = 0;
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function pushRecentBatch(events, latMs){
+    if(!events||!events.length) return;
+    const batchMs = latMs!=null ? Math.round(latMs) : 5;
+    const items = events.map(e=>({
+      type: (e.type||'CEF').slice(0,12),
+      category: (e.category||'unknown').slice(0,20),
+      vendor: (e.vendor||e.type||'P').slice(0,1),
+      conf: typeof e.confidence==='number' ? Math.round(e.confidence*100) : 0,
+      ok: !(e.category==='unknown'||e.type==='UNCLASSIFIED') && (typeof e.confidence!=='number'||e.confidence>=0.5),
+      latMs: batchMs,
+      summary: (e.summary||'').slice(0,60),
+      at: Date.now()
+    }));
+    totalIngestedCount += events.length;
+    ingestHistory = items.concat(ingestHistory).slice(0,15);
+    renderRecentStack(true);
+  }
+  function renderRecentStack(animate){
+    const stack=$('#recent-stack'); if(!stack) return;
+    const rowsEl=$('#recent-rows'), over=$('#recent-overflow'), total=$('#recent-stack-total'),
+      hint=$('#recent-stack-hint'), badge=$('#recent-stack-badge'), lat=$('#recent-stack-lat'),
+      vend=$('#recent-stack-vendor'),
+      cnt=$('#recent-stack-count');
+    if(total) total.textContent='+'+totalIngestedCount;
+    const batches=ingestHistory.length;
+    const topPaper=stack.querySelector('.ff-paper:nth-child(3)');
+    if(topPaper) topPaper.style.borderTopColor = batches ? (ingestHistory[0].ok ? '#4f46e5' : '#dc2626') : 'transparent';
+    if(cnt){ cnt.style.display = batches ? 'flex' : 'none'; cnt.textContent = String(batches); }
+    if(!batches){
+      if(hint) hint.textContent='never — drop a file';
+      if(badge) badge.style.display='none';
+      if(vend) vend.style.display='none';
+      if(rowsEl) rowsEl.innerHTML='';
+      if(over) over.classList.add('hidden');
+      return;
+    }
+    const head=ingestHistory[0];
+    if(hint) hint.textContent=new Date(head.at).toLocaleTimeString()+' — '+head.summary;
+    if(badge){ badge.style.display=''; badge.textContent=(head.ok?'Normalized ':'Failed ')+head.conf+'%';
+      badge.className='text-[10px] font-semibold px-2 py-0.5 rounded-full '+(head.ok?'bg-brand-600 text-white':'bg-red-50 text-red-600 border border-red-200'); }
+    if(lat) lat.textContent='~'+head.latMs+' ms';
+    if(vend){ vend.style.display='flex'; vend.textContent=head.vendor; }
+    if(rowsEl){
+      rowsEl.innerHTML=ingestHistory.slice(0,3).map(h=>
+        '<div class="rounded-xl px-3 py-2 border flex items-center justify-between gap-2 min-w-0'+(h.ok?' bg-white border-slate-100':' bg-red-50/50 border-red-100')+(animate?' recent-row-enter':'')+'">'+
+        '<div class="flex items-center gap-2 min-w-0 flex-wrap">'+
+        '<span class="text-xs font-bold text-slate-800">'+esc(h.type)+'.'+esc(h.category)+'</span>'+
+        '<span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 inline-flex items-center justify-center text-[9px] font-bold">'+esc(h.vendor)+'</span>'+
+        '<span class="text-[11px] text-slate-400 font-mono">~'+h.latMs+' ms</span>'+
+        '<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full '+(h.ok?'bg-brand-600 text-white':'bg-red-50 text-red-600 border border-red-200')+'">'+(h.ok?'Normalized':'Failed')+'</span>'+
+        '</div><span class="text-xs font-bold shrink-0 '+(h.ok?'text-brand-600':'text-red-600')+'">'+h.conf+'%</span></div>'
+      ).join('');
+    }
+    if(over){
+      if(ingestHistory.length>3){ over.classList.remove('hidden'); over.textContent='and '+(ingestHistory.length-3)+' more • '+totalIngestedCount+' total'; }
+      else over.classList.add('hidden');
+    }
+  }
+  function swallowStack(){
+    const stack=$('#recent-stack'); if(!stack) return;
+    stack.classList.remove('swallow'); void stack.offsetWidth; stack.classList.add('swallow');
+    setTimeout(()=>stack.classList.remove('swallow'), 500);
+  }
+  (function wireRecentCard(){
+    const stack=$('#recent-stack'); if(!stack||stack._wired) return; stack._wired=true;
+    stack.addEventListener('dragover', e=>{ e.preventDefault(); e.stopPropagation(); stack.classList.add('is-dragover'); stack.classList.add('is-open'); });
+    stack.addEventListener('dragleave', ()=>{ stack.classList.remove('is-dragover'); stack.classList.remove('is-open'); });
+    stack.addEventListener('drop', e=>{
+      e.preventDefault(); e.stopPropagation();
+      stack.classList.remove('is-dragover'); stack.classList.remove('is-open'); swallowStack();
+      if(e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+    });
+    stack.addEventListener('mouseenter', ()=>stack.classList.add('is-open'));
+    stack.addEventListener('mouseleave', ()=>stack.classList.remove('is-open'));
+    stack.addEventListener('click', ()=>{
+      const i=document.createElement('input'); i.type='file'; i.multiple=true;
+      i.onchange=()=>{ swallowStack(); handleFiles(i.files); }; i.click();
+    });
+  })();
+
+  async function refreshStats(){
+    try{
+      const [s,h]=await Promise.all([
+        fetch(API+'/api/stats',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+        fetch(API+'/api/health',{cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+      ]);
+      if(!s) return;
+      setTrio(s.total_events, s.sources, h&&h.latencyMs);
+      setCenter(s.normalized, s.rate, s.total_events);
+      setSplit(s.normalized, s.failed);
+      setGauge(s.total_events);
+      setParsers(s.vendor_counts||s.category_counts||{}, s.total_events||1);
+      if(chartLive) setActivity(s);
+      setRecent();
+      const badge=findByText('#pipeline span','leaves');
+      if(badge&&h) badge.textContent=h.taxonomyLeaves+' leaves • '+h.latencyMs.toFixed(0)+' ms • '+(h.status==='ok'?'Online':'Offline');
+      const th=findByText('#pipeline span','LIVE INGEST')||$('#spotify-throughput');
+      if($('#spotify-throughput')&&s) $('#spotify-throughput').textContent=s.total_events+' evt/s • live from /api/stats';
+      const li=$$('h4').find(e=>(e.textContent||'').includes('ulpf-perimeter'));
+      const lp=li&&li.parentElement&&li.parentElement.querySelector('p.font-mono');
+      const lastIng=localStorage.getItem('logforce_last_ingest');
+      if(lp) lp.textContent = lastIng ? new Date(parseInt(lastIng)).toLocaleString() : (s.last_24h? new Date().toLocaleString()+' • '+s.last_24h+' in 24h' : lp.textContent);
+    }catch(e){}
+  }
+  refreshStats();
+  setInterval(refreshStats, 5000);
+})();
+</script>
+
+
+</body></html>
