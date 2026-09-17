@@ -1,5 +1,5 @@
-"""Route guard helper: every local page or asset linked from ui/*.html must
-resolve on Vercel through either a vercel.json rewrite or a static file path.
+"""Route guard helper. Every local page or asset linked from ui html files must
+resolve on Vercel through either a vercel rewrite or a static file path.
 Run from the repo root. Exits 1 listing offenders, else prints ok."""
 import json
 import re
