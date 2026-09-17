@@ -122,11 +122,11 @@ func main() {
 		http.Redirect(w, r, "/dashboard-h612.html", http.StatusMovedPermanently)
 	})
 
-	// serve the dashboard itself. dashboard.html lives next to this binary.
+	// serve the dashboard itself. dashboard-v2.html at root, old dashboard.html kept.
 	// fix  only dashboard at /dashboard.html, no directory listing at /
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
-			http.ServeFile(w, r, filepath.Join(staticDir, "dashboard.html"))
+			http.ServeFile(w, r, filepath.Join(staticDir, "dashboard-v2.html"))
 			return
 		}
 		if r.URL.Path == "/dashboard.html" {
