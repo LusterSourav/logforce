@@ -3,9 +3,9 @@
   "cleanUrls": false,
   "git": { "deploymentEnabled": false },
   "rewrites": [
-    { "source": "/dashboard", "destination": "/ui/dashboard.html" },
+    { "source": "/dashboard", "destination": "/ui/dashboard-v2.html" },
     { "source": "/dashboard.html", "destination": "/ui/dashboard.html" },
-    { "source": "/", "destination": "/ui/dashboard.html" }
+    { "source": "/", "destination": "/ui/dashboard-v2.html" }
   ],
   "headers": [
     {
