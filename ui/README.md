@@ -40,5 +40,6 @@ Matches the "Just Bored Vol. 3" reference (freefrontend.com). Dark `#121212` bac
 | Name | Photo | Role |
 |---|---|---|
 | Sourav Rajak | `sourav.png` | Staff Engineer |
+| Soham Chakraborty | `soham.jpeg` | Team Lead |
 | Swarnadeep Roy | `swarnadeep.jpeg` | System Designer |
 | Souvik Das | `souvik.jpeg` | QA & System Testing |
