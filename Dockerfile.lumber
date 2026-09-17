@@ -18,6 +18,8 @@ COPY models /app/models
 RUN curl -fSL -o /app/models/model_quantized.onnx https://huggingface.co/MongoDB/mdbr-leaf-mt/resolve/main/onnx/model_quantized.onnx \
  && curl -fSL -o /app/models/model_quantized.onnx_data https://huggingface.co/MongoDB/mdbr-leaf-mt/resolve/main/onnx/model_quantized.onnx_data \
  && curl -fSL -o /app/models/vocab.txt https://huggingface.co/MongoDB/mdbr-leaf-mt/resolve/main/vocab.txt \
+ && mkdir -p /app/models/2_Dense \
+ && curl -fSL -o /app/models/2_Dense/model.safetensors https://huggingface.co/MongoDB/mdbr-leaf-mt/resolve/main/2_Dense/model.safetensors \
  && curl -fSL -o /tmp/ort.tgz https://github.com/microsoft/onnxruntime/releases/download/v1.26.0/onnxruntime-linux-x64-1.26.0.tgz \
  && tar -xzf /tmp/ort.tgz -C /tmp \
  && cp /tmp/onnxruntime-linux-x64-1.26.0/lib/libonnxruntime.so.1.26.0 /app/models/libonnxruntime.so \
