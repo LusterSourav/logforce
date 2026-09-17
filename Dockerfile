@@ -8,7 +8,7 @@ COPY models ./models
 RUN go build -o /out/logforce-server server.go
 
 FROM alpine:3.19
-RUN apk add --no-cache ca-certificates libgomp curl tar
+RUN apk add --no-cache ca-certificates libgomp libstdc++ curl tar
 WORKDIR /app
 COPY --from=builder /out/logforce-server /usr/local/bin/logforce-server
 COPY ui/dashboard.html ui/dashboard-v2.html ui/docs.html ui/team.html /app/ui/
