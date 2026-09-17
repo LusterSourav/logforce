@@ -5,6 +5,15 @@
   "rewrites": [
     { "source": "/dashboard", "destination": "/ui/dashboard-v2.html" },
     { "source": "/dashboard.html", "destination": "/ui/dashboard.html" },
+    { "source": "/dashboard-v2.html", "destination": "/ui/dashboard-v2.html" },
+    { "source": "/team", "destination": "/ui/team.html" },
+    { "source": "/team.html", "destination": "/ui/team.html" },
+    { "source": "/docs", "destination": "/ui/docs.html" },
+    { "source": "/docs.html", "destination": "/ui/docs.html" },
+    { "source": "/sourav.png", "destination": "/ui/sourav.png" },
+    { "source": "/souvik.jpeg", "destination": "/ui/souvik.jpeg" },
+    { "source": "/swarnadeep.jpeg", "destination": "/ui/swarnadeep.jpeg" },
+    { "source": "/soham.jpeg", "destination": "/ui/soham.jpeg" },
     { "source": "/", "destination": "/ui/dashboard-v2.html" }
   ],
   "headers": [
