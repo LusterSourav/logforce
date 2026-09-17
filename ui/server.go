@@ -122,7 +122,7 @@ func main() {
 		http.Redirect(w, r, "/dashboard-h612.html", http.StatusMovedPermanently)
 	})
 
-	// serve the dashboard itself. dashboard-v2.html at root, old dashboard.html kept.
+	// serve the dashboard itself. Dashboard v2 file at root, old dashboard file kept.
 	// fix  only dashboard at /dashboard.html, no directory listing at /
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
@@ -745,6 +745,15 @@ func handleClassify(w http.ResponseWriter, r *http.Request) {
 		// Normal case  this original line maps to a group
 		if grpIdx >= 0 && grpIdx < len(groupEvents) {
 			ge := groupEvents[grpIdx]
+			// Floor weak scores to unknown so low cosine guesses never ship as facts
+			if ge.Confidence < 0.5 {
+				outEvents = append(outEvents, out{
+					Type: "UNCLASSIFIED", Category: "unknown", Severity: "info",
+					Timestamp: ge.Timestamp.Format(time.RFC3339Nano),
+					Summary: trimmedRaw, Confidence: ge.Confidence, Raw: raw,
+				})
+				continue
+			}
 			// Post process known hallucinations
 			cat := ge.Category
 			typ := ge.Type
