@@ -1,14 +1,14 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.24-bookworm AS builder
 WORKDIR /src
-RUN apk add --no-cache build-base
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential && rm -rf /var/lib/apt/lists/*
 COPY ui/go.mod ui/go.sum* ./
 RUN go mod download || true
 COPY ui/server.go ./
 COPY models ./models
 RUN go build -o /out/logforce-server server.go
 
-FROM alpine:3.19
-RUN apk add --no-cache ca-certificates libgomp libstdc++ gcompat curl tar
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl tar libgomp1 libstdc++6 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=builder /out/logforce-server /usr/local/bin/logforce-server
 COPY ui/dashboard.html ui/dashboard-v2.html ui/docs.html ui/team.html /app/ui/
