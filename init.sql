@@ -1,6 +1,6 @@
 -- init.sql
 -- Postgres backing for the C path. Vector http sink POSTs NDJSON here via Go /api/ingest.
--- Keeps the perimeter demo at one compose file and stays compatible with SIEM-Lite queries.
+-- Keeps the perimeter demo at one compose file and stays compatible with SIEM Lite queries.
 
 create table if not exists events (
     id bigserial primary key,
