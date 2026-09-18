@@ -672,7 +672,7 @@ curl -s -X POST http://localhost:8082/api/classify \
 </div>
 
 <script>
-// ---------- device auto-detect: width decides columns, touch only fattens thumbs ----------
+// device auto detect width decides columns, touch only fattens thumbs 
 function detectMode(){
   const w = window.innerWidth;
   const coarse = window.matchMedia('(pointer: coarse)').matches;
@@ -690,7 +690,7 @@ if(window.matchMedia('(pointer: coarse)').addEventListener){
 detectMode();
 </script>
 <script>
-// ---------- all prototype docs: one entry = one parcel (auto-grows) ----------
+// all prototype docs one entry = one parcel (auto grows) 
 const DOCS = [
 { file: 'README.md', title: 'Readme — quick start', body: `
       <h2>LogForce Perimeter Prototype</h2>
@@ -764,7 +764,7 @@ go run server.go
       <p>Env: <code>LUMBER_MODEL_DIR</code> (quantized ONNX home), <code>PORT</code> default 8082 here, <code>STATIC_DIR</code> default <code>.</code>.</p>` }
 ];
 
-// ---------- parcels: auto-rendered, one per doc ----------
+// parcels auto rendered, one per doc 
 const selectedParcels = [];
 const parcelsEl = document.getElementById('parcels');
 const parcelHint = document.getElementById('parcelHint');
@@ -799,7 +799,7 @@ function pickParcel(i){
   openDoc(i);
 }
 
-// ---------- popup: doc opens in a curved-scrollbar card ----------
+// popup doc opens in a curved scrollbar card 
 const overlay = document.getElementById('docOverlay');
 const popupCard = document.getElementById('popupCard');
 const popupContent = document.getElementById('popupContent');
@@ -829,12 +829,12 @@ const MIN_START_RATIO = 0.8;
 const MIN_THUMB = 20;
 const SEGMENTS = 50;
 
-// init scrollbars - each has their own scoped functions and settings
+// init scrollbars, each has their own scoped functions and settings
 document.querySelectorAll('.wrapper [data-scrollbar]').forEach(container => {
   initCurvedScrollbar(container);
 });
 
-// function - init scrolled container
+// function init scrolled container
 function initCurvedScrollbar(container) {
   const content = container.querySelector('.scroll-content');
 
@@ -859,7 +859,7 @@ function initCurvedScrollbar(container) {
   let dragging = false;
   let pointerId = null;
 
-  // function - update
+  // function update
   function updatePath() {
     const w = container.clientWidth;
     const h = container.clientHeight;
@@ -871,7 +871,7 @@ function initCurvedScrollbar(container) {
     const bottomY = h - OFFSET;
     const cornerX = trackX - effectiveRadius;
 
-    // calculate x start point - ensure that it is never higher than the corner radius start point
+    // calculate x start point ensure that it is never higher than the corner radius start point
     const minStartX = w * MIN_START_RATIO;
     let startX = trackX - effectiveRadius * EXTRA_INSET;
     if (startX < minStartX) startX = minStartX;
@@ -896,7 +896,7 @@ function initCurvedScrollbar(container) {
     updateThumb();
   }
 
-  // function - thumb update
+  // function thumb update
   function updateThumb() {
     const scrollableHeight = content.scrollHeight - content.clientHeight || 1;
     const scrollRatio = content.scrollTop / scrollableHeight;
@@ -904,7 +904,7 @@ function initCurvedScrollbar(container) {
     const endOffset = startOffset + thumbLength;
 
     // the thumb needs to follow the path so we get the generated path points
-    // NOTE - the high number of segments help follow the curves
+    // NOTE the high number of segments help follow the curves
     const points = [];
     for (let i = 0; i <= SEGMENTS; i++) {
       const t = startOffset + ((endOffset - startOffset) / SEGMENTS) * i;
@@ -916,7 +916,7 @@ function initCurvedScrollbar(container) {
     thumbPath.setAttribute('d', segmentD);
   }
 
-  //  function - grab thumb
+  // function grab thumb
   thumbPath.addEventListener('pointerdown', e => {
     e.preventDefault();
     dragging = true;
@@ -924,7 +924,7 @@ function initCurvedScrollbar(container) {
     thumbPath.setPointerCapture(pointerId);
   });
 
-  // function - drag thumb
+  // function drag thumb
   window.addEventListener('pointermove', e => {
     if (!dragging || e.pointerId !== pointerId) return;
     const rect = container.getBoundingClientRect();
@@ -934,7 +934,7 @@ function initCurvedScrollbar(container) {
     updateThumb();
   });
 
-  // function - release thumb
+  // function release thumb
   window.addEventListener('pointerup', e => {
     if (!dragging || e.pointerId !== pointerId) return;
     dragging = false;
@@ -950,7 +950,7 @@ function initCurvedScrollbar(container) {
 }
 </script>
 <script>
-// ---------- truck delivery: drives on load, drops the moment, replays on click ----------
+// truck delivery drives on load, drops the moment, replays on click 
 (function(){
   const stage = document.getElementById('truckStage');
   const parcels = document.getElementById('parcels');
