@@ -405,7 +405,7 @@
 </svg>
 </a>
 <!-- 2. Analytics / Pie -->
-<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#analytics" title="Analytics">
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="analytics.html" title="Analytics">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" stroke-linecap="round" stroke-linejoin="round"></path>
 <path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -424,19 +424,19 @@
 </svg>
 </a>
 <!-- 5. User Group -->
-<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#team" title="Team">
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="team.html" title="Team">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
 <!-- 6. Calendar -->
-<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#events" title="Events">
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="events.html" title="Events">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
 <!-- 7. Bookmark -->
-<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#bookmarks" title="Bookmarks">
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="bookmarks.html" title="Bookmarks">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
@@ -780,7 +780,6 @@ Docs
 <span class="flex items-center gap-1">
 <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Click bar or badge to tune
   </span>
-<span class="font-mono text-slate-500 font-semibold" id="parsers-total-rate">3,663 evt/s</span>
 </div>
 </div>
 </div>
@@ -1223,7 +1222,7 @@ Docs
 <!-- Drop File Banner -->
 <div class="border-2 border-dashed border-slate-200 hover:border-brand-400 rounded-2xl p-5 text-center transition-colors bg-slate-50/50 hover:bg-brand-50/20 cursor-pointer" id="pipe-drop">
 <p class="text-sm font-medium text-slate-600 leading-relaxed">
-                Drop log file here or paste below — live <span class="font-mono text-slate-400">output/multi</span> → <span class="font-mono font-semibold text-brand-600">POST /api/ingest</span>
+                Drop log file here or paste below
 </p>
 </div>
 <!-- Textarea -->
@@ -1272,7 +1271,7 @@ Docs
 <!-- Header -->
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
 <h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-            ONNX Live Normalisation — 42 leaves • 23MB quantized • 5 ms
+            ONNX Live Normalisation
           </h3>
 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-100 self-start sm:self-auto">
             local • offline • no cloud
@@ -1454,15 +1453,6 @@ Docs
       }
     }
 
-    updateTotalParserRate();
-  }
-
-  function updateTotalParserRate() {
-    const totalRateEl = document.getElementById('parsers-total-rate');
-    if (totalRateEl) {
-      const sum = Object.values(parserState).reduce((acc, curr) => acc + curr.rate, 0);
-      totalRateEl.textContent = `${sum.toLocaleString()} evt/s`;
-    }
   }
 
   function adjustParserValue(key, delta) {
@@ -1540,7 +1530,6 @@ Docs
 
   // Initialize live streaming updates
   startParsersLiveStream();
-  updateTotalParserRate();
 </script>
 
 <!-- V2 wire. Local only backend binding. No prod touch. Relative api paths with 5s poll. -->
@@ -1644,8 +1633,6 @@ Docs
       if(rate) rate.textContent = count>=1000 ? (count/1000).toFixed(1)+'k/s' : count+'/s';
       try{ if(typeof parserState!=='undefined' && parserState[k]){ parserState[k].value=pct; } }catch(e){}
     });
-    const tot=document.getElementById('parsers-total-rate');
-    if(tot && sorted.length) tot.textContent = sorted.reduce((a,[,c])=>a+c,0).toLocaleString()+' evt/s';
     const lbl=document.getElementById('parsers-stream-label'); if(lbl) lbl.textContent='LIVE';
   }
   // Grouped area chart updater with tween and no dependency
