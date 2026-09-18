@@ -1,0 +1,629 @@
+<!DOCTYPE html><html class="h-full bg-[#f1f5f9]" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>LogForce Events</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+            },
+          },
+          boxShadow: {
+            'card': '0 2px 14px -2px rgba(15, 23, 42, 0.04), 0 1px 4px -1px rgba(15, 23, 42, 0.02)',
+            'container': '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="events-styles">
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .token-key { color: #f43f5e; }
+    .token-string { color: #facc15; }
+    .token-number { color: #38bdf8; }
+    .token-bool { color: #c084fc; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 bg-[#ebf0f7] p-3 sm:p-5 lg:p-7 flex flex-col items-center justify-start antialiased selection:bg-brand-500 selection:text-white">
+<div class="relative w-full max-w-[1720px] bg-white rounded-[28px] sm:rounded-[36px] shadow-container border border-slate-200/80 overflow-hidden flex flex-col lg:flex-row flex-1 min-w-0">
+<aside class="w-full lg:w-[88px] bg-white border-b lg:border-b-0 lg:border-r border-slate-100/90 flex flex-row lg:flex-col items-center justify-between py-4 lg:py-7 px-4 sm:px-6 lg:px-0 shrink-0 z-30 sticky top-0 lg:static" data-purpose="primary-sidebar">
+<div class="flex flex-row lg:flex-col items-center gap-4 lg:gap-8 w-full lg:w-auto justify-between lg:justify-start">
+<a class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-md shadow-brand-600/30 transition-transform hover:scale-105 active:scale-95 shrink-0" data-purpose="app-logo" href="dashboard-v2.html">
+<span class="">$</span>
+</a>
+<nav class="flex flex-row lg:flex-col items-center gap-2 lg:gap-3.5 overflow-x-auto lg:overflow-visible no-scrollbar py-0.5">
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="dashboard-v2.html" title="Dashboard">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M3 12l2-2m0 0l7-7 7-7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="analytics.html" title="Analytics">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#" title="Apps">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="dashboard-v2.html#pipeline" title="Pipeline Streams">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="team.html" title="Team">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="relative p-2.5 sm:p-3 rounded-2xl bg-slate-50 text-brand-600 border border-slate-200/70 shadow-sm transition-all duration-150 shrink-0 flex items-center justify-center" href="events.html" title="Events">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+<a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="bookmarks.html" title="Bookmarks">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</a>
+</nav>
+</div>
+<div class="flex items-center justify-center shrink-0 mt-auto pt-4">
+<button class="p-2.5 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all" title="Settings" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden px-5 sm:px-8 lg:px-10 py-6 sm:py-8 space-y-6 sm:space-y-7 bg-white min-w-0 max-w-full" data-purpose="events-workspace">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-slate-100 pb-5" data-purpose="events-header">
+<div class="min-w-0 shrink-0">
+<h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Events</h1>
+</div>
+<div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+<div class="relative flex-1 min-w-[180px] xl:w-72">
+<input class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-slate-700 placeholder:text-slate-400 shadow-2xs" id="ev-top-search" placeholder="Search patterns, IP, signatures..." type="text">
+<svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<button class="w-9 h-9 rounded-2xl bg-white border border-slate-200 text-slate-500 hover:text-brand-600 hover:border-brand-200 transition flex items-center justify-center shrink-0" id="ev-plus-btn" title="Classify a sample line">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="relative w-9 h-9 rounded-2xl bg-white border border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition flex items-center justify-center shrink-0" id="ev-bell-btn" title="Weak and unclassified count">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-white" id="ev-bell-dot"></span>
+<span class="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-slate-900 text-white text-[10px] font-bold hidden items-center justify-center" id="ev-bell-count">0</span>
+</button>
+<div class="hidden sm:flex items-center gap-2.5 pl-3 border-l border-slate-200">
+<div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div class="leading-tight">
+<div class="text-xs font-bold text-slate-800">logforce</div>
+<div class="text-[10px] font-mono text-slate-400">perimeter</div>
+</div>
+</div>
+<a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 transition shadow-2xs" href="dashboard-v2.html">Dashboard</a>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 transition shadow-2xs cursor-pointer" id="ev-live-btn" title="Pause live updates" type="button">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="ev-live-dot"></span>
+<span id="ev-live-text">live</span>
+</button>
+</div>
+</div>
+<div class="space-y-2.5" data-purpose="filtering-bar">
+<div class="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 w-full">
+<div class="overflow-x-auto flex items-center gap-1.5 pb-1 lg:pb-0 flex-1 min-w-0 flex-nowrap no-scrollbar" id="ev-type-chips">
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-colors flex-shrink-0" type="button" data-evtype="">All <span class="bg-indigo-700/80 text-[11px] px-1.5 py-0.2 rounded-full font-mono" data-evcount="">0</span></button>
+</div>
+<div class="flex items-center gap-2 flex-shrink-0 w-full lg:w-auto flex-wrap lg:flex-nowrap">
+<div class="relative flex-shrink-0">
+<select class="text-xs font-medium bg-white hover:bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-8 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm transition-colors cursor-pointer appearance-none" id="ev-vendor-select">
+<option value="">All Vendors</option>
+</select>
+<svg class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="relative flex-shrink-0">
+<select class="text-xs font-medium bg-white hover:bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-8 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm transition-colors cursor-pointer appearance-none" id="ev-sev-select">
+<option value="">Severity All</option>
+<option value="critical">critical</option>
+<option value="error">error</option>
+<option value="warning">warning</option>
+<option value="info">info</option>
+</select>
+<svg class="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="relative w-40 xl:w-56 flex-shrink-0">
+<svg class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<circle cx="11" cy="11" r="8"></circle>
+<path d="M21 21l-4.35-4.35" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<input class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 shadow-sm" id="ev-q" placeholder="Search summary, vendor or raw data..." type="text">
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-slate-200/70 text-xs">
+<div class="flex items-center gap-2 flex-wrap" id="ev-views-bar">
+<span class="font-semibold text-slate-700 flex items-center gap-1 text-[11px]">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+Saved Views
+<span class="text-[10px] text-slate-400 font-normal ml-0.5">(local presets)</span>
+</span>
+<span id="ev-views-list" class="contents"></span>
+<button class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 hover:text-brand-600 border border-dashed border-slate-300 hover:border-brand-400 bg-white/60 px-2 py-0.5 rounded transition-colors" id="ev-save-view-btn">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+Save view
+</button>
+<input class="hidden text-[11px] border border-slate-300 rounded px-2 py-0.5 w-40" id="ev-view-name" placeholder="View name, Enter to save" type="text">
+<span class="text-[11px] font-mono text-slate-500" id="ev-filter-count"></span>
+</div>
+<p class="text-[11px] text-slate-400 italic hidden lg:block">Full stream here. Weak only items live in the Analytics review queue.</p>
+</div>
+</div>
+<section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col" data-purpose="event-table-container" id="ev-table-card">
+<div class="px-4 sm:px-5 py-3 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+<div class="flex items-center gap-2.5 flex-wrap">
+<h2 class="font-bold text-slate-900 text-sm tracking-tight">Event Firehose</h2>
+<span class="text-xs text-slate-500 font-normal" id="ev-loaded-text">· 0 events loaded</span>
+<span class="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" id="ev-stream-dot"></span>
+<span id="ev-eps-text">0 eps</span>
+</span>
+</div>
+<div class="flex items-center gap-3 sm:gap-4 text-xs text-slate-500 flex-wrap sm:flex-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500" id="ev-order-dot"></span>
+<span class="font-mono text-[11px] font-medium text-slate-600">Newest first</span>
+</div>
+<div class="h-3.5 w-px bg-slate-300 hidden sm:block"></div>
+<label class="flex items-center gap-1.5 cursor-pointer select-none">
+<input checked="" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500 h-3.5 w-3.5" id="ev-autoscroll" type="checkbox">
+<span class="font-medium text-[11px] text-slate-600">Auto Refresh <strong class="text-emerald-600 font-semibold" id="ev-autoscroll-text">ON</strong></span>
+</label>
+</div>
+</div>
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse text-xs min-w-[760px]">
+<thead>
+<tr class="border-b border-slate-200 bg-slate-50/40 text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none">
+<th class="py-2.5 pl-4 sm:pl-5 pr-2 w-10 text-center" scope="col">Sev</th>
+<th class="py-2.5 px-3 w-44" scope="col">Timestamp</th>
+<th class="py-2.5 px-3 w-36" scope="col">Vendor</th>
+<th class="py-2.5 px-3 w-28" scope="col">Type</th>
+<th class="py-2.5 px-3 w-24" scope="col">Confidence</th>
+<th class="py-2.5 px-4" scope="col">Summary</th>
+<th class="py-2.5 pr-4 sm:pr-5 pl-2 w-20 text-right" scope="col">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 font-normal" id="ev-rows-body">
+<tr><td class="py-8 text-center text-slate-400" colspan="7">Ingest logs to populate the firehose.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="px-4 sm:px-5 py-3 border-t border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500" data-purpose="table-footer-pagination">
+<div class="flex items-center gap-2 flex-wrap text-center sm:text-left justify-center sm:justify-start">
+<span id="ev-showing-text">Showing <strong class="text-slate-700 font-semibold">0</strong> of <strong>0</strong> events</span>
+<span class="text-slate-300 hidden sm:inline">|</span>
+<span class="text-slate-400 text-[11px]">Refine filters to isolate narrow ranges</span>
+</div>
+<div class="flex items-center gap-1.5 shrink-0">
+<button class="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs shadow-2xs" id="ev-prev-btn">Previous</button>
+<span class="px-3 py-1 font-mono text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded" id="ev-page-text">1 / 1</span>
+<button class="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-xs shadow-2xs" id="ev-next-btn">Next</button>
+</div>
+</div>
+</section>
+<footer class="bg-white rounded-2xl px-5 py-3.5 border border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-wrap items-center justify-between gap-y-3 text-xs font-mono text-slate-500" data-purpose="telemetry-bar">
+<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+<div class="flex items-center gap-1.5">
+<span class="text-slate-400">model</span>
+<span class="font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded" id="ev-tele-model">mdbr-leaf-mt</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-slate-400">leaves</span>
+<span class="text-slate-700 font-medium" id="ev-tele-leaves">42 leaves</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-slate-400">threshold</span>
+<span class="text-slate-700 font-medium">0.5</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-slate-400">mode</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200" id="ev-tele-mode">STANDBY</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1">
+<span class="text-slate-400">loaded</span>
+<span class="text-slate-900 font-bold" id="ev-tele-loaded">0</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="text-slate-400">round trip</span>
+<span class="text-slate-900 font-bold" id="ev-tele-rtt">—</span>
+</div>
+<div class="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+<span class="text-slate-400">backend</span>
+<span class="w-2 h-2 rounded-full bg-slate-300" id="ev-tele-pg-dot"></span>
+<span class="text-slate-700 font-medium" id="ev-tele-pg-text">file only</span>
+</div>
+</div>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+  const API = (location.protocol==='file:') ? 'http://localhost:8082' : '';
+  const $ = s => document.querySelector(s);
+  const escEv = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const SEVC={critical:'bg-rose-500',error:'bg-rose-500',warning:'bg-amber-500'};
+  function sevDot(sev){ return SEVC[String(sev||'info').toLowerCase()]||'bg-indigo-500'; }
+  function typeChip(t){
+    const m={SECURITY:'bg-rose-50 text-rose-700 border-rose-200',NETWORK:'bg-indigo-50 text-indigo-700 border-indigo-200',ERROR:'bg-amber-50 text-amber-700 border-amber-200',UNCLASSIFIED:'bg-slate-200 text-slate-600 border-slate-300'};
+    return m[String(t||'').toUpperCase()]||'bg-slate-100 text-slate-600 border-slate-200';
+  }
+  const TYPE_DOT_BASE={SECURITY:'bg-rose-500',NETWORK:'bg-indigo-500',ERROR:'bg-amber-500',SYSTEM:'bg-slate-500',DATA:'bg-emerald-500',PERFORMANCE:'bg-fuchsia-500',UNCLASSIFIED:'bg-slate-300'};
+  const TYPE_DOT_EXTRA=['bg-blue-500','bg-teal-500','bg-purple-500','bg-pink-500','bg-cyan-500','bg-orange-500'];
+  function typeDot(t){ const k=String(t||'').toUpperCase(); if(TYPE_DOT_BASE[k]) return TYPE_DOT_BASE[k]; let h=0; for(const c of k) h=(h*31+c.charCodeAt(0))>>>0; return TYPE_DOT_EXTRA[h%TYPE_DOT_EXTRA.length]; }
+  let evLive=true, evRows=[], evT='', evV='', evSev='', evQ='', evPage=1, evOpenKey=null, lastRttMs=null, lastPg=-1;
+  const PAGE=100;
+  try{
+    const q=new URLSearchParams(location.search);
+    if(q.get('vendor')) evV=q.get('vendor');
+    if(q.get('type')) evT=q.get('type');
+    if(q.get('q')) evQ=q.get('q').toLowerCase();
+    if(q.get('sev')) evSev=q.get('sev');
+  }catch(e){}
+  function readBookmarks(){ try{ return JSON.parse(localStorage.getItem('logforce.bookmarks.v1')||'[]'); }catch(e){ return []; } }
+  function writeBookmarks(list){ try{ localStorage.setItem('logforce.bookmarks.v1', JSON.stringify(list.slice(0,200))); }catch(e){} }
+  function bookmarkId(e){ return String(e.timestamp||e.time||'')+'|'+String(e.summary||e.raw||'').slice(0,80); }
+  function isBookmarked(e){ const id=bookmarkId(e); return readBookmarks().some(b=>b.id===id); }
+  function toggleBookmark(e){
+    let list=readBookmarks(); const id=bookmarkId(e);
+    if(list.some(b=>b.id===id)) list=list.filter(b=>b.id!==id);
+    else{ list.unshift({id:id, savedAt:new Date().toISOString(), source:'events', event:e}); list=list.slice(0,200); }
+    writeBookmarks(list); renderRows();
+  }
+  function readViews(){ try{ return JSON.parse(localStorage.getItem('logforce.views.v1')||'[]'); }catch(e){ return []; } }
+  function writeViews(list){ try{ localStorage.setItem('logforce.views.v1', JSON.stringify(list.slice(0,20))); }catch(e){} }
+  function filteredRows(){
+    return evRows.filter(e=>{
+      const t=String(e.type||'unknown');
+      if(evT&&t!==evT) return false;
+      const vendor=e.vendor||e.type||'';
+      if(evV&&vendor!==evV) return false;
+      if(evSev&&String(e.severity||'info').toLowerCase()!==evSev) return false;
+      if(evQ){ const hay=(String(e.summary||'')+' '+String(e.raw||'')+' '+vendor).toLowerCase(); if(!hay.includes(evQ)) return false; }
+      return true;
+    });
+  }
+  function fmtWhen(ts){
+    if(!ts) return '';
+    try{ const d=new Date(ts); if(!isNaN(d)) return d.toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}).toUpperCase(); }catch(_){}
+    return String(ts);
+  }
+  function tintJson(obj){
+    const json=JSON.stringify(obj,null,2);
+    return escEv(json).replace(/&quot;([^&]|&(?!quot;))*?&quot;:/g, m=>'<span class="token-key">'+m+'</span>')
+      .replace(/: &quot;(.*?)&quot;/g, ': <span class="token-string">&quot;$1&quot;</span>')
+      .replace(/: (-?\d[\d.]*)/g, ': <span class="token-number">$1</span>')
+      .replace(/: (true|false|null)/g, ': <span class="token-bool">$1</span>');
+  }
+  function renderChips(){
+    const box=document.getElementById('ev-type-chips'); if(!box) return;
+    const counts={};
+    evRows.forEach(e=>{ const t=String(e.type||'unknown'); counts[t]=(counts[t]||0)+1; });
+    const order=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+    let html='<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex-shrink-0 '+(evT===''?'bg-indigo-600 text-white shadow-sm':'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200')+'" type="button" data-evt="">All <span class="'+(evT===''?'bg-indigo-700/80':'bg-slate-100 text-slate-600')+' text-[11px] px-1.5 py-0.2 rounded-full font-mono font-semibold">'+evRows.length+'</span></button>';
+    order.forEach(t=>{
+      const on=evT===t;
+      html+='<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex-shrink-0 '+(on?'bg-indigo-600 text-white shadow-sm':'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200')+'" type="button" data-evt="'+escEv(t)+'"><span class="w-1.5 h-1.5 rounded-full '+typeDot(t)+'"></span>'+escEv(t)+' <span class="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold">'+counts[t]+'</span></button>';
+    });
+    box.innerHTML=html;
+    box.querySelectorAll('[data-evt]').forEach(b=>{
+      if(b._wired) return; b._wired=true;
+      b.addEventListener('click',()=>{ evT=b.getAttribute('data-evt'); evPage=1; renderChips(); renderRows(); });
+    });
+  }
+  function renderVendorSelect(){
+    const sel=document.getElementById('ev-vendor-select'); if(!sel) return;
+    const set={};
+    evRows.forEach(e=>{ const v=e.vendor||e.type||''; if(v) set[v]=(set[v]||0)+1; });
+    const keys=Object.keys(set).sort();
+    const sig=keys.join('|');
+    if(sel.getAttribute('data-sig')===sig) return;
+    sel.setAttribute('data-sig',sig);
+    sel.innerHTML='<option value="">All Vendors ('+evRows.length+')</option>'+keys.map(v=>'<option value="'+escEv(v)+'">'+escEv(v)+' ('+set[v]+')</option>').join('');
+    sel.value=evV;
+  }
+  function rowHtml(e, idx){
+    const sev=sevDot(e.severity), t=String(e.type||'unknown'), conf=typeof e.confidence==='number'?e.confidence:0;
+    const vendor=e.vendor||e.type||'?';
+    const sum=String(e.summary||e.raw||'').slice(0,110);
+    const marked=isBookmarked(e), open=evOpenKey===('e'+idx);
+    return '<tr class="'+(open?'bg-indigo-50/30':'hover:bg-slate-50 transition-colors')+'" data-eidx="'+idx+'">'
+      +'<td class="py-2.5 pl-4 sm:pl-5 pr-2 text-center"><span class="inline-block w-2 h-2 rounded-full '+sev+'" title="'+escEv(String(e.severity||'info'))+'"></span></td>'
+      +'<td class="py-2.5 px-3 font-mono text-[11px] text-slate-600 whitespace-nowrap">'+escEv(fmtWhen(e.timestamp||e.time))+'</td>'
+      +'<td class="py-2.5 px-3"><span class="inline-flex items-center px-2 py-0.5 rounded font-semibold text-[11px] bg-slate-100 text-slate-800 border border-slate-200/80">'+escEv(String(vendor).slice(0,20))+'</span></td>'
+      +'<td class="py-2.5 px-3"><span class="inline-flex items-center px-2 py-0.5 rounded font-bold text-[10px] border '+typeChip(t)+'">'+escEv(t)+'</span></td>'
+      +'<td class="py-2.5 px-3"><span class="font-mono font-semibold text-[11px] '+(conf<0.6?'inline-flex items-center px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200/60':'text-slate-700')+'">'+Math.round(conf*1000)/10+'%</span></td>'
+      +'<td class="py-2.5 px-4"><span class="text-slate-700">'+escEv(sum)+(String(e.summary||e.raw||'').length>110?'...':'')+'</span></td>'
+      +'<td class="py-2.5 pr-4 sm:pr-5 pl-2 text-right"><div class="flex items-center justify-end gap-1 '+(marked?'text-brand-600':'text-slate-400')+'">'
+      +(open?'<button class="text-brand-600 hover:text-brand-800 font-mono text-xs font-semibold inline-flex items-center gap-1 cursor-pointer" type="button" data-evcollapse="'+idx+'">Collapse <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button>':'')
+      +'<button class="p-1 hover:text-slate-700 rounded transition-colors" title="'+(marked?'Bookmarked':'Bookmark row')+'" data-evmark="'+idx+'"><svg class="w-4 h-4 '+(marked?'fill-current':'')+'" fill="'+(marked?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>'
+      +'<button class="p-1 hover:text-slate-700 rounded transition-colors" title="Copy raw payload" data-evcopy="'+idx+'"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>'
+      +'</div></td></tr>';
+  }
+  function inspectorRowHtml(e, idx){
+    return '<tr class="bg-slate-950" data-insp-row="'+idx+'">'
+      +'<td class="p-0 border-b border-slate-200" colspan="7">'
+      +'<div class="bg-[#0a0e17] text-slate-200 font-mono text-xs">'
+      +'<div class="bg-slate-900/95 border-b border-slate-800 px-3 sm:px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 select-none">'
+      +'<div class="flex items-center gap-3 min-w-0 flex-wrap">'
+      +'<div class="flex items-center gap-1.5 flex-shrink-0">'
+      +'<span class="w-2.5 h-2.5 rounded-full bg-[#ff5f56] border border-[#e0443e]/50 inline-block"></span>'
+      +'<span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] border border-[#dea123]/50 inline-block"></span>'
+      +'<span class="w-2.5 h-2.5 rounded-full bg-[#27c93f] border border-[#1aab29]/50 inline-block"></span>'
+      +'</div>'
+      +'<div class="flex items-center gap-2 pl-2 border-l border-slate-800 text-[11px] text-slate-300 font-medium min-w-0 flex-wrap">'
+      +'<span class="text-brand-400 font-bold">inspector</span>'
+      +'<span class="text-slate-600">—</span>'
+      +'<span class="text-slate-300 truncate max-w-[180px] sm:max-w-xs md:max-w-md">raw event <span class="text-emerald-400 font-semibold">/api/query</span></span>'
+      +'<span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] border border-emerald-500/30">'
+      +'<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>'
+      +'<span>row detail</span>'
+      +'</span>'
+      +'</div>'
+      +'</div>'
+      +'<div class="flex items-center gap-2 flex-wrap self-end sm:self-auto">'
+      +'<button data-insp-copy="'+idx+'" type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition duration-150 cursor-pointer">'
+      +'<svg class="w-3 h-3 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">'
+      +'<path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>'
+      +'</svg>'
+      +'<span data-insp-copy-text>Copy</span>'
+      +'</button>'
+      +'<button data-insp-close="'+idx+'" type="button" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition duration-150 cursor-pointer">Close</button>'
+      +'</div>'
+      +'</div>'
+      +'<div class="p-4 flex gap-4 overflow-x-auto bg-[#0a0e17}">'
+      +'<div class="flex-1 min-w-[280px]">'
+      +'<pre class="text-[11px] leading-relaxed font-mono overflow-x-auto transition-opacity duration-200 whitespace-pre-wrap break-words">'+tintJson(e)+'</pre>'
+      +'</div>'
+      +'</div>'
+      +'<div class="bg-[#0d1117] border-t border-slate-800/80 px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[10px] text-slate-400 select-none">'
+      +'<div class="flex items-center gap-2 min-w-0 flex-wrap">'
+      +'<span class="text-slate-500">Source</span>'
+      +'<span class="text-indigo-300 font-mono truncate max-w-xs sm:max-w-md">/api/query rows</span>'
+      +'</div>'
+      +'<div class="flex items-center gap-3 sm:gap-4 text-slate-400 font-mono flex-wrap self-end sm:self-auto">'
+      +'<span class="">ONNX <strong class="text-slate-300 font-medium">mdbr-leaf-mt (int8)</strong></span>'
+      +'<span class="">Row <strong class="text-slate-200 font-semibold">'+(idx+1)+'/'+evRows.length+'</strong></span>'
+      +'</div>'
+      +'</div>'
+      +'</div>'
+      +'</td></tr>';
+  }
+  function renderRows(){
+    const body=document.getElementById('ev-rows-body'); if(!body) return;
+    const set=filteredRows();
+    const pages=Math.max(1, Math.ceil(set.length/PAGE));
+    if(evPage>pages) evPage=pages;
+    const shown=set.slice((evPage-1)*PAGE, evPage*PAGE);
+    const st=document.getElementById('ev-loaded-text'); if(st) st.textContent='· '+set.length+' events loaded';
+    const sh=document.getElementById('ev-showing-text');
+    if(sh) sh.innerHTML='Showing <strong class="text-slate-700 font-semibold">'+shown.length+'</strong> of <strong>'+set.length+'</strong> events';
+    const fc=document.getElementById('ev-filter-count');
+    if(fc) fc.textContent=shown.length+' of '+set.length;
+    const pg=document.getElementById('ev-page-text'); if(pg) pg.textContent=evPage+' / '+pages;
+    const pv=document.getElementById('ev-prev-btn'), nx=document.getElementById('ev-next-btn');
+    if(pv){ pv.disabled=evPage<=1; pv.classList.toggle('cursor-not-allowed', evPage<=1); pv.classList.toggle('text-slate-400', evPage<=1); }
+    if(nx){ nx.disabled=evPage>=pages; nx.classList.toggle('cursor-not-allowed', evPage>=pages); nx.classList.toggle('text-slate-400', evPage>=pages); }
+    if(!shown.length){ body.innerHTML='<tr><td class="py-8 text-center text-slate-400" colspan="7">No events match. Clear search or filters.</td></tr>'; }
+    else {
+      let html='';
+      shown.forEach((e)=>{
+        const idx=evRows.indexOf(e);
+        html+=rowHtml(e, idx);
+        if(evOpenKey===('e'+idx)) html+=inspectorRowHtml(e, idx);
+      });
+      body.innerHTML=html;
+    }
+    body.querySelectorAll('[data-eidx]').forEach(tr=>tr.addEventListener('click',(ev)=>{
+      if(ev.target.closest('[data-evmark]')||ev.target.closest('[data-evcopy]')) return;
+      openInspector(parseInt(tr.getAttribute('data-eidx'),10));
+    }));
+    body.querySelectorAll('[data-evmark]').forEach(b=>b.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      const e=evRows[parseInt(b.getAttribute('data-evmark'),10)]; if(e) toggleBookmark(e);
+    }));
+    body.querySelectorAll('[data-evcopy]').forEach(b=>b.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      const e=evRows[parseInt(b.getAttribute('data-evcopy'),10)];
+      if(e){ try{ navigator.clipboard.writeText(typeof e.raw==='string'?e.raw:JSON.stringify(e,null,2)); }catch(_){} }
+    }));
+    body.querySelectorAll('[data-insp-copy]').forEach(b=>b.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      const e=evRows[parseInt(b.getAttribute('data-insp-copy'),10)];
+      if(e){ try{ navigator.clipboard.writeText(JSON.stringify(e,null,2)); const t=b.querySelector('[data-insp-copy-text]'); if(t){ t.textContent='Copied'; setTimeout(()=>{t.textContent='Copy';},1200); } }catch(_){} }
+    }));
+    body.querySelectorAll('[data-insp-close]').forEach(b=>b.addEventListener('click',(ev)=>{
+      ev.stopPropagation();
+      evOpenKey=null; renderRows();
+    }));
+  }
+  function openInspector(idx){
+    const e=evRows[idx]; if(!e) return;
+    if(evOpenKey==='e'+idx) evOpenKey=null;
+    else evOpenKey='e'+idx;
+    renderRows();
+    if(evOpenKey){
+      const row=document.querySelector('tr[data-insp-row]');
+      if(row) row.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  }
+  function renderViews(){
+    const box=document.getElementById('ev-views-list'); if(!box) return;
+    const views=readViews();
+    box.innerHTML=views.map((v,i)=>'<div class="inline-flex items-center bg-white border border-slate-200 rounded-md text-slate-700 px-2 py-0.5 text-xs shadow-2xs gap-1.5"><span>'+escEv(v.name)+'</span><button class="text-indigo-600 hover:text-indigo-800 font-medium text-[11px] underline" data-apply-view="'+i+'">Apply</button><button class="text-slate-300 hover:text-rose-500 transition-colors ml-0.5" title="Remove saved view" data-del-view="'+i+'"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></button></div>').join('');
+    box.querySelectorAll('[data-apply-view]').forEach(b=>b.addEventListener('click',()=>{
+      const v=readViews()[parseInt(b.getAttribute('data-apply-view'),10)]; if(!v) return;
+      evT=v.type||''; evV=v.vendor||''; evSev=v.sev||''; evQ=(v.q||'').toLowerCase(); evPage=1;
+      syncEvControls(); renderChips(); renderRows();
+    }));
+    box.querySelectorAll('[data-del-view]').forEach(b=>b.addEventListener('click',()=>{
+      const views=readViews(); views.splice(parseInt(b.getAttribute('data-del-view'),10),1); writeViews(views); renderViews();
+    }));
+  }
+  function syncEvControls(){
+    const vs=document.getElementById('ev-vendor-select'); if(vs) vs.value=evV;
+    const ss=document.getElementById('ev-sev-select'); if(ss) ss.value=evSev;
+    const q1=document.getElementById('ev-q'); if(q1&&q1.value!==undefined&&document.activeElement!==q1) q1.value=evQ;
+    const q2=document.getElementById('ev-top-search'); if(q2&&document.activeElement!==q2) q2.value=evQ;
+  }
+  function setEvTelemetry(h){
+    const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+    if(h){
+      const online=h.status==='ok';
+      const m=document.getElementById('ev-tele-mode');
+      if(m){ m.textContent=online?'ONLINE':'MOCK'; m.className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border '+(online?'bg-brand-50 text-brand-700 border-brand-200':'bg-slate-100 text-slate-500 border-slate-200'); }
+      set('ev-tele-leaves',(h.taxonomyLeaves||42)+' leaves');
+      const dot=document.getElementById('ev-tele-pg-dot'), tx=document.getElementById('ev-tele-pg-text');
+      const pgon=typeof lastPg!=='undefined'&&lastPg>=0;
+      if(dot) dot.className='w-2 h-2 rounded-full '+(pgon?'bg-emerald-500':'bg-slate-300');
+      if(tx) tx.textContent=pgon?'PG connected':'file only';
+    }
+    set('ev-tele-rtt', lastRtt==null?'—':Math.round(lastRtt)+' ms');
+    set('ev-tele-loaded', String(evRows.length||0));
+    const eps=document.getElementById('ev-eps-text');
+    if(eps) eps.textContent=Math.round((evRows.length||0)/5)+' eps snapshot';
+  }
+  let lastRtt=null;
+  async function refreshEvents(){
+    if(!evLive) return;
+    try{
+      const [s,h]=await Promise.all([
+        fetch(API+'/api/stats',{cache:'no-store'}).then(r=>r.json()).catch(()=>null),
+        fetch(API+'/api/health',{cache:'no-store'}).then(r=>r.json()).catch(()=>null)
+      ]);
+      try{
+        const t0=performance.now();
+        const rows=await fetch(API+'/api/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sql:'SELECT * FROM lake'})}).then(r=>r.json()).catch(()=>null);
+        lastRtt=performance.now()-t0;
+        const list=((rows&&rows.rows)||[]).slice();
+        list.sort((a,b)=>String(b.timestamp||b.time||'').localeCompare(String(a.timestamp||a.time||'')));
+        evRows=list;
+      }catch(e){ evRows=[]; }
+      if(s){
+        lastPg=(typeof s.pg_count==='number')?s.pg_count:-1;
+        renderChips(); renderVendorSelect(); renderRows(); renderViews();
+        const weak=evRows.filter(e=>String(e.type||'unknown')==='UNCLASSIFIED'||(typeof e.confidence==='number'&&e.confidence<0.6)).length;
+        const bell=document.getElementById('ev-bell-count'), dot=document.getElementById('ev-bell-dot');
+        if(bell){ bell.textContent=String(weak); bell.classList.toggle('hidden', weak===0); bell.classList.toggle('flex', weak>0); }
+        if(dot) dot.style.display=weak?'':'none';
+      }
+      setEvTelemetry(h);
+    }catch(e){}
+  }
+  function toggleEvLive(){
+    evLive=!evLive;
+    const t=document.getElementById('ev-live-text'); if(t) t.textContent=evLive?'live':'paused';
+    const d=document.getElementById('ev-live-dot'); if(d) d.className='w-2 h-2 rounded-full '+(evLive?'bg-emerald-500 animate-pulse':'bg-slate-300');
+    const c=document.getElementById('ev-autoscroll'); if(c) c.checked=evLive;
+    const ct=document.getElementById('ev-autoscroll-text'); if(ct){ ct.textContent=evLive?'ON':'OFF'; ct.className=evLive?'text-emerald-600 font-semibold':'text-slate-400 font-semibold'; }
+    if(evLive) refreshEvents();
+  }
+  function wireEvents(){
+    const on=(id,ev,fn)=>{ const e=document.getElementById(id); if(e&&!e._wired){ e._wired=true; e.addEventListener(ev,fn); } };
+    on('ev-live-btn','click',toggleEvLive);
+    on('ev-autoscroll','change',(e)=>{ if(e.target.checked!==evLive) toggleEvLive(); });
+    on('ev-prev-btn','click',()=>{ evPage=Math.max(1,evPage-1); renderRows(); });
+    on('ev-next-btn','click',()=>{ evPage++; renderRows(); });
+    on('ev-q','input',(e)=>{ evQ=(e.target.value||'').toLowerCase(); evPage=1; const t=document.getElementById('ev-top-search'); if(t&&document.activeElement!==t) t.value=e.target.value||''; renderRows(); });
+    on('ev-top-search','input',(e)=>{ evQ=(e.target.value||'').toLowerCase(); evPage=1; const q=document.getElementById('ev-q'); if(q&&document.activeElement!==q) q.value=e.target.value||''; renderRows(); });
+    on('ev-vendor-select','change',(e)=>{ evV=e.target.value||''; evPage=1; renderRows(); });
+    on('ev-sev-select','change',(e)=>{ evSev=e.target.value||''; evPage=1; renderRows(); });
+    on('ev-bell-btn','click',()=>{ const t=document.getElementById('ev-table-card'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'}); });
+    on('ev-plus-btn','click',async ()=>{
+      try{
+        const line='CEF:0|Palo Alto|PAN-OS|11.0|TRAFFIC|Traffic|1|act=allow src=10.0.0.5 dst=8.8.8.8';
+        const j=await fetch(API+'/api/classify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({logs:[line]})}).then(r=>r.json());
+        const evs=j.events||[];
+        if(evs.length) await fetch(API+'/api/ingest?format=generic',{method:'POST',headers:{'Content-Type':'application/x-ndjson'},body:evs.map(e=>JSON.stringify(e)).join('\n')});
+        refreshEvents();
+      }catch(e){}
+    });
+    on('ev-save-view-btn','click',()=>{
+      const inp=document.getElementById('ev-view-name');
+      if(!inp) return;
+      if(inp.classList.contains('hidden')){
+        inp.classList.remove('hidden'); inp.focus(); return;
+      }
+      const name=(inp.value||'').trim();
+      if(!name){ inp.classList.add('hidden'); return; }
+      const views=readViews();
+      views.unshift({name:name, type:evT, vendor:evV, sev:evSev, q:evQ});
+      writeViews(views); inp.value=''; inp.classList.add('hidden'); renderViews();
+    });
+    on('ev-view-name','keydown',(e)=>{ if(e.key==='Enter'){ document.getElementById('ev-save-view-btn').click(); } });
+  }
+  wireEvents();
+  syncEvControls();
+  refreshEvents();
+  setInterval(refreshEvents, 5000);
+})();
+</script>
+</body></html>
