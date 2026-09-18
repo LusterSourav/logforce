@@ -16,6 +16,12 @@
     { "source": "/soham.jpeg", "destination": "/ui/soham.jpeg" },
     { "source": "/shreyasee.jpeg", "destination": "/ui/shreyasee.jpeg" },
     { "source": "/soumita.jpeg", "destination": "/ui/soumita.jpeg" },
+    { "source": "/analytics", "destination": "/ui/analytics.html" },
+    { "source": "/analytics.html", "destination": "/ui/analytics.html" },
+    { "source": "/events", "destination": "/ui/events.html" },
+    { "source": "/events.html", "destination": "/ui/events.html" },
+    { "source": "/bookmarks", "destination": "/ui/bookmarks.html" },
+    { "source": "/bookmarks.html", "destination": "/ui/bookmarks.html" },
     { "source": "/", "destination": "/ui/dashboard-v2.html" }
   ],
   "headers": [
