@@ -21,6 +21,9 @@ Env
 |---|---|---|
 | `dashboard.html` | 8081 | Production dashboard (DO NOT EDIT) |
 | `dashboard-v2.html` | 8082 | Dev dashboard with backend wiring |
+| `analytics.html` | 8082 | Analytics command view — KPIs plus threat mix plus review queue |
+| `events.html` | 8082 | Event firehose browser with filters plus saved views plus bookmarks |
+| `bookmarks.html` | 8082 | Saved events plus saved views, browser local only, zero network |
 | `docs.html` | 8082 | Device documentation browser |
 | `team.html` | 8082 | Team profile page — "Just Bored Vol. 3" design |
 
@@ -63,3 +66,17 @@ different meaning.
 
 Ingest writes files always and Postgres when `PG_DSN` is set. Stats
 and query read Postgres first with file fallback and never mix both.
+
+## Notes
+
+The sidebar is the same on the dashboard, analytics, events and bookmarks
+pages, with the current page highlighted. The route guard workflow checks
+links on every push, so this list stays in sync with vercel rewrites.
+
+Bookmarks and saved views never leave the browser. They live in
+`logforce.bookmarks.v1` (200 max) and `logforce.views.v1` (20 max).
+You save them from the Events page and manage them on the Bookmarks
+page. Export pulls both into a single JSON file. Import merges by id,
+so nothing gets duplicated.
+
+One house rule in this folder. Keep code comments plain.
