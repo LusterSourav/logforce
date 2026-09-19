@@ -92,6 +92,177 @@
     }
     .planet-badge[data-failed="true"] canvas { display: none; }
     .planet-badge[data-failed="true"] #logo-planet-fallback { visibility: visible; }
+    /* Paper shred buttons — scoped, per button pastel theme via vars */
+    #bm-export-btn { --shred-bg: #F2F1FF; --shred-fg: #3B2BB3; --shred-border: #C7C5FF; --shred-hover: #E6E4FF; }
+    #bm-import-btn { --shred-bg: #F0FAF4; --shred-fg: #0D6846; --shred-border: #A5F3D1; --shred-hover: #DDF3E6; }
+    #bm-clear-btn { --shred-bg: #FFEBF0; --shred-fg: #C2003B; --shred-border: #FFAEC1; --shred-hover: #FFD9E2; }
+    .shred-btn {
+      background-color: var(--shred-bg);
+      border: 1px solid var(--shred-border);
+      border-radius: 0.5rem;
+      color: var(--shred-fg);
+      cursor: pointer;
+      overflow: hidden;
+      transition: background-color 0.3s;
+    }
+    .shred-btn:not(:disabled):hover {
+      background-color: var(--shred-hover);
+    }
+    .shred-btn:disabled {
+      cursor: default;
+      opacity: 0.9;
+    }
+    .shred-btn__icon {
+      display: block;
+      width: 1.4em;
+      height: 1.4em;
+      font-size: 12px;
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+    .shred-btn__icon-lid {
+      transform-origin: 12px 5px;
+    }
+    .shred-btn__icon-can {
+      transform-origin: 12px 18px;
+    }
+    .shred-btn__letters {
+      display: flex;
+    }
+    .shred-btn__letter,
+    .shred-btn__letter-box {
+      display: inline-block;
+    }
+    .shred-btn__letter-box.is-space {
+      width: 0.35em;
+    }
+    .shred-btn__letter-box.is-space .shred-btn__letter {
+      animation: none !important;
+    }
+    .shred-btn[data-running="false"] .shred-btn__letters {
+      animation: shredFadeIn 0.3s cubic-bezier(0.77,0,0.18,1) forwards;
+    }
+    .shred-btn[data-running="true"] .shred-btn__icon-lid,
+    .shred-btn[data-running="true"] .shred-btn__icon-can,
+    .shred-btn[data-running="true"] .shred-btn__icon-can-fill,
+    .shred-btn[data-running="true"] .shred-btn__letter,
+    .shred-btn[data-running="true"] .shred-btn__letter-box:not(.is-space) {
+      animation: shredLid 2s cubic-bezier(0.77,0,0.18,1) forwards;
+    }
+    .shred-btn[data-running="true"] .shred-btn__icon-can {
+      animation-name: shredCan;
+    }
+    .shred-btn[data-running="true"] .shred-btn__icon-can-fill {
+      animation-name: shredCanFill;
+    }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:not(.is-space) {
+      animation-name: shredDrop;
+      animation-timing-function: cubic-bezier(0.77,0,1,1);
+    }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(1) .shred-btn__letter { animation-name: shred1; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(2),
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(2) .shred-btn__letter { animation-delay: 0.04s; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(2) .shred-btn__letter { animation-name: shred2; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(3),
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(3) .shred-btn__letter { animation-delay: 0.08s; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(3) .shred-btn__letter { animation-name: shred3; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(4),
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(4) .shred-btn__letter { animation-delay: 0.12s; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(4) .shred-btn__letter { animation-name: shred4; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(5),
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(5) .shred-btn__letter { animation-delay: 0.16s; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(5) .shred-btn__letter { animation-name: shred5; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(7),
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(7) .shred-btn__letter { animation-delay: 0.20s; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(7) .shred-btn__letter { animation-name: shred7; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(8),
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(8) .shred-btn__letter { animation-delay: 0.24s; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(8) .shred-btn__letter { animation-name: shred8; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(9),
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(9) .shred-btn__letter { animation-delay: 0.28s; }
+    .shred-btn[data-running="true"] .shred-btn__letter-box:nth-child(9) .shred-btn__letter { animation-name: shred9; }
+    @keyframes shredFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes shredLid {
+      from, 86%, to { transform: translate(0,0) rotate(0); }
+      33.33%, 46% { animation-timing-function: cubic-bezier(0.77,0,1,1); transform: translate(-2px,-4px) rotate(-40deg); }
+      54%, 70% { animation-timing-function: linear; transform: translate(0,0) rotate(0); }
+      62% { animation-timing-function: linear; transform: translate(0,-2px) rotate(9deg); }
+      78% { animation-timing-function: cubic-bezier(0,0,0.18,1); transform: translate(0,-1px) rotate(-6deg); }
+    }
+    @keyframes shredCan {
+      from, 86%, to { transform: translate(0,0) rotate(0); }
+      33.33%, 46% { animation-timing-function: cubic-bezier(0.77,0,1,1); transform: translate(-8px,3px) rotate(40deg); }
+      54%, 70% { animation-timing-function: linear; transform: translate(0,0) rotate(0); }
+      62% { animation-timing-function: linear; transform: translate(-1px,0) rotate(-4deg); }
+      78% { animation-timing-function: cubic-bezier(0,0,0.18,1); transform: translate(0,0) rotate(2deg); }
+    }
+    @keyframes shredCanFill {
+      from, 25%, to { y: 24px; }
+      66.67%, 83.33% { y: 12px; }
+    }
+    @keyframes shredDrop {
+      from, 33.33% { transform: translate(0,0); }
+      41.67%, to { transform: translate(0,0.625em); }
+    }
+    @keyframes shred1 {
+      from { transform: translate(0,0) rotate(0); }
+      33.33% { transform: translate(0.75em,0) rotate(30deg) scale(1); }
+      41.67% { transform: translate(-2.375em,0) rotate(-135deg) scale(0.75); }
+      46%, to { transform: translate(-2.375em,0) rotate(-135deg) scale(0); }
+    }
+    @keyframes shred2 {
+      from { transform: translate(0,0) rotate(0); }
+      33.33% { transform: translate(0.75em,0) rotate(30deg) scale(1); }
+      41.67% { transform: translate(-3em,0) rotate(-135deg) scale(0.75); }
+      46%, to { transform: translate(-3em,0) rotate(-135deg) scale(0); }
+    }
+    @keyframes shred3 {
+      from { transform: translate(0,0) rotate(0); }
+      33.33% { transform: translate(0.75em,0) rotate(30deg) scale(1); }
+      41.67% { transform: translate(-3.375em,0) rotate(-135deg) scale(0.75); }
+      46%, to { transform: translate(-3.375em,0) rotate(-135deg) scale(0); }
+    }
+    @keyframes shred4 {
+      from { transform: translate(0,0) rotate(0); }
+      33.33% { transform: translate(0.75em,0) rotate(30deg) scale(1); }
+      41.67% { transform: translate(-3.75em,0) rotate(-135deg) scale(0.75); }
+      46%, to { transform: translate(-3.75em,0) rotate(-135deg) scale(0); }
+    }
+    @keyframes shred5 {
+      from { transform: translate(0,0) rotate(0); }
+      33.33% { transform: translate(0.75em,0) rotate(30deg) scale(1); }
+      41.67% { transform: translate(-4.125em,0) rotate(-135deg) scale(0.75); }
+      46%, to { transform: translate(-4.125em,0) rotate(-135deg) scale(0); }
+    }
+    @keyframes shred7 {
+      from { transform: translate(0,0) rotate(0); }
+      33.33% { transform: translate(0.75em,0) rotate(30deg) scale(1); }
+      41.67% { transform: translate(-5.2em,0) rotate(-135deg) scale(0.75); }
+      46%, to { transform: translate(-5.2em,0) rotate(-135deg) scale(0); }
+    }
+    @keyframes shred8 {
+      from { transform: translate(0,0) rotate(0); }
+      33.33% { transform: translate(0.75em,0) rotate(30deg) scale(1); }
+      41.67% { transform: translate(-5.6em,0) rotate(-135deg) scale(0.75); }
+      46%, to { transform: translate(-5.6em,0) rotate(-135deg) scale(0); }
+    }
+    @keyframes shred9 {
+      from { transform: translate(0,0) rotate(0); }
+      33.33% { transform: translate(0.75em,0) rotate(30deg) scale(1); }
+      41.67% { transform: translate(-6em,0) rotate(-135deg) scale(0.75); }
+      46%, to { transform: translate(-6em,0) rotate(-135deg) scale(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .shred-btn[data-running="true"] .shred-btn__icon-lid,
+      .shred-btn[data-running="true"] .shred-btn__icon-can,
+      .shred-btn[data-running="true"] .shred-btn__letter-box:not(.is-space),
+      .shred-btn[data-running="true"] .shred-btn__letter {
+        animation: none;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 bg-[#ebf0f7] p-3 sm:p-5 lg:p-7 flex flex-col items-center justify-start antialiased selection:bg-brand-500 selection:text-white">
@@ -177,23 +348,69 @@ Saved locally
 </div>
 </div>
 <div class="mt-3 pt-1 flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs">
-<button class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-medium text-xs shadow-xs transition-all active:scale-95 cursor-pointer" id="bm-export-btn" title="Export bookmarks as JSON" type="button">
-<svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round"></path>
+<button class="shred-btn flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs shadow-xs transition-all active:scale-95 cursor-pointer" id="bm-export-btn" type="button" data-running="false" aria-label="Export bookmarks as JSON" title="Export bookmarks as JSON">
+<svg class="shred-btn__icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+<g class="shred-btn__icon-can" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+</g>
 </svg>
-<span class="">Export</span>
+<span class="shred-btn__letters" aria-hidden="true" data-anim>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">E</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">x</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">p</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">o</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">r</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">t</span></span>
+</span>
+<span class="sr-only">Export</span>
 </button>
-<button class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium text-xs shadow-xs transition-all active:scale-95 cursor-pointer" id="bm-import-btn" title="Import bookmarks" type="button">
-<svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-linecap="round" stroke-linejoin="round"></path>
+<button class="shred-btn flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs shadow-xs transition-all active:scale-95 cursor-pointer" id="bm-import-btn" type="button" data-running="false" aria-label="Import bookmarks" title="Import bookmarks">
+<svg class="shred-btn__icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+<g class="shred-btn__icon-can" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+</g>
 </svg>
-<span class="">Import</span>
+<span class="shred-btn__letters" aria-hidden="true" data-anim>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">I</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">m</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">p</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">o</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">r</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">t</span></span>
+</span>
+<span class="sr-only">Import</span>
 </button>
-<button class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-medium text-xs shadow-xs transition-all active:scale-95 cursor-pointer" id="bm-clear-btn" title="Clear all stored bookmarks" type="button">
-<svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-<path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round"></path>
+<button class="shred-btn flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs shadow-xs transition-all active:scale-95 cursor-pointer" id="bm-clear-btn" type="button" data-running="false" aria-label="Clear all stored bookmarks" title="Clear all stored bookmarks">
+<svg class="shred-btn__icon" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+<clipPath id="shred-can-clip">
+<rect class="shred-btn__icon-can-fill" x="5" y="24" width="14" height="11" />
+</clipPath>
+<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" transform="translate(12,12)">
+<g class="shred-btn__icon-lid">
+<polyline points="9,5 9,1 15,1 15,5" />
+<polyline points="4,5 20,5" />
+</g>
+<g class="shred-btn__icon-can">
+<g stroke-width="0">
+<polyline id="shred-can-fill" points="6,10 7,23 17,23 18,10" />
+<use clip-path="url(#shred-can-clip)" href="#shred-can-fill" fill="currentColor" />
+</g>
+<polyline points="6,10 7,23 17,23 18,10" />
+</g>
+</g>
 </svg>
-<span class="">Clear all</span>
+<span class="shred-btn__letters" aria-hidden="true" data-anim>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">C</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">l</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">e</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">a</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">r</span></span>
+<span class="shred-btn__letter-box is-space" aria-hidden="true"><span class="shred-btn__letter">&nbsp;</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">a</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">l</span></span>
+<span class="shred-btn__letter-box"><span class="shred-btn__letter">l</span></span>
+</span>
+<span class="sr-only">Clear all</span>
 </button>
 <input accept=".json" class="hidden" id="bm-file-input" type="file">
 </div>
@@ -489,7 +706,7 @@ Storage cap 200 events, FIFO
   function wireBookmarks(){
     const on=(id,ev,fn)=>{ const e=document.getElementById(id); if(e&&!e._wired){ e._wired=true; e.addEventListener(ev,fn); } };
     on('bm-search','input',(e)=>{ bmQ=(e.target.value||'').toLowerCase(); renderMarks(); });
-    on('bm-export-btn','click',()=>{
+    function doExport(){
       try{
         const payload={exportedAt:new Date().toISOString(), bookmarks:readBookmarks(), views:readViews()};
         const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
@@ -497,8 +714,36 @@ Storage cap 200 events, FIFO
         a.download='logforce-bookmarks-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
         setTimeout(()=>URL.revokeObjectURL(a.href),5000);
       }catch(e){}
-    });
-    on('bm-import-btn','click',()=>{ const f=document.getElementById('bm-file-input'); if(f) f.click(); });
+    }
+    // ponytail: one shred driver for all three buttons; gesture sensitive work runs on click, rest on animationend
+    (function initShredButtons(){
+      var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function shred(id, opts){
+        var btn = document.getElementById(id);
+        if(!btn) return;
+        var running = false, timer = 0;
+        function setRunning(v){ running = v; btn.disabled = v; btn.setAttribute('data-running', String(v)); }
+        function finish(){
+          if(!running) return;
+          setRunning(false);
+          if(timer){ clearTimeout(timer); timer = 0; }
+          opts.onDone();
+        }
+        btn.addEventListener('click', function(){
+          if(running) return;
+          if(opts.confirm && !confirm(opts.confirm)) return;
+          if(opts.immediate) opts.immediate();
+          setRunning(true);
+          if(reduceMotion){ finish(); return; }
+          timer = setTimeout(finish, 2300);
+        });
+        var letters = btn.querySelector('[data-anim]');
+        if(letters) letters.addEventListener('animationend', finish);
+      }
+      shred('bm-export-btn', { onDone: doExport });
+      shred('bm-import-btn', { immediate: function(){ const f=document.getElementById('bm-file-input'); if(f) f.click(); }, onDone: function(){} });
+      shred('bm-clear-btn', { confirm: 'Remove all saved bookmarks? Views stay.', onDone: function(){ writeBookmarks([]); bmOpenKey=null; renderAll(); } });
+    })();
     on('bm-file-input','change',(e)=>{
       const f=e.target.files&&e.target.files[0]; if(!f) return;
       const r=new FileReader();
@@ -512,10 +757,6 @@ Storage cap 200 events, FIFO
         renderAll();
       }catch(_){} e.target.value=''; };
       r.readAsText(f);
-    });
-    on('bm-clear-btn','click',()=>{
-      if(!confirm('Remove all saved bookmarks? Views stay.')) return;
-      writeBookmarks([]); bmOpenKey=null; renderAll();
     });
   }
   wireBookmarks();
