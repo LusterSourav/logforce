@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>403 — Access denied · LogForce</title>
+<style>
+  html,body{margin:0;padding:0;height:100%;overflow:hidden}
+  body{font-family:Helvetica,Arial,system-ui,sans-serif;background:#d8d5d0}
+  #gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  body.nogl{background:linear-gradient(135deg,#3a3733 0%,#8a8680 45%,#d8d5d0 100%)}
+  .message{
+    position:fixed;bottom:4%;left:50%;transform:translateX(-50%);
+    background:rgba(255,255,255,.88);color:#1a1a1a;
+    padding:1rem 1.4rem;max-width:min(92vw,430px);text-align:center;
+    border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.25);
+  }
+  .eyebrow{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;opacity:.55;margin:0 0 .3rem}
+  .message h1{font-size:1.3rem;margin:0 0 .4rem}
+  .message p{font-size:.82rem;line-height:1.5;margin:.35rem 0;opacity:.85}
+  .actions{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:.7rem}
+  .actions a{
+    font-size:.78rem;text-decoration:none;padding:.45rem .9rem;border-radius:8px;
+    border:1px solid #1a1a1a;color:#1a1a1a;
+    transition:transform .18s ease,background .18s ease,color .18s ease;
+  }
+  .actions a:hover{transform:translateY(-2px)}
+  .actions a.primary{background:#1a1a1a;color:#fff}
+  @media (prefers-reduced-motion:reduce){.actions a{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div class="message" role="alert">
+  <p class="eyebrow">HTTP 403 · Forbidden</p>
+  <h1>Access denied</h1>
+  <p>You are authenticated, but this path is outside your permission scope. All doors are closing.</p>
+  <p>Restricted-path attempts are logged. If you need elevated permissions, ask your workspace admin.</p>
+  <div class="actions">
+    <a class="primary" href="dashboard-v2.html">Back to dashboard</a>
+    <a href="team.html">Request access</a>
+    <a href="docs.html">Docs</a>
+  </div>
+</div>
+<script id="vertexShader" type="x-shader/x-vertex">
+attribute vec2 position;
+void main(){ gl_Position = vec4(position, 0.0, 1.0); }
+</script>
+<script id="fragmentShader" type="x-shader/x-fragment">
+precision highp float;
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform sampler2D u_plate;
+const float eps = 0.005;
+vec3 movement = vec3(.0);
+const int maxIterations = 256;
+const float stepScale = .7;
+const float stopThreshold = 0.001;
+
+vec3 path(float delta){ return vec3(0., 0., -delta*3.); }
+float length2(vec2 p){ return sqrt(p.x*p.x + p.y*p.y); }
+float length8(vec2 p){ p = p*p; p = p*p; p = p*p; return pow(p.x + p.y, 1.0/8.0); }
+float sdBox(vec3 p, vec3 b){
+  vec3 d = abs(p) - b;
+  return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
+}
+float udBox(vec3 p, vec3 b){ return length(max(abs(p)-b,0.0)); }
+float sdSphere(vec3 p, float s){ return length(p)-s; }
+
+float world_sdf(in vec3 p){
+  float world = 10.;
+  vec2 pxy = p.xy;
+  float pz = p.z;
+  float delta = pz * .3;
+  float s = sin(delta);
+  float c = cos(delta);
+  mat2 rot = mat2(c, -s, s, c);
+  p.z = mod(p.z, 1.5) - .75;
+  p.xy *= rot;
+  float anim = smoothstep(-2., -1.5, path(u_time).z - pz + p.z);
+  const float wallWidth = .02;
+  const float doorWidth = .23;
+  world = udBox(p, vec3(5.,10.,wallWidth));
+  world = min(world, udBox(p + vec3(0., .5, 0.), vec3(5., .05, wallWidth + .015)));
+  world = max(world, -sdBox(p, vec3(doorWidth,.5,1.)));
+  world = min(world, p.y + .5);
+  const float RAD90 = 1.5708;
+  const float cospi = cos(3.14159);
+  const float sinpi = sin(3.14159);
+  const float cosrad90 = cos(RAD90);
+  const float sinrad90 = sin(RAD90*1.1);
+  c = mix(cospi, cosrad90, anim);
+  s = mix(sinpi, sinrad90, anim);
+  vec3 doorP = p;
+  doorP.xz *= mat2(c, -s, s, c);
+  doorP.x += mix(0.001, doorWidth - .005, anim);
+  doorP.z += mix(0., doorWidth - .005, anim);
+  world = min(world, sdBox(doorP, vec3(doorWidth -.005,.5-.005,wallWidth)));
+  vec3 plateoffset = vec3(0., -.2, 0.);
+  vec2 plateUV = doorP.xy * vec2(-3., 3.) + .5 + plateoffset.xy * 3.;
+  float t = 1. - texture2D(u_plate, plateUV).x;
+  world = min(world, sdBox(doorP + plateoffset, vec3(doorWidth*.8,.1,wallWidth+.01 * t + .005)));
+  doorP.x += .12;
+  doorP.z -= .05;
+  doorP.y += .05;
+  world = min(world, sdSphere(doorP, .03));
+  return world;
+}
+
+vec3 calculate_normal(in vec3 p){
+  float gx = world_sdf(vec3(p.x + eps, p.y, p.z)) - world_sdf(vec3(p.x - eps, p.y, p.z));
+  float gy = world_sdf(vec3(p.x, p.y + eps, p.z)) - world_sdf(vec3(p.x, p.y - eps, p.z));
+  float gz = world_sdf(vec3(p.x, p.y, p.z + eps)) - world_sdf(vec3(p.x, p.y, p.z - eps));
+  return normalize(vec3(gx, gy, gz));
+}
+
+float rayMarching(vec3 origin, vec3 dir, float start, float end){
+  float sceneDist = 1e4;
+  float rayDepth = start;
+  for(int i = 0; i < maxIterations; i++){
+    sceneDist = world_sdf(origin + dir * rayDepth);
+    if((sceneDist < stopThreshold) || (rayDepth >= end)) break;
+    rayDepth += sceneDist * stepScale;
+  }
+  if(sceneDist >= stopThreshold) rayDepth = end;
+  else rayDepth += sceneDist;
+  return rayDepth;
+}
+
+vec3 lighting(vec3 sp, vec3 camPos){
+  vec3 sceneColor = vec3(0.0);
+  vec3 objColor = vec3(1.);
+  vec3 surfNormal = calculate_normal(sp);
+  vec3 lp = vec3(-0., .3, -1.) + movement;
+  vec3 ld = lp - sp;
+  vec3 lcolor = vec3(1.,0.97,0.92) * .5;
+  float len = length(ld);
+  ld /= len;
+  float sceneLen = length(camPos - sp);
+  float sceneAtten = min(1.0 / (0.015*sceneLen*sceneLen), 1.0);
+  vec3 ref = reflect(-ld, surfNormal);
+  float ambient = .3;
+  float specularPower = 10.;
+  float diffuse = max(0.0, dot(surfNormal, ld));
+  float specular = max(0.0, dot(ref, normalize(camPos-sp)));
+  specular = pow(specular, specularPower);
+  sceneColor += (objColor*(diffuse*0.8+ambient)+specular*0.5)*lcolor*1.3;
+  sceneColor = mix(sceneColor, vec3(1.), 1.-sceneAtten*sceneAtten);
+  return sceneColor;
+}
+
+void main(){
+  vec2 aspect = vec2(u_resolution.x/u_resolution.y, 1.0);
+  vec2 uv = (2.0*gl_FragCoord.xy/u_resolution.xy - 1.0)*aspect;
+  movement = path(u_time);
+  vec3 lookAt = vec3(-0., 0.2, 1.) + movement;
+  vec3 camera_position = vec3(0., 0., -1.0) + movement;
+  vec3 forward = normalize(lookAt-camera_position);
+  vec3 right = normalize(vec3(forward.z, 0., -forward.x));
+  vec3 up = normalize(cross(forward,right));
+  float FOV = 0.6;
+  vec3 ro = camera_position;
+  vec3 rd = normalize(forward + FOV*uv.x*right + FOV*uv.y*up);
+  const float clipNear = 0.0;
+  const float clipFar = 8.0;
+  float dist = rayMarching(ro, rd, clipNear, clipFar);
+  if(dist >= clipFar){ gl_FragColor = vec4(vec3(1.), 1.0); return; }
+  vec3 sp = ro + rd*dist;
+  vec3 sceneColor = lighting(sp, camera_position);
+  gl_FragColor = vec4(clamp(sceneColor, 0.0, 1.0), 1.0);
+}
+</script>
+<script>
+(function(){
+  var canvas = document.getElementById('gl');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ponytail: canvas-drawn plate, no s3/codepen download so the page works air-gapped
+  function makePlate(){
+    var c = document.createElement('canvas');
+    c.width = 256; c.height = 128;
+    var g = c.getContext('2d');
+    g.fillStyle = '#c9c9c9'; g.fillRect(0,0,256,128);
+    g.strokeStyle = '#3a3a3a'; g.lineWidth = 6; g.strokeRect(10,10,236,108);
+    g.fillStyle = '#222'; g.font = 'bold 64px Helvetica, Arial, sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('403', 128, 68);
+    return c;
+  }
+  function fallback(){ document.body.classList.add('nogl'); canvas.style.display = 'none'; }
+  var gl;
+  try { gl = canvas.getContext('webgl', {antialias:false}) || canvas.getContext('experimental-webgl'); } catch(e){ gl = null; }
+  if(!gl){ fallback(); return; }
+  function shader(type, src){
+    var s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){ fallback(); return null; }
+    return s;
+  }
+  var vs = shader(gl.VERTEX_SHADER, document.getElementById('vertexShader').textContent);
+  var fs = shader(gl.FRAGMENT_SHADER, document.getElementById('fragmentShader').textContent);
+  if(!vs || !fs) return;
+  var prog = gl.createProgram();
+  gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){ fallback(); return; }
+  gl.useProgram(prog);
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  var loc = gl.getAttribLocation(prog, 'position');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  var uRes = gl.getUniformLocation(prog, 'u_resolution');
+  var uTime = gl.getUniformLocation(prog, 'u_time');
+  var tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, makePlate());
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  function resize(){
+    var scale = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width = Math.floor(window.innerWidth * scale);
+    canvas.height = Math.floor(window.innerHeight * scale);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform2f(uRes, canvas.width, canvas.height);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  var t = 1.0;
+  function frame(){
+    gl.uniform1f(uTime, t);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  if(reduceMotion){ frame(); return; }
+  (function loop(){
+    if(document.hidden){ requestAnimationFrame(loop); return; }
+    t += 0.01;
+    frame();
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>
