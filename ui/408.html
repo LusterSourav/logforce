@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>408 — Request Timeout · LogForce</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<script src="lib/matter.min.js"></script>
+<style>
+  html,body{ margin:0; padding:0; }
+  body{
+    background:#f6f6f6;
+    background:linear-gradient(135deg,#f6f6f6 0%,#d1d1d1 100%);
+    color:#000; width:100vw; height:100vh; overflow:hidden; position:relative;
+    font-family:'VT323',monospace; font-size:22px;
+  }
+  body p{ margin:0; line-height:1; }
+  body p:first-of-type{ margin-top:20px; }
+  body canvas{ width:100vw; height:100vh; top:0; left:0; position:absolute; cursor:pointer; }
+  #info{ position:absolute; top:7vh; left:5vw; z-index:10; }
+  #info nav{ margin-top:14px; font-size:18px; }
+  #info nav a{ color:#000; margin-right:12px; }
+  .range-slider{
+    margin:60px 0 0 0; position:absolute; top:50%; width:30%;
+    transform:translateY(-50%); right:5%; text-align:right; z-index:10;
+  }
+  .range-slider__range{
+    -webkit-appearance:none; appearance:none;
+    width:calc(100% - 73px); height:10px; border-radius:5px;
+    background:#ccc; outline:none; padding:0; margin:0;
+  }
+  .range-slider__range::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:20px; height:20px;
+    border-radius:50%; background:#000; cursor:pointer;
+    transition:background .15s ease-in-out;
+  }
+  .range-slider__range::-webkit-slider-thumb:hover{ background:#4a08a0; }
+  .range-slider__range:active::-webkit-slider-thumb{ background:#4a08a0; }
+  .range-slider__range::-moz-range-thumb{
+    width:20px; height:20px; border:0; border-radius:50%;
+    background:#000; cursor:pointer; transition:background .15s ease-in-out;
+  }
+  .range-slider__range::-moz-range-thumb:hover{ background:#4a08a0; }
+  h1{ font-weight:400; margin:0; line-height:1; }
+  h1 small{ padding-bottom:30px; }
+  #gui{ position:absolute; top:15%; right:5%; z-index:10; text-align:right; font-size:24px; }
+  #gui span{ font-size:60px; margin-left:5px; }
+  #timeout{
+    position:absolute; left:50%; top:50%; opacity:0; pointer-events:none;
+    transform:translate(-50%,-55%) scale3d(1,1,1) rotate(-10deg);
+    transition:all 1s cubic-bezier(0.455,0.03,0.515,0.955);
+    z-index:20; font-size:clamp(2rem,7vw,7rem); color:#fff;
+    background-color:rgba(0,0,0,.9); max-width:90vw; text-align:center;
+    padding:10px 35px; line-height:1.1;
+  }
+  #timeout.shown{
+    opacity:1; transform:translate(-50%,-55%) scale3d(1.3,1.3,1) rotate(-1deg);
+  }
+  #restart{
+    border:none; padding:10px 20px; margin-top:20px;
+    box-shadow:10px 10px 0 rgba(0,0,0,1);
+    font-family:'VT323',monospace; text-transform:uppercase; cursor:pointer;
+    font-size:30px; background-color:#4a08a0; color:#fff;
+    transition:background .3s ease;
+  }
+  #restart:hover,#restart:focus{ background-color:#360677; }
+  #restart[hidden]{ display:none; }
+  @media screen and (max-width:990px){
+    body{ font-size:12px; }
+    #info{ bottom:25px; left:25px; top:20px; }
+    #gui{ top:20px; }
+    h1 small{ display:none; }
+    p:first-of-type{ margin-top:0; }
+    .range-slider{ bottom:45px; top:initial; width:100%; right:35px; transform:translateY(0); }
+    #timeout{ padding:0 12px; }
+  }
+  @media (prefers-reduced-motion:reduce){ .range-slider{ display:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="canvas_container"></div>
+  <div id="info">
+    <h1>408 Request Timeout<br><small>- The Game</small></h1>
+    <p>Grab the slider and wiggle the pipe till the logs behave.</p>
+    <p>Careful — this glass has seen things. Mostly firewalls.</p>
+    <p>Every grain is somebody's log line. Don't spill prod.</p>
+    <p>The clock doesn't care about your sprint velocity.</p>
+    <button id="restart" hidden>Restart</button>
+    <nav><a href="dashboard-v2.html">Dashboard</a><a href="docs.html">Docs</a><a href="team.html">Team</a></nav>
+  </div>
+  <div id="gui">Time limit:<br><span id="timeLimit">11</span>s</div>
+  <div class="range-slider">
+    <p>Panic handle:</p>
+    <input id="angle" type="range" min="-25" max="25" value="0" class="range-slider__range">
+  </div>
+  <div id="timeout" role="alert"></div>
+</div>
+<script>
+// 408 hourglass game. Vanilla-JS port of a Vue+p5+Matter pen: Vue was only
+// slider/timer/message state, p5 only hosted the canvas — Matter.js does
+// the physics. Single vendored dep: vendor/matter.min.js (air-gap safe).
+(function(){
+  var SAND_COUNT = 110, SAND_SIZE = 12, PIXEL_SIZE = 20;
+  var sandColor = '#4a08a0', boundsColor = '#BBBBBB';
+  var currAngle = 0, gameOver = false, inGame = false;
+  var timeLimit = 11, timer = null, points = 0, message = 'THE LOGS GAVE UP ON YOU';
+  var engine = null, render = null, stack = null;
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var timeEl = document.getElementById('timeLimit');
+  var timeoutEl = document.getElementById('timeout');
+  var restartEl = document.getElementById('restart');
+  var angleEl = document.getElementById('angle');
+
+  // Hourglass walls, left and right funnel halves (pixel grid bodies).
+  var LEFT_SIDE = [
+    {x:-40,y:-20},{x:-40,y:0},{x:-60,y:0},{x:-60,y:-40},{x:-60,y:20},
+    {x:-80,y:20},{x:-80,y:40},{x:-80,y:-40},{x:-80,y:-60},{x:-100,y:-80},
+    {x:-100,y:-60},{x:-100,y:60},{x:-100,y:40},{x:-120,y:-100},{x:-120,y:60},
+    {x:-120,y:80},{x:-120,y:100},{x:-120,y:120},{x:-120,y:140},{x:-120,y:160},
+    {x:-120,y:-120},{x:-120,y:-140},{x:-120,y:-160},{x:-120,y:-180},{x:-140,y:200},
+    {x:-140,y:-220}
+  ];
+  var RIGHT_SIDE = [
+    {x:20,y:0},{x:40,y:0},{x:20,y:-20},{x:40,y:-20},{x:60,y:40},
+    {x:40,y:20},{x:60,y:20},{x:80,y:40},{x:100,y:80},{x:100,y:100},
+    {x:100,y:120},{x:100,y:140},{x:100,y:160},{x:100,y:-80},{x:100,y:-100},
+    {x:80,y:-60},{x:60,y:-60},{x:60,y:-40},{x:40,y:-40},{x:100,y:-120},
+    {x:100,y:-140},{x:100,y:-160},{x:100,y:-180},{x:80,y:-80},{x:120,y:200},
+    {x:120,y:-220}
+  ];
+
+  function endGame(msg){
+    if(gameOver) return;
+    gameOver = true;
+    message = msg;
+    clearInterval(timer);
+    timeoutEl.textContent = message;
+    timeoutEl.classList.add('shown');
+    restartEl.hidden = false;
+  }
+
+  function initWorld(){
+    var W = window.innerWidth, H = window.innerHeight;
+    var hScale = H / 800;
+    engine = Matter.Engine.create();
+    var world = engine.world;
+    render = Matter.Render.create({
+      element: document.getElementById('canvas_container'),
+      engine: engine,
+      options: { width: W, height: H, wireframes: false, background: 'transparent' }
+    });
+    Matter.World.add(world, [
+      Matter.Bodies.rectangle(W/2, 0, W, 50, { isStatic: true, render: { fillStyle: boundsColor } }),
+      Matter.Bodies.rectangle(W/2, H, W, 50, { isStatic: true, id: 999, render: { fillStyle: boundsColor } }),
+      Matter.Bodies.rectangle(W, H/2, 50, H, { isStatic: true, render: { fillStyle: boundsColor } }),
+      Matter.Bodies.rectangle(0, H/2, 50, H, { isStatic: true, render: { fillStyle: boundsColor } })
+    ]);
+    stack = Matter.Composite.create();
+    function edge(x, y, w, h){
+      var b = Matter.Bodies.rectangle(x+100, y, w, h, {
+        isStatic: true, restitution: 0, friction: 1, density: 10,
+        render: { fillStyle: '#000000' }
+      });
+      Matter.World.add(world, b);
+      Matter.Composite.add(stack, b);
+    }
+    edge(-110,-200,280,PIXEL_SIZE); edge(-110,-240,280,PIXEL_SIZE);
+    edge(-110,180,280,PIXEL_SIZE); edge(-110,220,280,PIXEL_SIZE);
+    function block(x, y, w, h, extra){
+      var b = Matter.Bodies.rectangle(x, y, w, h, Object.assign({
+        isStatic: true, density: 100, render: { fillStyle: 'transparent' }
+      }, extra || {}));
+      Matter.World.add(world, b);
+      Matter.Composite.add(stack, b);
+      return b;
+    }
+    block(-10, 195, 270, 50);
+    block(-120, 135, 20, 170);
+    block(100, 150, 20, 160);
+    block(-10, -150, 200, 100, { label: 'sensor', isSensor: true });
+    block(-10, 110, 200, 200, { label: 'sensor', isSensor: true });
+    function rnd(a, b){ return a + Math.random() * (b - a); }
+    for(var i = 0; i < SAND_COUNT; i++){
+      var s = Matter.Bodies.rectangle(rnd(-10,8)*10, rnd(6,17)*10, SAND_SIZE, SAND_SIZE, {
+        restitution: 0, friction: .1, density: .000001, label: 'sand',
+        render: { fillStyle: sandColor }
+      });
+      Matter.World.add(world, s);
+      Matter.Composite.add(stack, s);
+    }
+    function pixel(x, y){
+      var p = Matter.Bodies.rectangle(x, y, PIXEL_SIZE, PIXEL_SIZE, {
+        friction: .2, restitution: 0, isStatic: true, density: 10,
+        render: { fillStyle: '#000000' }
+      });
+      Matter.World.add(world, p);
+      Matter.Composite.add(stack, p);
+    }
+    LEFT_SIDE.forEach(function(o){ pixel(o.x, o.y); });
+    RIGHT_SIDE.forEach(function(o){ pixel(o.x, o.y); });
+    Matter.Composite.translate(stack, { x: W/2, y: H/2 }, true);
+    Matter.Composite.scale(stack, hScale, hScale, { x: W/2, y: H/2 }, true);
+    Matter.Events.on(engine, 'collisionStart', function(event){
+      for(var i = 0; i < event.pairs.length; i++){
+        var pair = event.pairs[i];
+        if(pair.bodyA.label === 'sand' && pair.bodyB.id == 999){
+          pair.bodyA.render.fillStyle = '#FF0000';
+          pair.bodyB.render.fillStyle = '#FF0000';
+          endGame('SPILL! Somebody\'s getting paged.');
+        }
+      }
+    });
+    Matter.Events.on(engine, 'collisionEnd', function(event){
+      for(var i = 0; i < event.pairs.length; i++){
+        var pair = event.pairs[i];
+        if(pair.bodyA.label == 'sensor'){
+          points++;
+          pair.bodyB.render.fillStyle = sandColor;
+          if(points >= 110) endGame('ZERO-DROP SHIFT!');
+        }
+      }
+    });
+  }
+
+  function loop(){
+    if(!gameOver){
+      Matter.Composite.rotate(stack, currAngle * 0.001,
+        { x: window.innerWidth/2, y: window.innerHeight/2 }, true);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  angleEl.addEventListener('input', function(){
+    currAngle = parseFloat(angleEl.value) || 0;
+    if(currAngle !== 0 && !inGame && !gameOver && !reduceMotion){
+      inGame = true;
+      timer = setInterval(function(){
+        timeLimit -= 1;
+        timeEl.textContent = timeLimit;
+        if(timeLimit <= 0) endGame('THE LOGS GAVE UP ON YOU');
+      }, 1000);
+    }
+  });
+  restartEl.addEventListener('click', function(){ window.location.reload(); });
+
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function(){ window.location.reload(); }, 300);
+  });
+
+  initWorld();
+  if(reduceMotion){
+    // ponytail: frozen first frame + note; a physics game has no other
+    // honest reduced-motion form. Timer never starts (guarded above).
+    Matter.Render.world(render);
+    timeoutEl.textContent = 'Paused for reduced motion';
+    timeoutEl.classList.add('shown');
+    return;
+  }
+  Matter.Render.run(render);
+  Matter.Engine.run(engine);
+  loop();
+})();
+</script>
+</body>
+</html>
