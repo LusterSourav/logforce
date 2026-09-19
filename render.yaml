@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: logforce
+    env: static
+    buildCommand: ""
+    staticPublishPath: ./ui
+    routes:
+      - type: rewrite
+        source: /dashboard
+        destination: /dashboard-v2.html
+      - type: rewrite
+        source: /analytics
+        destination: /analytics.html
+      - type: rewrite
+        source: /events
+        destination: /events.html
+      - type: rewrite
+        source: /bookmarks
+        destination: /bookmarks.html
+      - type: rewrite
+        source: /
+        destination: /dashboard-v2.html
