@@ -26,6 +26,11 @@ Env
 | `bookmarks.html` | 8082 | Saved events plus saved views, browser local only, zero network |
 | `docs.html` | 8082 | Device documentation browser |
 | `team.html` | 8082 | Team profile page — "Just Bored Vol. 3" design |
+| `403.html` | 8081 | 403 honeypot (doors shader) — served with real 403 status for probe paths, see `docs/403-honeypot.md` |
+| `401.html` | 8081 | 401 honeypot (falling cow, pure CSS) — served with real 401 status for auth-looking probes, see `docs/401-unauthorized.md` |
+| `404.html` | 8081 | 404 eyes (canvas 2D, zero deps) — served with real 404 status for missing paths, see `docs/404-not-found.md` |
+| `408.html` | 8081 | 408 hourglass game (Matter.js vendored in `lib/`) — served with real 408 status, see `docs/408-timeout.md` |
+| `500.html` | 8081 | 500 starfield + sticks (SVGs in `img/`, zero deps) — served with real 500 status; panics recovered, see `docs/500-internal.md` |
 
 ## team.html — Design Notes
 
