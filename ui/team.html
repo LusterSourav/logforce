@@ -98,6 +98,66 @@ main{display:flex;flex-direction:column}
 .username{
   font:3rem var(--f-deco);
   color:#fff;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  cursor:grab;
+  font-size:clamp(1.6rem,4vw,3rem);
+}
+.username .digit{
+  display:inline-flex;
+  padding:0 .06em;
+  border-radius:.2em;
+}
+.username .digit:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--acento),white 30%);
+  outline-offset:.15em;
+}
+.username .digit.is-space{width:.35em}
+.username .digit > span{
+  display:inline-block;
+  scale:calc(var(--active,0) + .5);
+  filter:blur(calc((1 - var(--active,0)) * 1rem));
+  transition:scale calc(((1 - var(--active,0)) + .2) * 1s), filter calc(((1 - var(--active,0)) + .2) * 1s);
+}
+:root{
+  --reveal-idle:0;
+  --lerp-0:1;
+  --lerp-1:calc(sin(50deg));
+  --lerp-2:calc(sin(45deg));
+  --lerp-3:calc(sin(35deg));
+  --lerp-4:calc(sin(25deg));
+  --lerp-5:calc(sin(15deg));
+  --lerp-6:calc(sin(12deg));
+  --lerp-7:calc(sin(9deg));
+  --lerp-8:calc(sin(6deg));
+  --lerp-9:calc(sin(3deg));
+}
+.username .digit:is(:hover,:focus-visible,:active){--active:var(--lerp-0)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit,
+.username .digit:has(+ .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-1)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit + .digit,
+.username .digit:has(+ .digit + .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-2)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit + .digit + .digit,
+.username .digit:has(+ .digit + .digit + .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-3)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit + .digit + .digit + .digit,
+.username .digit:has(+ .digit + .digit + .digit + .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-4)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit + .digit + .digit + .digit + .digit,
+.username .digit:has(+ .digit + .digit + .digit + .digit + .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-5)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit + .digit + .digit + .digit + .digit + .digit,
+.username .digit:has(+ .digit + .digit + .digit + .digit + .digit + .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-6)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit + .digit + .digit + .digit + .digit + .digit + .digit,
+.username .digit:has(+ .digit + .digit + .digit + .digit + .digit + .digit + .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-7)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit + .digit + .digit + .digit + .digit + .digit + .digit + .digit,
+.username .digit:has(+ .digit + .digit + .digit + .digit + .digit + .digit + .digit + .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-8)}
+.username .digit:is(:hover,:focus-visible,:active) + .digit + .digit + .digit + .digit + .digit + .digit + .digit + .digit + .digit,
+.username .digit:has(+ .digit + .digit + .digit + .digit + .digit + .digit + .digit + .digit + .digit:is(:hover,:focus-visible,:active)){--active:var(--lerp-9)}
+@supports not (scale:calc(sin(90deg))){
+  .username .digit > span{scale:none;filter:none;opacity:.75;transition:opacity .3s,transform .3s}
+  .username .digit:is(:hover,:focus-visible,:active) > span{opacity:1;transform:translateY(-.06em)}
+}
+@media (prefers-reduced-motion:reduce){
+  .username .digit > span{transition:none;scale:none;filter:none}
 }
 .role{
   font-size:.85rem;
@@ -239,7 +299,7 @@ aside{
 
 <div class="cards">
 
-  <!-- top row: Swarnadeep + Souvik side by side -->
+  <!-- top row Swarnadeep plus Souvik side by side -->
   <div class="top-row">
     <!-- ── Soham Chakraborty ── -->
     <article class="post">
@@ -463,5 +523,26 @@ aside{
   </article>
 
 </div>
+<script>
+(function(){
+  var names=document.querySelectorAll('.username');
+  names.forEach(function(el){
+    if(el.dataset.split==='1')return;
+    var text=el.textContent;
+    el.setAttribute('aria-label',text.trim());
+    el.textContent='';
+    Array.from(text).forEach(function(ch){
+      var d=document.createElement('span');
+      d.className='digit'+(ch===' '?' is-space':'');
+      if(ch!==' ')d.tabIndex=0;
+      var inner=document.createElement('span');
+      inner.textContent=(ch===' '?'\u00A0':ch);
+      d.appendChild(inner);
+      el.appendChild(d);
+    });
+    el.dataset.split='1';
+  });
+})();
+</script>
 </body>
 </html>
