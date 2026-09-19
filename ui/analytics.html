@@ -167,7 +167,32 @@
         color: light-dark(#696969, #EEE);
         display: grid;
       }
-    /* Low-poly planet logo badge — scoped, no page takeover, no overlap */
+      @container (max-width: 400px) {
+        &:is([type="area"])[items-xs="3"] tbody tr:nth-of-type(n+4),
+        &:is([type="area"])[items-xs="6"] tbody tr:nth-of-type(n+7) {
+          display: none;
+        }
+      }
+      @container (min-width: 400px) and (max-width: 700px) {
+        &:is([type="area"])[items-sm="6"] tbody tr:nth-of-type(n+7),
+        &:is([type="area"])[items-sm="12"] tbody tr:nth-of-type(n+13) {
+          display: none;
+        }
+      }
+      &[type=area] tbody {
+        --data-chart-bar-gap: 0;
+        & td {
+          clip-path: polygon(-1% 100%,
+              -1% calc(var(--_py) * 100%),
+              101% calc(var(--_y) * 100%),
+              101% 100%);
+          font-size: 0;
+          grid-area: 1 / 1 / 2 / 2;
+          height: calc(100cqb - var(--data-chart-label-h));
+        }
+      }
+    }
+    /* Low-poly planet logo badge — scoped, top level, outside chart nesting */
     .planet-badge {
       position: relative;
       display: block;
@@ -195,31 +220,6 @@
     }
     .planet-badge[data-failed="true"] canvas { display: none; }
     .planet-badge[data-failed="true"] #logo-planet-fallback { visibility: visible; }
-      @container (max-width: 400px) {
-        &:is([type="area"])[items-xs="3"] tbody tr:nth-of-type(n+4),
-        &:is([type="area"])[items-xs="6"] tbody tr:nth-of-type(n+7) {
-          display: none;
-        }
-      }
-      @container (min-width: 400px) and (max-width: 700px) {
-        &:is([type="area"])[items-sm="6"] tbody tr:nth-of-type(n+7),
-        &:is([type="area"])[items-sm="12"] tbody tr:nth-of-type(n+13) {
-          display: none;
-        }
-      }
-      &[type=area] tbody {
-        --data-chart-bar-gap: 0;
-        & td {
-          clip-path: polygon(-1% 100%,
-              -1% calc(var(--_py) * 100%),
-              101% calc(var(--_y) * 100%),
-              101% 100%);
-          font-size: 0;
-          grid-area: 1 / 1 / 2 / 2;
-          height: calc(100cqb - var(--data-chart-label-h));
-        }
-      }
-    }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 bg-[#ebf0f7] p-3 sm:p-5 lg:p-7 flex flex-col items-center justify-start antialiased selection:bg-brand-500 selection:text-white">
