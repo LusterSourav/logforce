@@ -35,6 +35,9 @@
       }
     }
   </script>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
 <style data-purpose="events-styles">
     body {
       font-family: 'Inter', sans-serif;
@@ -61,14 +64,42 @@
     .token-string { color: #facc15; }
     .token-number { color: #38bdf8; }
     .token-bool { color: #c084fc; }
+    /* Low-poly planet logo badge — scoped, no page takeover, no overlap */
+    .planet-badge {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 9999px;
+      isolation: isolate;
+    }
+    .planet-badge canvas {
+      position: absolute;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+      pointer-events: none;
+    }
+    #logo-planet-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      visibility: hidden;
+    }
+    .planet-badge[data-failed="true"] canvas { display: none; }
+    .planet-badge[data-failed="true"] #logo-planet-fallback { visibility: visible; }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 bg-[#ebf0f7] p-3 sm:p-5 lg:p-7 flex flex-col items-center justify-start antialiased selection:bg-brand-500 selection:text-white">
 <div class="relative w-full max-w-[1720px] bg-white rounded-[28px] sm:rounded-[36px] shadow-container border border-slate-200/80 overflow-hidden flex flex-col lg:flex-row flex-1 min-w-0">
 <aside class="w-full lg:w-[88px] bg-white border-b lg:border-b-0 lg:border-r border-slate-100/90 flex flex-row lg:flex-col items-center justify-between py-4 lg:py-7 px-4 sm:px-6 lg:px-0 shrink-0 z-30 sticky top-0 lg:static" data-purpose="primary-sidebar">
 <div class="flex flex-row lg:flex-col items-center gap-4 lg:gap-8 w-full lg:w-auto justify-between lg:justify-start">
-<a class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-md shadow-brand-600/30 transition-transform hover:scale-105 active:scale-95 shrink-0" data-purpose="app-logo" href="dashboard-v2.html">
-<span class="">$</span>
+<a aria-label="Dashboard home — live status planet" class="w-11 h-11 sm:w-12 sm:h-12 rounded-full text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-md shadow-brand-600/30 transition-transform hover:scale-105 active:scale-95 shrink-0 overflow-hidden relative p-0" data-purpose="app-logo" href="dashboard-v2.html" style="background: linear-gradient(to bottom, #11e8bb 0%, #8200c9 100%);">
+<span class="planet-badge" id="logo-planet" role="img" aria-label="Rotating low poly planet with wireframe shell and particle cloud"><canvas id="logo-planet-canvas"></canvas><span id="logo-planet-fallback">$</span></span>
 </a>
 <nav class="flex flex-row lg:flex-col items-center gap-2 lg:gap-3.5 overflow-x-auto lg:overflow-visible no-scrollbar py-0.5">
 <a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="dashboard-v2.html" title="Dashboard">
@@ -624,6 +655,109 @@ Save view
   syncEvControls();
   refreshEvents();
   setInterval(refreshEvents, 5000);
+})();
+</script>
+<!-- Sidebar low-poly planet: solid core + wireframe shell + particle cloud -->
+<script type="module">
+import * as THREE from 'three';
+(function () {
+  var badge = document.getElementById('logo-planet');
+  var canvas = document.getElementById('logo-planet-canvas');
+  if (!badge || !canvas) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    badge.setAttribute('data-failed', 'true');
+    return;
+  }
+  var renderer, scene, camera, core, shell, particles;
+  var running = true;
+  var rafId = 0;
+  function fail() {
+    badge.setAttribute('data-failed', 'true');
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+  }
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  } catch (e) { fail(); return; }
+  renderer.setClearColor(0x000000, 0);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.z = 5.6;
+  scene.add(camera);
+  core = new THREE.Object3D();
+  shell = new THREE.Object3D();
+  particles = new THREE.Object3D();
+  scene.add(core);
+  scene.add(shell);
+  scene.add(particles);
+  var coreMesh = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.15, 1),
+    new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true, shininess: 30 })
+  );
+  core.add(coreMesh);
+  var shellMesh = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.7, 1),
+    new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: true, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
+  );
+  shell.add(shellMesh);
+  var COUNT = 180;
+  var partMesh = new THREE.InstancedMesh(
+    new THREE.TetrahedronGeometry(0.06, 0),
+    new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true }),
+    COUNT
+  );
+  var dummy = new THREE.Object3D();
+  var v = new THREE.Vector3();
+  for (var i = 0; i < COUNT; i++) {
+    v.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+    v.multiplyScalar(2.2 + Math.random() * 2.3);
+    dummy.position.copy(v);
+    dummy.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
+    var s = 0.5 + Math.random();
+    dummy.scale.set(s, s, s);
+    dummy.updateMatrix();
+    partMesh.setMatrixAt(i, dummy.matrix);
+  }
+  partMesh.instanceMatrix.needsUpdate = true;
+  particles.add(partMesh);
+  scene.add(new THREE.AmbientLight(0x999999, 1.2));
+  var l0 = new THREE.DirectionalLight(0xffffff, 2.0); l0.position.set(1, 0, 2); scene.add(l0);
+  var l1 = new THREE.DirectionalLight(0x11e8bb, 2.2); l1.position.set(0.75, 1, 0.5); scene.add(l1);
+  var l2 = new THREE.DirectionalLight(0x8200c9, 2.2); l2.position.set(-0.75, -1, 0.5); scene.add(l2);
+  function resize() {
+    var w = badge.clientWidth || 48;
+    var h = badge.clientHeight || 48;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(badge);
+  else window.addEventListener('resize', resize);
+  function frame() {
+    if (!running) return;
+    particles.rotation.y -= 0.0040;
+    core.rotation.x -= 0.0020;
+    core.rotation.y -= 0.0030;
+    shell.rotation.x -= 0.0010;
+    shell.rotation.y += 0.0020;
+    renderer.render(scene, camera);
+    rafId = requestAnimationFrame(frame);
+  }
+  frame();
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      var vis = entries[0].isIntersecting && document.visibilityState === 'visible';
+      if (vis && !running) { running = true; frame(); }
+      else if (!vis && running) { running = false; cancelAnimationFrame(rafId); }
+    }).observe(badge);
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && running) { running = false; cancelAnimationFrame(rafId); }
+    else if (!document.hidden && !running && badge.getAttribute('data-failed') !== 'true') { running = true; frame(); }
+  });
 })();
 </script>
 </body></html>
