@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>500 — Internal Server Error · LogForce</title>
+<style>
+  html,body{ margin:0; padding:0; }
+  body{
+    width:100vw; height:100vh; display:flex; justify-content:center; align-items:center;
+    background-color:black; overflow:hidden;
+    font-family:"Roboto",Helvetica,Arial,system-ui,sans-serif;
+  }
+  /* ---------- Act 1: black starfield stage ---------- */
+  #message{
+    position:absolute; display:flex; justify-content:center; align-items:center;
+    flex-direction:column; width:90%; height:90%; color:#fff; z-index:2;
+    text-shadow:0 1px 8px #000, 0 0 2px #000;
+  }
+  #m1{ font-size:35px; font-weight:600; margin:1%; }
+  #m2{ font-size:80px; font-weight:700; margin:1%; }
+  #m3,#m4{ font-size:15px; width:50%; min-width:40%; text-align:center; margin:1%; }
+  #message nav{ margin-top:1.5%; font-size:15px; }
+  #message nav a{ color:#fff; margin:0 10px; }
+  #charactersDiv{ position:absolute; width:99%; height:95%; z-index:1; }
+  .characters{ width:18%; height:18%; position:absolute; }
+  #stage{ position:absolute; inset:0; z-index:0; }
+  /* ---------- Act 2: white goo takeover ---------- */
+  #goo{
+    position:fixed; inset:0; z-index:5; background:#fff;
+    display:flex; justify-content:center; align-items:center;
+    opacity:0; pointer-events:none; transition:opacity 0.35s ease;
+    overflow:hidden; font-family:Futura,'Century Gothic',sans-serif;
+  }
+  #goo.shown{ opacity:1; pointer-events:auto; }
+  .goo-scale{ transform:scale(min(1,calc(94vw / 820))); }
+  .goo-stage{ position:relative; width:820px; height:560px; }
+  .goo-post{
+    position:absolute; width:10px; height:540px; top:-50px; left:90px; z-index:9;
+    border-radius:50px 50px 0 0;
+    box-shadow:inset -0.5px 10px 0 #fff, 0 0 0 2px #000, 2px 0 0 0 #000;
+    background:linear-gradient(to bottom, transparent 50px, #000 50px, #000 350px, transparent 350px),
+      linear-gradient(to right, #fff, #fff 5px, transparent 5px),
+      repeating-linear-gradient(45deg, #000, #000 2px, #fff 2px, #fff 4px);
+  }
+  .goo-outer{
+    position:absolute; width:820px; height:420px; top:40px; left:0;
+    filter:contrast(200); background:#fff; overflow:hidden;
+    animation:gooUpdown 1s ease-in-out infinite alternate;
+  }
+  .goo-wrap{
+    position:absolute; width:calc(100% - 20px); height:calc(100% - 20px);
+    left:10px; top:10px; filter:blur(5px);
+  }
+  .g{
+    position:absolute; height:100%; width:30px; overflow:hidden; background:#222;
+    left:calc((var(--i) - 1) * 10px);
+    clip-path:polygon(calc(var(--i) * 0.75%) calc(var(--i) * 1%),
+      calc(var(--i) * 0.75%) calc(100% - var(--i) * 1%), 100% 50%);
+    animation:gooWave 1s ease-in-out infinite alternate;
+    animation-delay:calc(var(--i) / -20 * 1s);
+  }
+  .g:before{
+    content:'500'; position:absolute; font-size:140px; top:115px;
+    margin-left:30px; color:#fff; left:calc((var(--i) - 1) * -10px);
+  }
+  .goo-caption{
+    position:absolute; bottom:0; width:100%; text-align:center;
+    color:#000; font-weight:100; font-size:18px;
+  }
+  .goo-caption a{ color:#000; margin:0 10px; }
+  @keyframes gooUpdown{ from{ transform:translateY(-10px); } to{ transform:translateY(10px); } }
+  @keyframes gooWave{ from{ transform:skewY(-10deg) translateY(10px); } to{ transform:skewY(10deg) translateY(-10px); } }
+  @media (prefers-reduced-motion:reduce){
+    #stage,#charactersDiv,#message{ display:none; }
+    #goo{ opacity:1; pointer-events:auto; }
+    #goo *{ animation:none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="message" role="alert">
+  <div id="m1">Internal Server Error</div>
+  <div id="m2">500</div>
+  <div id="m3">The server encountered an internal error or misconfiguration and was unable to complete your request.</div>
+  <div id="m4">Our "experts" are trying to fix the problem, please stand by.</div>
+  <nav><a href="dashboard-v2.html">Dashboard</a><a href="docs.html">Docs</a><a href="team.html">Team</a></nav>
+</div>
+<div id="charactersDiv" aria-hidden="true"></div>
+<canvas id="stage"></canvas>
+<div id="goo" aria-hidden="true">
+  <div class="goo-scale">
+    <div class="goo-stage">
+      <div class="goo-post"></div>
+      <div class="goo-outer"><div class="goo-wrap" id="gooWrap"></div></div>
+      <div class="goo-caption">everything is terrible<br>
+        <a href="dashboard-v2.html">Dashboard</a><a href="docs.html">Docs</a><a href="team.html">Team</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// Act 1: starfield + sticks (Hakim/Ricardo recipe, capped dots so the
+// field never blobs out and eats the message). Act 2: when timer passes
+// 380 (~6s, the white has taken over), the goo layer fades in.
+(function(){
+  function Circulo(x, y, size){ this.x = x; this.y = y; this.size = size; }
+
+  var circulos = [];
+  var canvas = document.getElementById('stage');
+  var context = canvas.getContext('2d');
+  var goo = document.getElementById('goo');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  function initArr(){
+    circulos.length = 0;
+    for(var index = 0; index < 300; index++){
+      var randomX = Math.floor(Math.random() * ((canvas.width * 3) - (canvas.width * 1.2) + 1)) + (canvas.width * 1.2);
+      var randomY = Math.floor(Math.random() * (canvas.height - (canvas.height * -0.2 + 1)) + (canvas.height * -0.2));
+      circulos.push(new Circulo(randomX, randomY, canvas.width / 1000));
+    }
+  }
+
+  var timer = 0, requestID = null;
+  function draw(){
+    timer++;
+    // ponytail: flag loads the instant Act 1 freezes, no drift window.
+    if(timer >= 500) goo.classList.add('shown');
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    var distanceX = canvas.width / 80;
+    var growthRate = canvas.width / 1000;
+    context.fillStyle = 'white';
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    circulos.forEach(function(circulo){
+      context.beginPath();
+      if(timer < 65){
+        circulo.x = circulo.x - distanceX;
+        circulo.size = circulo.size + growthRate;
+      }
+      if(timer > 65 && timer < 500){
+        circulo.x = circulo.x - (distanceX * 0.02);
+        circulo.size = circulo.size + (growthRate * 0.2);
+      }
+      // ponytail: capped radius; uncapped dots fuse into one blob at
+      // desktop widths and swallow the message (caught by screenshot).
+      context.arc(circulo.x, circulo.y, Math.min(Math.max(circulo.size, 0.1), 40), 0, Math.PI * 2);
+      context.fill();
+    });
+    if(timer > 500){
+      cancelAnimationFrame(requestID);
+      requestID = null;
+      return;
+    }
+    requestID = requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', function(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    timer = 0;
+    goo.classList.remove('shown');
+    if(requestID) cancelAnimationFrame(requestID);
+    initArr();
+    document.getElementById('charactersDiv').innerHTML = '';
+    if(!reduceMotion){ draw(); charactersAnimate(); }
+  });
+
+  function flyStick(top, bottom, src, duration, spinDuration, startTilted){
+    var stick = new Image();
+    stick.classList.add('characters');
+    stick.alt = '';
+    if(top !== null) stick.style.top = top;
+    if(bottom !== null) stick.style.bottom = bottom;
+    stick.src = src;
+    if(startTilted) stick.style.transform = 'rotateZ(-90deg)';
+    stick.onerror = function(){ stick.remove(); };
+    document.getElementById('charactersDiv').appendChild(stick);
+    if(duration === null) return;
+    stick.animate([{ left: '100%' }, { left: '-20%' }],
+      { duration: duration, easing: 'linear', fill: 'forwards' });
+    if(spinDuration == null) return;
+    stick.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(-360deg)' }],
+      { duration: spinDuration, iterations: Infinity, easing: 'linear' });
+  }
+
+  function charactersAnimate(){
+    flyStick('0%', null, 'img/stick0.svg', 1500, null, true);
+    flyStick('10%', null, 'img/stick1.svg', 3000, 2000, false);
+    flyStick('20%', null, 'img/stick2.svg', 5000, 1000, false);
+    flyStick('25%', null, 'img/stick0.svg', 2500, 1500, false);
+    flyStick('35%', null, 'img/stick0.svg', 2000, 300, false);
+    flyStick(null, '5%', 'img/stick3.svg', null, null, false);
+  }
+
+  // Goo slices: 50 overlapping bands reassembling one white 500; the
+  // blur(5px)+contrast(200) pair fuses them into liquid. --i drives
+  // position, clip angle, and wave phase via calc().
+  (function buildGoo(){
+    var wrap = document.getElementById('gooWrap');
+    for(var i = 1; i <= 50; i++){
+      var d = document.createElement('div');
+      d.className = 'g';
+      d.setAttribute('style', '--i:' + i);
+      d.setAttribute('aria-hidden', 'true');
+      wrap.appendChild(d);
+    }
+  })();
+
+  initArr();
+  if(reduceMotion) return;
+  draw();
+  charactersAnimate();
+})();
+</script>
+</body>
+</html>
