@@ -22,9 +22,28 @@
     { "source": "/events.html", "destination": "/ui/events.html" },
     { "source": "/bookmarks", "destination": "/ui/bookmarks.html" },
     { "source": "/bookmarks.html", "destination": "/ui/bookmarks.html" },
+    { "source": "/403", "destination": "/ui/403.html" },
+    { "source": "/403.html", "destination": "/ui/403.html" },
+    { "source": "/401", "destination": "/ui/401.html" },
+    { "source": "/401.html", "destination": "/ui/401.html" },
+    { "source": "/404", "destination": "/ui/404.html" },
+    { "source": "/404.html", "destination": "/ui/404.html" },
+    { "source": "/408", "destination": "/ui/408.html" },
+    { "source": "/408.html", "destination": "/ui/408.html" },
+    { "source": "/500", "destination": "/ui/500.html" },
+    { "source": "/500.html", "destination": "/ui/500.html" },
     { "source": "/", "destination": "/ui/dashboard-v2.html" }
   ],
   "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    },
     {
       "source": "/api/(.*)",
       "headers": [
