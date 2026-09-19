@@ -193,6 +193,38 @@
       }
     }
     /* Low-poly planet logo badge — scoped, top level, outside chart nesting */
+    /* Rising flame notification — scoped to #anl-bell-btn, vanilla CSS only */
+    #anl-bell-btn {
+      overflow: visible;
+    }
+    .flame-wrap {
+      position: absolute;
+      top: -14px;
+      right: -8px;
+      width: 30px;
+      height: 30px;
+      overflow: visible;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+    }
+    .flame-blob {
+      display: block;
+      overflow: visible !important;
+      filter: drop-shadow(-1px 1px 6px rgba(255,41,0,0.8));
+    }
+    .flame-bubbles circle {
+      animation: flameRise var(--dur, 2s) linear var(--delay, 0s) infinite;
+    }
+    @keyframes flameRise {
+      from { transform: translate(0, 0); opacity: 1; }
+      70% { opacity: 1; }
+      to { transform: translate(var(--dx, 0px), -80px); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .flame-bubbles circle { animation: none; }
+      .flame-blob animateTransform { display: none; }
+    }
     .planet-badge {
       position: relative;
       display: block;
@@ -298,8 +330,27 @@
 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border border-white" id="anl-bell-dot"></span>
-<span class="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-slate-900 text-white text-[10px] font-bold hidden items-center justify-center" id="anl-bell-count">0</span>
+<span class="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-slate-900 text-white text-[10px] font-bold hidden items-center justify-center z-[2]" id="anl-bell-count">0</span>
+<span class="flame-wrap" aria-hidden="true">
+<svg class="flame-blob" viewBox="0 0 150 130" width="30" height="26" focusable="false">
+<g filter="url(#flame-goo)" fill="#ff2a00">
+<circle r="34" cy="88" cx="75">
+<animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 72.5 90" to="360 72.5 90" dur="2s" repeatCount="indefinite" />
+</circle>
+<circle r="34" cy="92" cx="75">
+<animateTransform attributeType="xml" attributeName="transform" type="rotate" from="360 77.5 90" to="0 77.5 90" dur="3s" repeatCount="indefinite" />
+</circle>
+<circle r="34" cy="90" cx="72.5">
+<animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 75 87.5" to="360 75 87.5" dur="4s" repeatCount="indefinite" />
+</circle>
+<circle r="34" cy="90" cx="77.5">
+<animateTransform attributeType="xml" attributeName="transform" type="rotate" from="360 75 92.5" to="0 75 92.5" dur="3.5s" repeatCount="indefinite" />
+</circle>
+</g>
+<g filter="url(#flame-goo)" class="flame-bubbles" fill="#ff2a00"></g>
+</svg>
+<svg width="0" height="0" focusable="false" aria-hidden="true"><defs><filter id="flame-goo"><feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" /><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" /><feBlend in="SourceGraphic" in2="goo" /></filter></defs></svg>
+</span>
 </button>
 <div class="hidden sm:flex items-center gap-2.5 pl-3 border-l border-slate-200">
 <div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0">
@@ -1174,6 +1225,23 @@ STREAM
       }catch(e){}
     });
   }
+  // ponytail: vanilla flame bubbles, no jquery/anime; count pill logic untouched so 0 hides number, flame always rises
+  (function initFlame(){
+    var NS = 'http://www.w3.org/2000/svg';
+    var g = document.querySelector('.flame-bubbles');
+    if(!g) return;
+    function rnd(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+    for(var i = 0; i < 16; i++){
+      var c = document.createElementNS(NS, 'circle');
+      c.setAttribute('r', rnd(4, 11));
+      c.setAttribute('cy', 118);
+      c.setAttribute('cx', rnd(55, 95));
+      c.style.setProperty('--dx', rnd(-7, 7) + 'px');
+      c.style.setProperty('--dur', (1.6 + Math.random()).toFixed(2) + 's');
+      c.style.setProperty('--delay', (Math.random() * 3).toFixed(2) + 's');
+      g.appendChild(c);
+    }
+  })();
   wireAnalytics();
   refreshAnalytics();
   setInterval(refreshAnalytics, 5000);
