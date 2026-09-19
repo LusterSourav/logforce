@@ -1,0 +1,23 @@
+# Vercel deploy allowlist. The prototype ships static UI + api shims only.
+# Everything else is either air-gap payload (models), server source, or
+# secrets-adjacent. Without this file `vercel` uploads them all, including
+# the 58MB ONNX model and ui/server.go source. True 403 status on Vercel
+# static is not possible via rewrites (serves 200); real 403 enforcement
+# lives in ui/server.go. See docs/403-honeypot.md.
+models/
+output/
+vector_data/
+ingestion/
+parsing/
+storage/
+tests/
+.env.example
+Dockerfile.lumber
+docker-compose.yml
+init.sql
+Makefile
+ui/*.go
+ui/go.mod
+ui/go.sum
+*.md
+.DS_Store
