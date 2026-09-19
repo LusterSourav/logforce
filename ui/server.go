@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 var lum *lumber.Lumber
 var lumErr string
 var pg *sql.DB
+var staticRoot = "."
 
 // ClassifyReq is what the dashboard posts. Keep it tiny.
 type ClassifyReq struct {
@@ -66,6 +68,7 @@ func main() {
 	if staticDir == "" {
 		staticDir = "."
 	}
+	staticRoot = staticDir
 
 	// load the model once. This pre embeds the 42 leaves so per request is just cosine.
 	start := time.Now()
@@ -114,6 +117,27 @@ func main() {
 	mux.HandleFunc("/api/ingest", cors(handleIngest))
 	mux.HandleFunc("/api/query", cors(handleQuery))
 	mux.HandleFunc("/api/stats", cors(handleStats))
+	// 403 honeypot. Directory/File busting probes for source, models, VCS
+	// metadata or raw output get the doors-closing page with a real 403
+	// status, and the probe is logged. See docs/403-honeypot.md.
+	mux.HandleFunc("/403", handleForbidden)
+	mux.HandleFunc("/403.html", handleForbidden)
+	// 401 honeypot. Auth-looking probes get the falling-cow page with a
+	// real 401 status. See docs/401-unauthorized.md.
+	mux.HandleFunc("/401", handleUnauthorized)
+	mux.HandleFunc("/401.html", handleUnauthorized)
+	// 404 eyes. Genuinely-missing paths get the watching-eyes page with a
+	// real 404 status. See docs/404-not-found.md.
+	mux.HandleFunc("/404", handleNotFound)
+	mux.HandleFunc("/404.html", handleNotFound)
+	// 408 hourglass. Explicit visits get the physics game; slow-client
+	// defense is ReadHeaderTimeout below. See docs/408-timeout.md.
+	mux.HandleFunc("/408", handleTimeout)
+	mux.HandleFunc("/408.html", handleTimeout)
+	// 500 sticks. Explicit visits get the starfield page; panics anywhere
+	// land here via withRecovery below. See docs/500-internal.md.
+	mux.HandleFunc("/500", handleServerError)
+	mux.HandleFunc("/500.html", handleServerError)
 	// tolerate .htm typo ,  redirect to .html so 404 never shows
 	mux.HandleFunc("/dashboard.htm", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/dashboard.html", http.StatusMovedPermanently)
@@ -134,14 +158,22 @@ func main() {
 			return
 		}
 		// block sensitive files and directory listing
-		if strings.HasSuffix(r.URL.Path, ".go") || strings.HasSuffix(r.URL.Path, ".mod") || strings.HasSuffix(r.URL.Path, ".sum") || strings.HasSuffix(r.URL.Path, ".md") {
-			http.NotFound(w, r)
+		if isUnauthorized(r.URL.Path) {
+			handleUnauthorized(w, r)
+			return
+		}
+		if isForbidden(r.URL.Path) {
+			handleForbidden(w, r)
 			return
 		}
 		// for any other path, try to serve file but deny directory
 		fpath := filepath.Join(staticDir, filepath.Clean(r.URL.Path))
 		if info, err := os.Stat(fpath); err == nil && info.IsDir() {
-			http.NotFound(w, r)
+			handleForbidden(w, r)
+			return
+		}
+		if _, err := os.Stat(fpath); os.IsNotExist(err) {
+			handleNotFound(w, r)
 			return
 		}
 		http.FileServer(http.Dir(staticDir)).ServeHTTP(w, r)
@@ -150,9 +182,120 @@ func main() {
 	addr := ":" + port
 	log.Printf("LogForce listening on http://localhost%s  static=%s  model=%s", addr, staticDir, modelDir)
 	log.Printf("try GET /api/health and POST /api/classify then open /dashboard.html")
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           withRecovery(mux),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// isForbidden reports paths that must never be served: source, module
+// files, VCS metadata, secrets, raw model bytes and output dumps.
+// Unknown missing files still 404 (hides existence); these 403
+// (admits the boundary, slams the door). See docs/403-honeypot.md.
+func isForbidden(p string) bool {
+	for _, suf := range []string{".go", ".mod", ".sum", ".md", ".env", ".pem", ".key"} {
+		if strings.HasSuffix(p, suf) {
+			return true
+		}
+	}
+	if strings.Contains(p, "/.git/") || strings.HasSuffix(p, "/.git") {
+		return true
+	}
+	for _, seg := range strings.Split(p, "/") {
+		if strings.HasPrefix(seg, ".") && seg != "." && seg != ".." {
+			return true
+		}
+	}
+	for _, pre := range []string{"/models", "/output"} {
+		if p == pre || strings.HasPrefix(p, pre+"/") {
+			return true
+		}
+	}
+	return false
+}
+
+func handleForbidden(w http.ResponseWriter, r *http.Request) {
+	log.Printf("forbidden probe ip=%s path=%s", r.RemoteAddr, r.URL.Path)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusForbidden)
+	http.ServeFile(w, r, filepath.Join(staticRoot, "403.html"))
+}
+
+// isUnauthorized reports auth-looking paths that do not exist yet: login
+// and admin consoles busters love to knock on. They get 401 ("who are
+// you?") instead of 403 ("we know you, no"). When a real login page lands,
+// remove its path here so it serves normally. See docs/401-unauthorized.md.
+func isUnauthorized(p string) bool {
+	lower := strings.ToLower(p)
+	for _, exact := range []string{
+		"/admin", "/admin.html", "/login", "/login.html",
+		"/wp-admin", "/wp-login", "/wp-login.php", "/phpmyadmin",
+	} {
+		if lower == exact {
+			return true
+		}
+	}
+	for _, pre := range []string{"/admin/", "/login/", "/wp-admin/", "/phpmyadmin/"} {
+		if strings.HasPrefix(lower, pre) {
+			return true
+		}
+	}
+	return false
+}
+
+func handleUnauthorized(w http.ResponseWriter, r *http.Request) {
+	log.Printf("unauthorized probe ip=%s path=%s", r.RemoteAddr, r.URL.Path)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusUnauthorized)
+	http.ServeFile(w, r, filepath.Join(staticRoot, "401.html"))
+}
+
+func handleNotFound(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/favicon.ico" {
+		log.Printf("missing path ip=%s path=%s", r.RemoteAddr, r.URL.Path)
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusNotFound)
+	http.ServeFile(w, r, filepath.Join(staticRoot, "404.html"))
+}
+
+func handleTimeout(w http.ResponseWriter, r *http.Request) {
+	log.Printf("timeout page ip=%s path=%s", r.RemoteAddr, r.URL.Path)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusRequestTimeout)
+	http.ServeFile(w, r, filepath.Join(staticRoot, "408.html"))
+}
+
+// withRecovery converts handler panics into a 500 instead of killing the
+// process. API callers keep JSON (the dashboard parses it); page visitors
+// get the sticks. Before this, one panic took down the whole server.
+func withRecovery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				log.Printf("panic recovered path=%s err=%v\n%s", r.URL.Path, rec, debug.Stack())
+				if strings.HasPrefix(r.URL.Path, "/api/") {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusInternalServerError)
+					json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
+					return
+				}
+				handleServerError(w, r)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+func handleServerError(w http.ResponseWriter, r *http.Request) {
+	log.Printf("server error page ip=%s path=%s", r.RemoteAddr, r.URL.Path)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusInternalServerError)
+	http.ServeFile(w, r, filepath.Join(staticRoot, "500.html"))
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
