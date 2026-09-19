@@ -98,14 +98,28 @@
     }
     .flame-wrap {
       position: absolute;
-      top: -14px;
-      right: -8px;
-      width: 30px;
-      height: 30px;
+      top: -40px;
+      right: -18px;
+      width: 52px;
+      height: 52px;
       overflow: visible;
       pointer-events: none;
       user-select: none;
       z-index: 1;
+    }
+    .flame-num {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 21px;
+      height: 20px;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 20px;
+      text-align: center;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      z-index: 2;
     }
     .flame-blob {
       display: block;
@@ -202,9 +216,8 @@
 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<span class="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-slate-900 text-white text-[10px] font-bold hidden items-center justify-center z-[2]" id="ev-bell-count">0</span>
 <span class="flame-wrap" aria-hidden="true">
-<svg class="flame-blob" viewBox="0 0 150 130" width="30" height="26" focusable="false">
+<svg class="flame-blob" viewBox="0 0 150 130" width="52" height="45" focusable="false">
 <g filter="url(#flame-goo)" fill="#ff2a00">
 <circle r="34" cy="88" cx="75">
 <animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 72.5 90" to="360 72.5 90" dur="2s" repeatCount="indefinite" />
@@ -221,6 +234,7 @@
 </g>
 <g filter="url(#flame-goo)" class="flame-bubbles" fill="#ff2a00"></g>
 </svg>
+<span class="flame-num hidden items-center justify-center" id="ev-bell-count">0</span>
 <svg width="0" height="0" focusable="false" aria-hidden="true"><defs><filter id="flame-goo"><feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" /><feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" /><feBlend in="SourceGraphic" in2="goo" /></filter></defs></svg>
 </span>
 </button>
