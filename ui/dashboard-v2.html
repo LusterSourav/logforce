@@ -2,11 +2,11 @@
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>Perimeter Log Ingest &amp; Security Analytics Dashboard</title>
-<!-- Google Fonts Inter & JetBrains Mono -->
+
 <link href="https://fonts.googleapis.com" rel="preconnect">
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
-<!-- Tailwind CSS v3 with Plugins -->
+
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script>
     tailwind.config = {
@@ -386,56 +386,56 @@
   </style>
 </head>
 <body class="min-h-screen text-slate-800 bg-[#ebf0f7] p-3 sm:p-5 lg:p-7 flex flex-col items-center justify-start antialiased selection:bg-brand-500 selection:text-white">
-<!-- BEGIN MainContainerFrame -->
+
 <div class="relative w-full max-w-[1720px] bg-white rounded-[28px] sm:rounded-[36px] shadow-container border border-slate-200/80 overflow-hidden flex flex-col lg:flex-row flex-1 min-w-0">
-<!-- BEGIN LeftSidebar / Responsive Rail -->
+
 <aside class="w-full lg:w-[88px] bg-white border-b lg:border-b-0 lg:border-r border-slate-100/90 flex flex-row lg:flex-col items-center justify-between py-4 lg:py-7 px-4 sm:px-6 lg:px-0 shrink-0 z-30 sticky top-0 lg:static" data-purpose="primary-sidebar">
-<!-- Top Brand Logo & Nav List -->
+
 <div class="flex flex-row lg:flex-col items-center gap-4 lg:gap-8 w-full lg:w-auto justify-between lg:justify-start">
-<!-- Logo Badge Purple circle with '$' -->
+
 <a class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-md shadow-brand-600/30 transition-transform hover:scale-105 active:scale-95 shrink-0" data-purpose="app-logo" href="#overview">
 <span class="">$</span>
 </a>
-<!-- Navigation Icons Rail -->
+
 <nav class="flex flex-row lg:flex-col items-center gap-2 lg:gap-3.5 overflow-x-auto lg:overflow-visible no-scrollbar py-0.5">
-<!-- 1. Home / Overview (Active with soft pill background) -->
+
 <a class="relative p-2.5 sm:p-3 rounded-2xl bg-slate-50 text-brand-600 border border-slate-200/70 shadow-sm transition-all duration-150 shrink-0 flex items-center justify-center" href="#overview" title="Dashboard">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- 2. Analytics / Pie -->
+
 <a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="analytics.html" title="Analytics">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" stroke-linecap="round" stroke-linejoin="round"></path>
 <path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- 3. Grid / Apps -->
+
 <a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#vendors" title="Apps">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- 4. Chat / Log Streams -->
+
 <a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="#pipeline" title="Pipeline Streams">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- 5. User Group -->
+
 <a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="team.html" title="Team">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- 6. Calendar -->
+
 <a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="events.html" title="Events">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- 7. Bookmark -->
+
 <a class="relative p-2.5 sm:p-3 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-all shrink-0 flex items-center justify-center" href="bookmarks.html" title="Bookmarks">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
 <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -443,7 +443,7 @@
 </a>
 </nav>
 </div>
-<!-- Bottom Settings Gear -->
+
 <div class="flex items-center justify-center shrink-0 mt-auto pt-4">
 <button class="p-2.5 rounded-2xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all" title="Settings" type="button">
 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -453,14 +453,14 @@
 </button>
 </div>
 </aside>
-<!-- END LeftSidebar -->
-<!-- BEGIN MainContentArea -->
+
+
 <main class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden px-5 sm:px-8 lg:px-10 py-6 sm:py-8 space-y-7 sm:space-y-9 bg-white min-w-0 max-w-full" data-purpose="dashboard-workspace">
-<!-- BEGIN TopBar Header -->
+
 <header class="flex flex-col xl:flex-row xl:items-center justify-between gap-5 border-b border-slate-100 pb-5" data-purpose="top-navigation-bar">
-<!-- Title & View Tabs -->
+
 <div class="flex flex-col md:flex-row md:items-center gap-4 lg:gap-8 min-w-0 flex-1">
-<!-- Page Title with menu and info icons -->
+
 <div class="flex items-center gap-2.5 shrink-0">
 <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
 <button class="text-slate-400 hover:text-slate-600 transition-colors p-1" title="Toggle view" type="button">
@@ -474,7 +474,7 @@
 </svg>
 </button>
 </div>
-<!-- Section Navigation Pills -->
+
 <nav class="flex items-center gap-2 text-sm font-semibold overflow-x-auto no-scrollbar flex-nowrap min-w-0 py-0.5">
 <a class="relative text-brand-600 px-3.5 py-1.5 rounded-full bg-brand-50 flex items-center gap-1.5 shrink-0 transition-colors" href="#overview">
 <span class="text-brand-600 text-xs">★</span> Overview
@@ -490,9 +490,9 @@ Docs
           </a>
 </nav>
 </div>
-<!-- Search & Header Action Controls -->
+
 <div class="flex items-center gap-3 shrink-0 justify-between sm:justify-end">
-<!-- Search Input -->
+
 <div class="relative w-full sm:w-64 md:w-72">
 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -501,7 +501,7 @@ Docs
 </span>
 <input class="w-full bg-[#f8fafc] hover:bg-slate-100/70 focus:bg-white text-sm pl-10 pr-4 py-2 rounded-full border border-slate-200/80 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-slate-700 placeholder-slate-400 transition-all" placeholder="Search..." type="search">
 </div>
-<!-- Right Quick Action Round Buttons -->
+
 <div class="flex items-center gap-2 shrink-0">
 <button class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 transition-colors" title="Add" type="button">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -527,14 +527,14 @@ Docs
 </div>
 </div>
 </header>
-<!-- END TopBar Header -->
-<!-- BEGIN Dashboard Bento Grid (Exact 3 Columns as in Reference) -->
+
+
 <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 min-w-0" data-purpose="primary-overview-grid">
-<!-- ==================== COLUMN 1 (Left 4 cols) ==================== -->
+
 <div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
-<!-- Trio Mini Stat Cards Row -->
+
 <div class="grid grid-cols-3 gap-3">
-<!-- Total Ingested -->
+
 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex flex-col justify-between min-w-0">
 <div class="flex items-center justify-between">
 <span class="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-sm shadow-brand-500/30">$</span>
@@ -547,7 +547,7 @@ Docs
 <h3 class="text-2xl font-bold text-slate-900 mt-0.5">0</h3>
 </div>
 </div>
-<!-- Total Sources -->
+
 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex flex-col justify-between min-w-0">
 <div class="flex items-center justify-between">
 <span class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs shrink-0">
@@ -564,7 +564,7 @@ Docs
 <h3 class="text-2xl font-bold text-slate-900 mt-0.5">0</h3>
 </div>
 </div>
-<!-- Avg Latency -->
+
 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex flex-col justify-between min-w-0">
 <div class="flex items-center justify-between">
 <span class="w-8 h-8 rounded-full bg-orange-50 text-amber-600 flex items-center justify-center text-xs shrink-0">
@@ -582,7 +582,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Top 5 Vendors Card -->
+
 <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between gap-4" data-purpose="vendors-gauge-card">
 <div class="flex items-center justify-between">
 <h4 class="text-base font-bold text-slate-900 tracking-tight">Top 5 Vendors</h4>
@@ -594,16 +594,16 @@ Docs
 </svg>
 </button>
 </div>
-<!-- Vibrant Gauge Arc Graphics matching reference -->
+
 <div class="relative py-2 flex flex-col items-center justify-center w-full max-w-[280px] mx-auto">
 <svg class="w-full h-auto" fill="none" viewBox="0 0 220 125">
-<!-- Arc Segment 1 Red/Coral to Orange -->
+
 <path d="M 28 115 A 82 82 0 0 1 54 58" fill="none" stroke="#ea384d" stroke-linecap="round" stroke-width="16"></path>
-<!-- Arc Segment 2 Purple / Indigo -->
+
 <path d="M 54 58 A 82 82 0 0 1 110 33" fill="none" stroke="#4f46e5" stroke-linecap="round" stroke-width="16"></path>
-<!-- Arc Segment 3 Cyan / Teal -->
+
 <path d="M 110 33 A 82 82 0 0 1 166 58" fill="none" stroke="#06b6d4" stroke-linecap="round" stroke-width="16"></path>
-<!-- Arc Segment 4 Emerald / Amber -->
+
 <path d="M 166 58 A 82 82 0 0 1 192 115" fill="none" stroke="#f59e0b" stroke-linecap="round" stroke-width="16"></path>
 </svg>
 <div class="absolute inset-0 flex flex-col items-center justify-center pt-8 pointer-events-none">
@@ -611,7 +611,7 @@ Docs
 <span class="text-xs text-slate-400 mt-2 font-medium tracking-tight">Total normalized</span>
 </div>
 </div>
-<!-- Bottom Action Buttons Pill Toolbar -->
+
 <div class="bg-[#f8fafc] rounded-full py-1.5 px-3 border border-slate-100 flex items-center justify-between gap-1 text-slate-400 w-full" data-purpose="vendors-toolbar">
 <button class="w-8 h-8 rounded-full bg-brand-600 hover:bg-brand-700 text-white flex items-center justify-center shadow-sm transition-all shrink-0" title="Overview" type="button">
 <span class="text-xs font-bold">$</span>
@@ -645,14 +645,14 @@ Docs
 </button>
 </div>
 </div>
-<!-- Top 5 Parsers Card (ENHANCED Fully Interactive, Real Time Capable with Animated Badges & Live Controls) -->
+
 <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between relative overflow-hidden group/card" data-purpose="top-parsers-list" id="parsers-widget-card">
-<!-- Background ambient glow for live mode -->
+
 <div class="absolute -top-16 -right-16 w-32 h-32 bg-brand-500/5 rounded-full blur-2xl pointer-events-none"></div>
 <div class="flex items-center justify-between mb-4">
 <div class="flex items-center gap-2">
 <h4 class="text-base font-bold text-slate-900 tracking-tight">Top 5 Parsers</h4>
-<!-- Real Time Streaming Indicator Badge -->
+
 <button class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition-colors cursor-pointer" id="parsers-live-toggle" onclick="toggleParsersLiveStream()" title="Click to toggle live auto-update stream">
 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
 <span id="parsers-stream-label" class="">LIVE</span>
@@ -673,26 +673,26 @@ Docs
 </button>
 </div>
 </div>
-<!-- Interactive Parsers Progress Meters -->
+
 <div class="space-y-4">
-<!-- Row 1 NFL item -->
+
 <div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nfl" id="row-nfl">
 <div class="flex items-center gap-3">
-<!-- Animated Badge Circle NFL with pulse ring and breathing badge -->
+
 <div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nfl', 5)" title="Click badge to boost +5%">
 <div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
 <div class="relative w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-[11px] font-bold text-slate-800 flex items-center justify-center shadow-xs border border-slate-300/80 transition-transform active:scale-90 badge-breathe">
 <span class="">NFL</span>
-<!-- Sport dot indicator -->
+
 <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
 </div>
 </div>
-<!-- Label and mini throughput subtitle -->
+
 <div class="w-12 shrink-0">
 <span class="text-sm font-semibold text-slate-800 leading-tight block">NFL</span>
 <span class="text-[9px] font-mono text-slate-400" id="nfl-rate">445/s</span>
 </div>
-<!-- Interactive Progress Bar (Clickable track to adjust anywhere) -->
+
 <div class="flex-1 relative cursor-pointer py-1 group/track" onclick="handleTrackClick(event, 'nfl')" title="Click anywhere on bar to set value">
 <div class="bg-slate-100 group-hover/track:bg-slate-200/80 transition-colors rounded-full h-2 overflow-hidden relative">
 <div class="bg-brand-600 h-2 rounded-full transition-all duration-300 relative shimmer-active" id="bar-nfl" style="width: 43.040172%;">
@@ -700,7 +700,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Interactive Percentage with Quick +/ Controls -->
+
 <div class="flex items-center gap-1 shrink-0">
 <button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nfl', -1)" title="Decrease -1%">-</button>
 <span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nfl">43%</span>
@@ -708,24 +708,24 @@ Docs
 </div>
 </div>
 </div>
-<!-- Row 2 NHL item -->
+
 <div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nhl" id="row-nhl">
 <div class="flex items-center gap-3">
-<!-- Animated Badge Circle NHL -->
+
 <div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nhl', 5)" title="Click badge to boost +5%">
 <div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
 <div class="relative w-8 h-8 rounded-full bg-gradient-to-br from-cyan-50 to-slate-200 text-[11px] font-bold text-slate-800 flex items-center justify-center shadow-xs border border-slate-300/80 transition-transform active:scale-90 badge-breathe" style="animation-delay: 0.6s;">
 <span class="">NHL</span>
-<!-- Sport dot indicator -->
+
 <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-cyan-500 ring-2 ring-white"></span>
 </div>
 </div>
-<!-- Label and mini throughput subtitle (preserves reference text NFL) -->
+
 <div class="w-12 shrink-0">
 <span class="text-sm font-semibold text-slate-800 leading-tight block">NFL</span>
 <span class="text-[9px] font-mono text-slate-400" id="nhl-rate">1.9k/s</span>
 </div>
-<!-- Interactive Progress Bar -->
+
 <div class="flex-1 relative cursor-pointer py-1 group/track" onclick="handleTrackClick(event, 'nhl')" title="Click anywhere on bar to set value">
 <div class="bg-slate-100 group-hover/track:bg-slate-200/80 transition-colors rounded-full h-2 overflow-hidden relative">
 <div class="bg-brand-600 h-2 rounded-full transition-all duration-300 relative shimmer-active" id="bar-nhl" style="width: 82.946741%;">
@@ -733,7 +733,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Interactive Percentage with Quick +/ Controls -->
+
 <div class="flex items-center gap-1 shrink-0">
 <button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nhl', -1)" title="Decrease -1%">-</button>
 <span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nhl">83%</span>
@@ -741,24 +741,24 @@ Docs
 </div>
 </div>
 </div>
-<!-- Row 3 NBA item -->
+
 <div class="parser-row flex flex-col gap-1.5 p-2 rounded-2xl hover:bg-slate-50/70 transition-all border border-transparent hover:border-slate-100" data-parser="nba" id="row-nba">
 <div class="flex items-center gap-3">
-<!-- Animated Badge Circle NBA (soft brand tint with glowing ring) -->
+
 <div class="badge-wrap relative shrink-0 cursor-pointer" onclick="cycleParserValue('nba', 5)" title="Click badge to boost +5%">
 <div class="badge-rotating-halo absolute inset-0 rounded-full"></div>
 <div class="relative w-8 h-8 rounded-full bg-[#eef2ff] text-[11px] font-bold text-brand-600 flex items-center justify-center shadow-xs border border-brand-200/80 transition-transform active:scale-90 badge-breathe" style="animation-delay: 1.2s;">
 <span class="">NBA</span>
-<!-- Sport dot indicator -->
+
 <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-brand-500 ring-2 ring-white"></span>
 </div>
 </div>
-<!-- Label and mini throughput subtitle -->
+
 <div class="w-12 shrink-0">
 <span class="text-sm font-semibold text-slate-800 leading-tight block">NBA</span>
 <span class="text-[9px] font-mono text-slate-400" id="nba-rate">1.3k/s</span>
 </div>
-<!-- Interactive Progress Bar -->
+
 <div class="flex-1 relative cursor-pointer py-1 group/track" onclick="handleTrackClick(event, 'nba')" title="Click anywhere on bar to set value">
 <div class="bg-slate-100 group-hover/track:bg-slate-200/80 transition-colors rounded-full h-2 overflow-hidden relative">
 <div class="bg-brand-600 h-2 rounded-full transition-all duration-300 relative shimmer-active" id="bar-nba" style="width: 72.515133%;">
@@ -766,7 +766,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Interactive Percentage with Quick +/ Controls -->
+
 <div class="flex items-center gap-1 shrink-0">
 <button class="w-5 h-5 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-200/80 flex items-center justify-center text-xs font-bold transition-all" onclick="adjustParserValue('nba', -1)" title="Decrease -1%">-</button>
 <span class="text-sm font-bold text-slate-800 w-9 text-right tabular-nums transition-colors" id="val-nba">73%</span>
@@ -775,7 +775,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Footer Micro Status Bar -->
+
 <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
 <span class="flex items-center gap-1">
 <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Click bar or badge to tune
@@ -783,9 +783,9 @@ Docs
 </div>
 </div>
 </div>
-<!-- ==================== COLUMN 2 (Center 4 cols) ==================== -->
+
 <div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
-<!-- Stat Card 1 Total Normalized -->
+
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
 <div class="flex items-center gap-4 min-w-0">
 <span class="w-11 h-11 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-base shadow-sm shadow-brand-600/30 shrink-0">
@@ -803,7 +803,7 @@ Docs
 <path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<!-- Stat Card 2 Normalization Rate -->
+
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
 <div class="flex items-center gap-4 min-w-0">
 <span class="w-11 h-11 rounded-full bg-brand-50 text-brand-600 border border-brand-100 flex items-center justify-center shrink-0">
@@ -823,7 +823,7 @@ Docs
 <path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<!-- Stat Card 3 Event Count -->
+
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center justify-between">
 <div class="flex items-center gap-4 min-w-0">
 <span class="w-11 h-11 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/30">
@@ -843,20 +843,20 @@ Docs
 <path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<!-- Sub Tabs Row Events / Players / Bets / Plays (Modern Spotify pill toggle bar) -->
+
 <div aria-label="Security Category Tabs" class="bg-slate-100/80 p-1 rounded-2xl flex items-center gap-1 text-sm font-semibold border border-slate-200/60 shadow-inner" role="tablist">
 <button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-events" onclick="switchVendorTab('events')" role="tab" type="button">Events</button>
 <button aria-selected="true" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-white bg-slate-900 shadow-sm transition-all font-semibold text-xs sm:text-sm" id="tab-players" onclick="switchVendorTab('players')" role="tab" type="button">Players</button>
 <button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-bets" onclick="switchVendorTab('bets')" role="tab" type="button">Bets</button>
 <button aria-selected="false" class="vendor-tab flex-1 py-1.5 px-2 text-center rounded-xl text-slate-500 hover:text-slate-800 transition-all font-medium text-xs sm:text-sm" id="tab-plays" onclick="switchVendorTab('plays')" role="tab" type="button">Plays</button>
 </div>
-<!-- Interactive Security Vendor Card with Spotify Style Dynamic 'Now Ingesting' Bar -->
+
 <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-card space-y-3.5 transition-all duration-300" id="vendor-details-card">
-<!-- Spotify style Dynamic 'Now Ingesting / Live Feed' floating mini bar -->
+
 <div class="bg-white rounded-2xl px-3 py-2 flex items-center justify-between shadow-sm border border-emerald-200/80 overflow-hidden"><div class="flex items-center gap-2.5 min-w-0"><div aria-label="Streaming active" class="flex items-end gap-0.5 h-3.5 w-3 shrink-0"><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_1s_infinite_100ms] h-2"></span><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_1.2s_infinite_200ms] h-3.5"></span><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.9s_infinite_300ms] h-1.5"></span></div><div class="min-w-0 flex flex-col"><div class="flex items-center gap-1.5"><span class="text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-full shrink-0">LIVE INGEST</span><span class="w-1 h-1 rounded-full bg-slate-400"></span><span class="text-xs font-bold text-slate-900 truncate" id="spotify-active-name">Palo Alto • Core Traffic</span></div><span class="text-[10px] font-mono text-slate-600 truncate mt-0.5" id="spotify-throughput">0 evt/s • 0.00 KB/s • 0% drop</span></div></div><div class="flex items-center gap-1 shrink-0 text-slate-700"><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" onclick="toggleStreamMute()" title="Toggle Stream Feed" type="button"><svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" id="spotify-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></button><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Stream settings" type="button"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle></svg></button></div></div>
-<!-- Dynamic Vendor Content Panels -->
+
 <div class="space-y-3.5" id="vendor-tab-content">
-<!-- TAB 1 PLAYERS (Default matching screenshot Palo Alto x2.0) -->
+
 <div class="vendor-pane block" id="pane-players">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3.5">
@@ -881,14 +881,14 @@ Docs
 </svg>
 </button>
 </div>
-<!-- Flag 0 indicator -->
+
 <div class="flex justify-end items-center gap-1 text-xs font-semibold text-brand-600">
 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
 <path d="M4 4v16h2v-6h11l-2-5 2-5H6V4H4z"></path>
 </svg>
 <span class="">0</span>
 </div>
-<!-- Sub stats Events 0 & Sources 0 -->
+
 <div class="grid grid-cols-2 gap-3">
 <div class="bg-[#f8fafc] rounded-2xl p-3 border border-slate-100 flex items-center gap-3">
 <span class="text-slate-400 shrink-0">
@@ -910,7 +910,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- TAB 2 EVENTS (Palo Alto Syslog Rich Telemetry) -->
+
 <div class="vendor-pane hidden" id="pane-events">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3.5">
@@ -957,7 +957,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- TAB 3 BETS (Cisco ASA Lina data plane) -->
+
 <div class="vendor-pane hidden" id="pane-bets">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3.5">
@@ -1004,7 +1004,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- TAB 4 PLAYS (CEF / LEEF & Zeek TSV) -->
+
 <div class="vendor-pane hidden" id="pane-plays">
 <div class="flex items-center justify-between">
 <div class="flex items-center gap-3.5">
@@ -1053,7 +1053,7 @@ Docs
 </div>
 </div>
 </div>
-<!-- Top Parsers Widget (Pro 4 + avatars + clock) -->
+
 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex items-center justify-between gap-2">
 <div class="shrink-0">
 <div class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
@@ -1066,7 +1066,7 @@ Docs
 </div>
 </div>
 <div class="flex items-center gap-3 shrink-0">
-<!-- Overlapping Avatars -->
+
 <div class="flex -space-x-2 overflow-hidden">
 <span class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-slate-700 text-[10px] text-white font-bold flex items-center justify-center">A1</span>
 <span class="inline-block h-7 w-7 rounded-full ring-2 ring-white bg-slate-400 text-[10px] text-white font-bold flex items-center justify-center">B2</span>
@@ -1086,7 +1086,7 @@ Docs
 </button>
 </div>
 </div>
-<!-- Week Ingest Metric Widget -->
+
 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card flex items-center justify-between">
 <div>
 <h5 class="text-xs font-bold text-slate-900">Week ingest</h5>
@@ -1097,9 +1097,9 @@ Docs
           </span>
 </div>
 </div>
-<!-- ==================== COLUMN 3 (Right 4 cols) ==================== -->
+
 <div class="lg:col-span-4 flex flex-col gap-5 sm:gap-6 min-w-0">
-<!-- Server Status Card ulpf perimeter -->
+
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex items-center gap-4 min-w-0">
 <div class="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -1112,9 +1112,9 @@ Docs
 <p class="text-xs text-slate-500 font-mono font-medium truncate">15/9/2026, 10:24:38 PM</p>
 </div>
 </div>
-<!-- Dual Stat Split Ingested vs Failed -->
+
 <div class="grid grid-cols-2 gap-3">
-<!-- Ingested -->
+
 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card min-w-0">
 <div class="flex items-center justify-between">
 <span class="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold shrink-0">$</span>
@@ -1128,7 +1128,7 @@ Docs
 </div>
 <h4 class="text-2xl font-bold text-slate-900 mt-1">0</h4>
 </div>
-<!-- Failed -->
+
 <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-card min-w-0">
 <div class="flex items-center justify-between">
 <span class="w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center text-xs font-bold shrink-0">$</span>
@@ -1143,12 +1143,12 @@ Docs
 <h4 class="text-2xl font-bold text-slate-900 mt-1">0</h4>
 </div>
 </div>
-<!-- Ingest Activity Line Chart Card -->
+
 <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between" data-purpose="ingest-activity-chart" id="ingest-activity-card">
 <div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><h4 class="text-base font-bold text-slate-900 truncate">Ingest Activity</h4><span class="text-[10px] font-mono text-slate-400 hidden sm:inline-block" id="activity-stream-rate">~3.8k/s</span></div><div class="flex items-center gap-1.5 shrink-0"><button class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-600 border border-brand-100 hover:bg-brand-100 transition-colors cursor-pointer" id="chart-live-btn" onclick="toggleActivityLive()" title="Click to toggle live streaming"><span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse" id="chart-live-dot"></span><span id="chart-live-text" class="">live</span></button><button class="text-slate-400 hover:text-amber-600 hover:bg-amber-50 p-1.5 rounded-lg transition-colors cursor-pointer" onclick="simulateActivitySpike()" title="Simulate Traffic Spike Pulse" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><button class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer" onclick="resetActivityStream()" title="Reset chart stream" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div>
-<!-- Grouped Area Chart (live ingest activity) -->
+
 <div class="relative w-full my-3"><data-chart aria-label="Ingest activity, normalized versus raw" id="chart-ingest" items-sm="6" items-xs="3" max="100" min="0" options="groups y-grid y-labels" role="figure" style="--data-chart-mih:9rem;--data-chart-y-axis-w:2.2rem" type="area"><table><caption>Ingest activity, normalized versus raw events per 2 hour bucket</caption><thead aria-hidden="true" id="chart-ingest-y"></thead><tbody id="chart-ingest-body"></tbody></table></data-chart></div>
-<!-- X Axis Days -->
+
 <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium px-2">
 <span class="">Sat</span>
 <span class="">Mon</span>
@@ -1158,10 +1158,10 @@ Docs
 <span class="">Fri</span>
 <span class="">Sat</span>
 </div>
-<!-- Chart Legend -->
+
 <div class="flex items-center justify-around border-t border-slate-100 pt-3 mt-3 text-center"><div class="flex flex-col items-center"><div class="flex items-center gap-1.5"><span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium"><span class="w-2 h-2 rounded-full bg-brand-600"></span> Normalized</span><button class="text-[10px] font-semibold text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-1.5 py-0.5 rounded-full transition-all cursor-pointer" onclick="bumpActivityValue('norm', 400)" title="Boost Normalized +400">+400</button></div><p class="text-base font-bold text-slate-900 mt-0.5 tabular-nums transition-colors" id="val-activity-norm">2,840</p></div><div class="w-px h-7 bg-slate-100"></div><div class="flex flex-col items-center"><div class="flex items-center gap-1.5"><span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Raw</span><button class="text-[10px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded-full transition-all cursor-pointer" onclick="bumpActivityValue('raw', 500)" title="Boost Raw +500">+500</button></div><p class="text-base font-bold text-slate-900 mt-0.5 tabular-nums transition-colors" id="val-activity-raw">3,920</p></div></div>
 </div>
-<!-- Recent Ingests Card -->
+
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex flex-col justify-between" data-purpose="recent-ingests-card">
 <div class="flex items-center justify-between mb-3">
 <h4 class="text-sm font-bold text-slate-900">Recent Ingests</h4>
@@ -1171,7 +1171,7 @@ Docs
 </svg>
 </button>
 </div>
-<!-- Folder stack dropzone + live ingest rows -->
+
 <div id="recent-stack" class="bg-[#f8fafc] rounded-2xl p-3 border border-slate-100 min-w-0 cursor-pointer transition-colors" title="Drop a log file here or click to pick one">
 <div class="flex items-center gap-3 min-w-0">
 <div class="folder-stage shrink-0" aria-hidden="true">
@@ -1203,33 +1203,33 @@ Docs
 </div>
 </div>
 </section>
-<!-- END Dashboard Bento Grid -->
-<!-- BEGIN Lower Pipeline & ONNX Section (from IMAGE_5) -->
+
+
 <section class="space-y-6 min-w-0 w-full pt-4 border-t border-slate-100" data-purpose="perimeter-log-ingest" id="pipeline">
-<!-- 1. Perimeter Log Ingest — Live Pipeline Card -->
+
 <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-card min-w-0 w-full">
-<!-- Card Header -->
+
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
 <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Perimeter Log Ingest — Live Pipeline</h2>
 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-600 border border-brand-200/70 self-start sm:self-auto">
             42 leaves • 5 ms • Offline
           </span>
 </div>
-<!-- 2 Column Work Area -->
+
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 min-w-0">
-<!-- Left Column Dropzone & Input -->
+
 <div class="flex flex-col space-y-4 min-w-0 w-full">
-<!-- Drop File Banner -->
+
 <div class="border-2 border-dashed border-slate-200 hover:border-brand-400 rounded-2xl p-5 text-center transition-colors bg-slate-50/50 hover:bg-brand-50/20 cursor-pointer" id="pipe-drop">
 <p class="text-sm font-medium text-slate-600 leading-relaxed">
                 Drop log file here or paste below
 </p>
 </div>
-<!-- Textarea -->
+
 <div class="relative min-w-0 w-full flex-1">
 <textarea class="w-full rounded-2xl bg-white border border-slate-200 hover:border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 font-mono text-sm p-4 text-slate-700 placeholder-slate-400 transition-all resize-none min-h-[190px]" id="pipe-input" placeholder="Paste raw logs — one per line" rows="7"></textarea>
 </div>
-<!-- Action Buttons Toolbar -->
+
 <div class="flex flex-wrap items-center gap-3 pt-1">
 <button class="px-5 py-2.5 rounded-full bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold text-sm shadow-md shadow-brand-600/25 transition-all transform active:scale-95" id="btn-classify" type="button">
                 Classify • ~5 ms
@@ -1242,7 +1242,7 @@ Docs
               </button>
 </div>
 </div>
-<!-- Right Column Canonical NDJSON Stream Output -->
+
 <div class="flex flex-col h-full space-y-3.5 min-w-0 w-full">
 <div class="flex items-center justify-between gap-2">
 <span class="text-xs font-bold text-slate-700 tracking-wide uppercase">Canonical NDJSON</span>
@@ -1255,20 +1255,20 @@ Docs
                 </button>
 </div>
 </div>
-<!-- Code Output Display Box -->
+
 <div class="flex-1 rounded-2xl border border-slate-200 bg-[#f8fafc] p-6 font-mono text-sm text-slate-500 min-h-[220px] flex items-center justify-center text-center overflow-x-auto whitespace-pre-wrap break-all w-full" id="pipe-out">
 <span class="">Press Classify — each line becomes a CanonicalEvent</span>
 </div>
-<!-- Flow Subtitle -->
+
 <p class="text-xs font-mono text-slate-400 break-words leading-relaxed">
 <span class="font-semibold text-slate-600">Flow:</span> RawLog → local infer → cosine 42 → CanonicalEvent • Batch one call
             </p>
 </div>
 </div>
 </div>
-<!-- 2. ONNX Live Normalisation Technical Panel Card -->
+
 <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-card space-y-5 min-w-0 w-full">
-<!-- Header -->
+
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
 <h3 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
             ONNX Live Normalisation
@@ -1277,9 +1277,9 @@ Docs
             local • offline • no cloud
           </span>
 </div>
-<!-- 2 Column Technical Details Layout -->
+
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 min-w-0">
-<!-- Left How it normalises live -->
+
 <div class="space-y-4 min-w-0 flex flex-col justify-between">
 <div>
 <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">How it normalises live</h4>
@@ -1287,7 +1287,7 @@ Docs
                 Paste any raw log below. The Go engine tokenizes with WordPiece to 128 tokens, runs the 23 MB quantized ONNX (mdbr-leaf-mt) with 3 tensors (input_ids, attention_mask, token_type_ids), mean pools hidden states, projects to 1024 dim, and cosines against 42 pre embedded leaf texts. Best above 0.5 wins or UNCLASSIFIED. Batch is one ONNX call for 100 lines (50 to 80 ms).
               </p>
 </div>
-<!-- Pill Badges -->
+
 <div class="flex flex-wrap gap-2 pt-2">
 <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-mono rounded-full shadow-sm">WordPiece 128</span>
 <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-mono rounded-full shadow-sm">ONNX int8</span>
@@ -1295,7 +1295,7 @@ Docs
 <span class="px-3 py-1 bg-white border border-slate-200 text-slate-700 text-xs font-mono rounded-full shadow-sm">cosine 42</span>
 </div>
 </div>
-<!-- Right What each log type is for -->
+
 <div class="space-y-2 min-w-0">
 <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">What each log type is for</h4>
 <ul class="space-y-1.5 text-xs sm:text-sm text-slate-600 font-mono leading-relaxed">
@@ -1309,18 +1309,18 @@ Docs
 </ul>
 </div>
 </div>
-<!-- Footer Helper Note -->
+
 <div class="pt-4 border-t border-slate-100 text-xs text-slate-400 font-mono leading-relaxed">
 <span class="font-semibold text-slate-500">Try:</span> paste a Palo Alto CEF line → watch it become <span class="text-brand-600 font-medium">type=REQUEST category=success with confidence</span>, or a Cisco ASA line → <span class="text-amber-600 font-medium">ERROR.connection_failure</span>. Use the drop zone above or POST /api/ingest?format=.
         </div>
 </div>
 </section>
-<!-- END Lower Pipeline Section -->
+
 </main>
-<!-- END MainContentArea -->
+
 </div>
-<!-- END MainContainerFrame -->
-<!-- Vanilla JavaScript Interactive Tab Switching & Dynamic Live Stream Simulation -->
+
+
 <script>
   const vendorData = {
     players: {
@@ -1532,7 +1532,7 @@ Docs
   startParsersLiveStream();
 </script>
 
-<!-- V2 wire. Local only backend binding. No prod touch. Relative api paths with 5s poll. -->
+
 <script>
 (function(){
   const API = (location.protocol==='file:') ? 'http://localhost:8082' : '';
