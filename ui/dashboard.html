@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Sports Betting Analytics Dashboard</title>
-<!-- Tailwind CSS CDN with forms and container queries -->
+
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Google Fonts  Inter -->
+
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
@@ -77,33 +77,33 @@
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 md:p-8" style="background: #EEF2FF;">
-<!-- BEGIN  MainDashboardContainer -->
+
 <main class="w-full max-w-[1480px] bg-white rounded-[24px] border border-[#e0e7ff] shadow-[0_1px_3px_rgba(79,70,229,0.04),0_4px_12px_rgba(17,24,39,0.03)] flex overflow-hidden min-h-[920px]">
-<!-- BEGIN  LeftSidebar -->
+
 <aside class="w-20 bg-[#f2f4f8] border-r border-[#E0E7FF] flex flex-col items-center py-7 justify-between shrink-0 select-none">
 <div class="flex flex-col items-center gap-9 w-full">
-<!-- Dashboard Logo ($ ball) -->
+
 <a class="w-12 h-12 rounded-full bg-[#4f46e5] flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-[#4f46e5]/20 hover:scale-105 transition-transform" href="#" title="Live Pipeline" data-view="perimeter">
 <svg class="w-7 h-7 fill-current text-white" viewbox="0 0 24 24">
 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.93V18h-2v-1.07c-1.87-.27-3-1.42-3.05-2.93h2c.04.82.68 1.4 1.83 1.4 1.05 0 1.72-.55 1.72-1.28 0-.82-.63-1.18-1.99-1.52C9.53 12.1 8 11.23 8 9.28c0-1.39.99-2.52 2.78-2.85V5h2v1.45c1.55.27 2.65 1.34 2.72 2.65h-2c-.05-.67-.55-1.1-1.5-1.1-.9 0-1.52.48-1.52 1.15 0 .66.52 1.03 1.85 1.36 1.85.46 3.17 1.25 3.17 3.03 0 1.57-1.12 2.76-2.5 3.39z"></path>
 </svg>
 </a>
-<!-- Navigation Menu Icons -->
+
 <nav class="flex flex-col items-center gap-7 text-[#575e70]">
-<!-- Home Icon (Active with lime highlight) -->
+
 <a class="text-[#4f46e5] relative transition-colors" href="#" title="Home">
 <svg class="w-6 h-6 stroke-current stroke-[2.2] fill-none" viewbox="0 0 24 24">
 <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- Analytics Pie -->
+
 <a class="hover:text-[#111827] transition-colors" href="#" title="Edge Classify" data-view="classify">
 <svg class="w-6 h-6 stroke-current stroke-[2] fill-none" viewbox="0 0 24 24">
 <path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" stroke-linecap="round" stroke-linejoin="round"></path>
 <path d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- Apps / Grid -->
+
 <a class="hover:text-[#111827] transition-colors" href="#" title="Security Console" data-view="console">
 <svg class="w-6 h-6 stroke-current stroke-[2] fill-none" viewbox="0 0 24 24">
 <rect height="7" rx="1.5" width="7" x="3" y="3"></rect>
@@ -112,26 +112,26 @@
 <rect height="7" rx="1.5" width="7" x="3" y="14"></rect>
 </svg>
 </a>
-<!-- Chat -->
+
 <a class="hover:text-[#111827] transition-colors" href="#" title="Parsers" data-view="parsers">
 <svg class="w-6 h-6 stroke-current stroke-[2] fill-none" viewbox="0 0 24 24">
 <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- Community / Team -->
+
 <a class="hover:text-[#111827] transition-colors" href="#" title="Decoders" data-view="decoders">
 <svg class="w-6 h-6 stroke-current stroke-[2] fill-none" viewbox="0 0 24 24">
 <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- Calendar -->
+
 <a class="hover:text-[#111827] transition-colors" href="#" title="Storage" data-view="storage">
 <svg class="w-6 h-6 stroke-current stroke-[2] fill-none" viewbox="0 0 24 24">
 <rect height="18" rx="2" width="18" x="3" y="4"></rect>
 <path d="M16 2v4M8 2v4m-5 4h18" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </a>
-<!-- Bookmark -->
+
 <a class="hover:text-[#111827] transition-colors" href="#" title="Ingest History" data-view="history">
 <svg class="w-6 h-6 stroke-current stroke-[2] fill-none" viewbox="0 0 24 24">
 <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -139,7 +139,7 @@
 </a>
 </nav>
 </div>
-<!-- Settings Icon Bottom -->
+
 <a class="text-[#575e70] hover:text-[#111827] transition-colors" href="#" title="Settings">
 <svg class="w-6 h-6 stroke-current stroke-[2] fill-none" viewbox="0 0 24 24">
 <circle cx="12" cy="12" r="3"></circle>
@@ -147,12 +147,12 @@
 </svg>
 </a>
 </aside>
-<!-- END  LeftSidebar -->
-<!-- BEGIN  DashboardBody -->
+
+
 <div class="flex-1 flex flex-col px-7 py-6 overflow-y-auto space-y-6">
-<!-- BEGIN  TopHeader -->
+
 <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-<!-- Title & Sub navigation -->
+
 <div class="flex flex-col gap-3">
 <div class="flex items-center gap-3">
 <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[#111827]">Dashboard</h1>
@@ -168,7 +168,7 @@
 </svg>
 </button>
 </div>
-<!-- Sub Header Links -->
+
 <div class="flex items-center gap-6 text-sm">
 <a class="flex items-center gap-1.5 text-[#4f46e5] font-semibold border-b-2 border-[#4f46e5] pb-0.5" href="#" data-view="perimeter">
 <svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
@@ -194,9 +194,9 @@
             </a>
 </div>
 </div>
-<!-- Search Bar and Action Icons -->
+
 <div class="flex items-center gap-4">
-<!-- Search Pill -->
+
 <div class="relative w-64 md:w-80">
 <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-[#9ca3af]">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
@@ -206,27 +206,27 @@
 </span>
 <input class="w-full pl-10 pr-4 py-2 bg-white border border-[#E0E7FF] rounded-full text-xs text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:border-[#4f46e5] transition-colors" placeholder="Search" type="text"/>
 </div>
-<!-- Quick Action Buttons -->
+
 <div class="flex items-center gap-2">
-<!-- Add Button -->
+
 <button class="w-10 h-10 rounded-full bg-white text-[#111827] hover:bg-zinc-200 transition-colors flex items-center justify-center font-medium shadow" title="Ingest" id="btn-top-ingest">
 <svg class="w-5 h-5 stroke-current stroke-2" fill="none" viewbox="0 0 24 24">
 <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
-<!-- Bell Notification -->
+
 <button class="w-10 h-10 rounded-full bg-white border border-[#E0E7FF] text-[#6B7280] hover:text-[#111827] transition-colors flex items-center justify-center relative" title="Alerts" id="btn-top-alerts">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
-<!-- Tune / Filter -->
+
 <button class="w-10 h-10 rounded-full bg-white border border-[#E0E7FF] text-[#6B7280] hover:text-[#111827] transition-colors flex items-center justify-center" title="Query" id="btn-top-query">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M3 4h18M7 12h10M11 20h2" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
-<!-- History -->
+
 <button class="w-10 h-10 rounded-full bg-white border border-[#E0E7FF] text-[#6B7280] hover:text-[#111827] transition-colors flex items-center justify-center" title="History" id="btn-top-history">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -235,14 +235,14 @@
 </div>
 </div>
 </header>
-<!-- END  TopHeader -->
-<!-- BEGIN  GridContent -->
+
+
 <div class="grid grid-cols-12 gap-5">
-<!-- =================== LEFT COLUMN (Cards & Leagues) =================== -->
+
 <div class="col-span-12 lg:col-span-4 flex flex-col gap-5">
-<!-- Top Row  3 KPI Cards -->
+
 <div class="grid grid-cols-3 gap-3">
-<!-- Total Ingested -->
+
 <div class="bg-white border border-[#E0E7FF] rounded-xl p-3.5 flex flex-col justify-between h-28 relative shadow-card">
 <div class="flex items-center justify-between">
 <div class="w-9 h-9 rounded-full bg-[#4f46e5] text-white flex items-center justify-center text-xs font-bold shadow-sm">
@@ -257,7 +257,7 @@
 <p id="kpi-total-ingested" class="text-base font-bold text-[#111827] tracking-tight mt-0.5">0</p>
 </div>
 </div>
-<!-- Total Sources -->
+
 <div class="bg-white border border-[#E0E7FF] rounded-xl p-3.5 flex flex-col justify-between h-28 relative shadow-card">
 <div class="flex items-center justify-between">
 <div class="w-9 h-9 rounded-full bg-[#FFF7ED] text-[#EA580C] flex items-center justify-center">
@@ -274,7 +274,7 @@
 <p id="kpi-total-sources" class="text-base font-bold text-[#111827] tracking-tight mt-0.5">0</p>
 </div>
 </div>
-<!-- Total Time -->
+
 <div class="bg-white border border-[#E0E7FF] rounded-xl p-3.5 flex flex-col justify-between h-28 relative shadow-card">
 <div class="flex items-center justify-between">
 <div class="w-9 h-9 rounded-full bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center">
@@ -293,7 +293,7 @@
 </div>
 </div>
 </div>
-<!-- Top 5 Vendors & Donut / Speedometer Arc Chart -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-2">
 <h2 class="text-sm font-semibold text-[#111827]">Top 5 Vendors</h2>
@@ -305,31 +305,31 @@
 </svg>
 </button>
 </div>
-<!-- Semi Circle Gauge SVG -->
+
 <div class="relative flex flex-col items-center justify-center pt-2">
 <div class="w-64 h-36 relative flex items-center justify-center overflow-hidden">
 <svg class="w-64 h-64 -rotate-90 origin-center" viewbox="0 0 200 200">
-<!-- Arc segments -->
-<!-- Background Track -->
+
+
 <circle cx="100" cy="100" fill="transparent" r="76" stroke="#E5E7EB" stroke-dasharray="238.76 238.76" stroke-dashoffset="0" stroke-linecap="round" stroke-width="22"></circle>
-<!-- Segment 4  Orange -->
+
 <circle cx="100" cy="100" fill="transparent" r="76" stroke="#EA580C" stroke-dasharray="55 238.76" stroke-dashoffset="0" stroke-linecap="round" stroke-width="22"></circle>
-<!-- Segment 3  Red -->
+
 <circle cx="100" cy="100" fill="transparent" r="76" stroke="#DC2626" stroke-dasharray="50 238.76" stroke-dashoffset="-45" stroke-linecap="round" stroke-width="22"></circle>
-<!-- Segment 2  Blue -->
+
 <circle cx="100" cy="100" fill="transparent" r="76" stroke="#4f46e5" stroke-dasharray="35 238.76" stroke-dashoffset="-88" stroke-linecap="round" stroke-width="22"></circle>
-<!-- Segment 1  Neon Lime Textured Arc -->
+
 <circle cx="100" cy="100" fill="transparent" r="76" stroke="#4f46e5" stroke-dasharray="115 238.76" stroke-dashoffset="-120" stroke-linecap="round" stroke-width="22"></circle>
 </svg>
-<!-- Gauge Inner Text Center overlay -->
+
 <div class="absolute bottom-1 flex flex-col items-center">
 <span id="donut-center" class="text-2xl font-bold text-[#111827] tracking-tight">0</span>
 <span class="text-xs text-[#575e70] font-medium">Total normalized</span>
 </div>
 </div>
-<!-- Sports Badges Row Below Speedometer -->
+
 <div class="flex items-center justify-between w-full max-w-xs mt-4 px-2 py-1.5 bg-[#ffffff] rounded-full border border-[#E0E7FF]">
-<!-- Tennis / Volleyball (active neon lime) -->
+
 <button class="w-8 h-8 rounded-full bg-[#4f46e5] text-white flex items-center justify-center shadow" title="Tennis">
 <svg class="w-4 h-4 fill-none stroke-black stroke-2" viewbox="0 0 24 24">
 <circle cx="12" cy="12" r="9"></circle>
@@ -337,35 +337,35 @@
 <path d="M18.5 5.5c-4 4-4 9 0 13"></path>
 </svg>
 </button>
-<!-- Boxing Glove -->
+
 <button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Boxing">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <path d="M16 8a4 4 0 00-8 0v7a3 3 0 003 3h4a3 3 0 003-3v-4" stroke-linecap="round" stroke-linejoin="round"></path>
 <path d="M8 12H6a2 2 0 00-2 2v1a2 2 0 002 2h2" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
-<!-- Soccer -->
+
 <button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Soccer">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <circle cx="12" cy="12" r="9"></circle>
 <path d="M12 8l2.5 2-1 3h-3l-1-3z" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
-<!-- Football -->
+
 <button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Football">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <ellipse cx="12" cy="12" rx="9" ry="6" transform="rotate(-45 12 12)"></ellipse>
 <path d="M10 14l4-4M10 11l3 3" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </button>
-<!-- Basketball -->
+
 <button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Basketball">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <circle cx="12" cy="12" r="9"></circle>
 <path d="M3 12h18M12 3v18"></path>
 </svg>
 </button>
-<!-- Ping Pong Paddle -->
+
 <button class="w-8 h-8 rounded-full hover:bg-zinc-100 text-[#575e70] flex items-center justify-center transition-colors" title="Table Tennis">
 <svg class="w-4 h-4 stroke-current stroke-2 fill-none" viewbox="0 0 24 24">
 <circle cx="11" cy="9" r="6"></circle>
@@ -375,7 +375,7 @@
 </div>
 </div>
 </div>
-<!-- Bottom Left  Top 5 Parsers -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-4">
 <h2 class="text-sm font-semibold text-[#111827]">Top 5 Parsers</h2>
@@ -388,7 +388,7 @@
 </button>
 </div>
 <div class="space-y-4">
-<!-- Item 1 NFL -->
+
 <div class="flex items-center justify-between gap-3 text-xs">
 <div class="flex items-center gap-2.5 w-24">
 <div class="w-7 h-7 rounded-lg bg-[#ffffff] flex items-center justify-center text-[10px] font-bold text-[#111827] tracking-wider border border-[#E0E7FF]">
@@ -401,7 +401,7 @@
 </div>
 <span class="font-bold text-[#111827] text-xs w-9 text-right">38%</span>
 </div>
-<!-- Item 2 NHL -->
+
 <div class="flex items-center justify-between gap-3 text-xs">
 <div class="flex items-center gap-2.5 w-24">
 <div class="w-7 h-7 rounded-lg bg-[#ffffff] flex items-center justify-center text-[10px] font-bold text-[#111827] tracking-wider border border-[#E0E7FF]">
@@ -414,7 +414,7 @@
 </div>
 <span class="font-bold text-[#111827] text-xs w-9 text-right">78%</span>
 </div>
-<!-- Item 3 NBA -->
+
 <div class="flex items-center justify-between gap-3 text-xs">
 <div class="flex items-center gap-2.5 w-24">
 <div class="w-7 h-7 rounded-lg bg-[#ffffff] flex items-center justify-center text-[10px] font-bold text-[#4f46e5] tracking-wider border border-[#E0E7FF]">
@@ -430,11 +430,11 @@
 </div>
 </div>
 </div>
-<!-- =================== CENTER COLUMN (KPI Stack & Team Info) =================== -->
+
 <div class="col-span-12 lg:col-span-4 flex flex-col gap-5">
-<!-- KPI Stack 3 Cards -->
+
 <div class="flex flex-col gap-2.5">
-<!-- Total Normalized (Lime card) -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center justify-between">
 <div class="flex items-center gap-3.5">
 <div class="w-9 h-9 rounded-full bg-[#4f46e5] text-white flex items-center justify-center font-bold text-sm">
@@ -452,7 +452,7 @@
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<!-- Normalization Rate (Dark card) -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center justify-between">
 <div class="flex items-center gap-3.5">
 <div class="w-9 h-9 rounded-full bg-[#EEF2FF] text-[#4f46e5] flex items-center justify-center">
@@ -472,7 +472,7 @@
 <path d="M7 17L17 7M17 7H7M17 7V17" stroke-linecap="round" stroke-linejoin="round"></path>
 </svg>
 </div>
-<!-- Event Count (Dark card) -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center justify-between">
 <div class="flex items-center gap-3.5">
 <div class="w-9 h-9 rounded-full bg-[#F59E0B] text-white flex items-center justify-center">
@@ -493,21 +493,21 @@
 </svg>
 </div>
 </div>
-<!-- Tabs  Events, Players, Bets, Plays -->
+
 <div class="flex items-center justify-between text-xs px-1">
 <button id="events-tab" class="text-[#575e70] hover:text-[#111827] font-medium py-1" data-tab-detail="events">Events</button>
 <button id="players-tab" class="text-[#4f46e5] font-semibold border-b-2 border-[#4f46e5] pb-1" data-tab-detail="players">Players</button>
 <button id="bets-tab" class="text-[#575e70] hover:text-[#111827] font-medium py-1" data-tab-detail="bets">Bets</button>
 <button id="plays-tab" class="text-[#575e70] hover:text-[#111827] font-medium py-1" data-tab-detail="plays">Plays</button>
 </div>
-<!-- Palo Alto Feature Card -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col justify-between relative">
 <div class="flex items-start justify-between">
 <div class="flex items-center gap-3">
-<!-- Palo Alto Logo / Sock Icon -->
+
 <div class="w-12 h-12 rounded-2xl bg-[#ffffff] border border-[#E0E7FF] flex items-center justify-center p-2">
 <svg class="w-full h-full fill-[#d32f2f]" viewbox="0 0 100 100">
-<!-- Stylized hanging socks silhouette -->
+
 <path d="M25 15h18v35l14 12c5 4 4 10-1 14l-6 5c-5 4-12 3-16-2l-9-11V15z"></path>
 <path d="M50 15h18v32l13 11c5 4 4 10-1 14l-5 5c-5 4-12 3-16-2l-9-11V15z" opacity="0.85"></path>
 </svg>
@@ -520,7 +520,7 @@
 <span class="text-xs text-[#575e70]">25% Full</span>
 </div>
 </div>
-<!-- Top right actions -->
+
 <div class="flex items-center gap-2">
 <button class="text-[#575e70] hover:text-[#111827]" title="Options">
 <svg class="w-4 h-4" fill="currentColor" viewbox="0 0 24 24">
@@ -531,17 +531,17 @@
 </button>
 </div>
 </div>
-<!-- Flag Icon & Big Amount -->
+
 <div class="flex items-center justify-end gap-2 mt-2">
-<!-- Small yellow pennant / flag -->
+
 <svg class="w-4 h-4 fill-[#4f46e5]" viewbox="0 0 24 24">
 <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"></path>
 </svg>
 <span id="palo-count" class="text-lg font-bold text-[#4f46e5]">0</span>
 </div>
-<!-- Users & Funds Sub Boxes -->
+
 <div class="grid grid-cols-2 gap-3 mt-4">
-<!-- Users -->
+
 <div class="bg-[#ffffff] border border-[#e0e7ff] rounded-2xl p-3 flex items-center gap-3">
 <div class="w-8 h-8 rounded-full bg-[#ffffff] flex items-center justify-center text-[#6B7280]">
 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
@@ -553,7 +553,7 @@
 <p class="text-sm font-bold text-[#111827]"><span id="palo-events">0</span></p>
 </div>
 </div>
-<!-- Funds -->
+
 <div class="bg-[#ffffff] border border-[#e0e7ff] rounded-2xl p-3 flex items-center gap-3">
 <div class="w-8 h-8 rounded-full bg-[#ffffff] text-[#4f46e5] flex items-center justify-center font-bold text-xs">
                   $
@@ -565,7 +565,7 @@
 </div>
 </div>
 </div>
-<!-- Top Parsers Card -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-3">
 <div class="flex items-center gap-1.5 text-xs font-semibold text-[#111827]">
@@ -581,37 +581,37 @@
 </svg>
 </button>
 </div>
-<!-- Pro Count and Avatars Row -->
+
 <div class="flex items-center justify-between">
 <div>
 <p class="text-[11px] text-[#575e70] font-medium">Pro</p>
 <p class="text-lg font-bold text-[#111827]">4</p>
 </div>
-<!-- Overlapping Players Avatars -->
+
 <div class="flex items-center">
 <div class="flex -space-x-2 overflow-hidden">
-<!-- Avatar 1 -->
+
 <div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#ffffff] bg-zinc-700 overflow-hidden">
 <svg class="w-full h-full fill-zinc-300" viewbox="0 0 100 100">
 <circle cx="50" cy="40" r="25"></circle>
 <circle cx="50" cy="95" r="40"></circle>
 </svg>
 </div>
-<!-- Avatar 2 -->
+
 <div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#ffffff] bg-[#575e70] overflow-hidden">
 <svg class="w-full h-full fill-[#9CA3AF]" viewbox="0 0 100 100">
 <circle cx="50" cy="40" r="25"></circle>
 <circle cx="50" cy="95" r="40"></circle>
 </svg>
 </div>
-<!-- Avatar 3 -->
+
 <div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#ffffff] bg-[#ffffff] overflow-hidden">
 <svg class="w-full h-full fill-zinc-200" viewbox="0 0 100 100">
 <circle cx="50" cy="40" r="25"></circle>
 <circle cx="50" cy="95" r="40"></circle>
 </svg>
 </div>
-<!-- Avatar 4 -->
+
 <div class="inline-block h-8 w-8 rounded-full ring-2 ring-[#ffffff] bg-[#4f46e5] overflow-hidden">
 <svg class="w-full h-full fill-white" viewbox="0 0 100 100">
 <circle cx="50" cy="40" r="25"></circle>
@@ -619,7 +619,7 @@
 </svg>
 </div>
 </div>
-<!-- Next Arrow & Counter -->
+
 <div class="flex items-center gap-1.5 ml-2">
 <span class="text-xs text-orange-400 font-bold">→</span>
 <span class="text-xs text-[#6B7280] font-semibold">+145</span>
@@ -630,7 +630,7 @@
 </div>
 </div>
 </div>
-<!-- Week Activity Card -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center justify-between">
 <div>
 <p class="text-xs font-semibold text-[#111827]">Week ingest</p>
@@ -644,24 +644,24 @@
             </div>
 </div>
 </div>
-<!-- =================== RIGHT COLUMN (Profile, Ingest Activity, Recent Ingests) =================== -->
+
 <div class="col-span-12 lg:col-span-4 flex flex-col gap-5">
-<!-- Profile Card -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex items-center gap-4">
-<!-- User Avatar with lime ring -->
+
 <div class="w-16 h-16 rounded-full p-1 border-2 border-[#E0E7FF] shrink-0 overflow-hidden bg-white flex items-center justify-center">
 <svg class="w-full h-full rounded-full" viewbox="0 0 120 120">
-<!-- Illustrated Portrait of young man with glasses & beard -->
+
 <rect fill="#ffffff" height="120" width="120"></rect>
 <circle cx="60" cy="50" fill="#777587" r="28"></circle>
-<!-- Glasses -->
+
 <circle cx="50" cy="48" fill="none" r="8" stroke="#ffffff" stroke-width="2.5"></circle>
 <circle cx="70" cy="48" fill="none" r="8" stroke="#ffffff" stroke-width="2.5"></circle>
 <path d="M58 48h4" stroke="#ffffff" stroke-width="2"></path>
-<!-- Beard & smile -->
+
 <path d="M42 52c0 14 8 22 18 22s18-8 18-22c0-1-36-1-36 0z" fill="#ffffff"></path>
 <path d="M54 62c3 2 9 2 12 0" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="1.5"></path>
-<!-- Shirt / Shoulders -->
+
 <path d="M20 115c0-22 18-32 40-32s40 10 40 32z" fill="#f7fafc"></path>
 </svg>
 </div>
@@ -671,9 +671,9 @@
 <p class="text-[11px] text-[#6B7280] font-medium"><span id="last-ingest-time">never</span></p>
 </div>
 </div>
-<!-- Ingested & Failed Mini KPI Duo -->
+
 <div class="grid grid-cols-2 gap-3">
-<!-- Ingested Card (Lime/Olive tint) -->
+
 <div class="bg-[#f2f4f8] border border-[#E0E7FF] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
 <div class="flex items-center justify-between">
 <div class="w-8 h-8 rounded-full bg-[#4f46e5] text-white flex items-center justify-center text-xs font-bold shadow-sm">
@@ -691,7 +691,7 @@
 <p id="kpi-ingested-duo" class="text-base font-bold text-[#111827] tracking-tight mt-0.5">1,284</p>
 </div>
 </div>
-<!-- Failed Card (Wine/Ruby tint) -->
+
 <div class="bg-[#ffffff] border border-[#FEF2F2] rounded-2xl p-3.5 flex flex-col justify-between h-28 relative">
 <div class="flex items-center justify-between">
 <div class="w-8 h-8 rounded-full bg-[#DC2626] text-white flex items-center justify-center text-xs font-bold shadow-sm">
@@ -710,7 +710,7 @@
 </div>
 </div>
 </div>
-<!-- Ingest Activity Card with Dual Line Chart -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-2">
 <h2 class="text-sm font-semibold text-[#111827]">Ingest Activity</h2><span class="text-[10px] px-2 py-1 rounded-full bg-[#4f46e5]/15 text-[#4f46e5] border border-[#4f46e5]/20 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#4f46e5] animate-pulse"></span> live</span><span class="text-[10px] px-2 py-1 rounded-full bg-[#4f46e5]/15 text-[#4f46e5] border border-[#4f46e5]/20 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#4f46e5] animate-pulse"></span> live</span>
@@ -720,29 +720,29 @@
 </svg>
 </button>
 </div>
-<!-- Dual Line Chart SVG with Y and X axes -->
+
 <div class="relative w-full pt-2">
 <div class="flex">
-<!-- Y Axis labels -->
+
 <div class="flex flex-col justify-between text-[10px] text-[#9ca3af] pr-2 h-28 select-none">
 <span>6k</span>
 <span>4k</span>
 <span>2k</span>
 <span>0</span>
 </div>
-<!-- Chart Canvas Area -->
+
 <div class="flex-1 h-28 relative">
 <svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 280 110">
-<!-- Subtle horizontal grid lines -->
+
 <line stroke="#E5E7EB" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="5" y2="5"></line>
 <line stroke="#E5E7EB" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="40" y2="40"></line>
 <line stroke="#E5E7EB" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="280" y1="75" y2="75"></line>
 <line stroke="#E5E7EB" stroke-width="1" x1="0" x2="280" y1="105" y2="105"></line>
-<!-- Olive secondary line curve -->
+
 <path d="M 10 95 C 40 95, 55 60, 90 60 C 130 60, 150 90, 190 90 C 220 90, 240 65, 275 60" fill="none" stroke="#4f46e5" stroke-width="2"></path>
-<!-- Yellow/Gold main line curve -->
+
 <path d="M 10 70 C 40 70, 55 20, 85 20 C 115 20, 125 50, 150 50 C 170 50, 175 88, 195 88 C 215 88, 230 40, 275 90" fill="none" stroke="#d49429" stroke-width="2.5"></path>
-<!-- Key Data Points (Dots on lines) -->
+
 <circle cx="85" cy="20" fill="#d49429" r="4.5" stroke="#ffffff" stroke-width="2"></circle>
 <circle cx="150" cy="50" fill="#4f46e5" r="4.5" stroke="#ffffff" stroke-width="2"></circle>
 <circle cx="170" cy="55" fill="#4f46e5" r="3.5"></circle>
@@ -750,7 +750,7 @@
 </svg>
 </div>
 </div>
-<!-- X Axis Labels -->
+
 <div class="flex justify-between text-[10px] text-[#575e70] pl-6 mt-2 select-none">
 <span>Sat</span>
 <span>Mon</span>
@@ -761,9 +761,9 @@
 <span>Sat</span>
 </div>
 </div>
-<!-- Bottom Chart Breakdown Pill (Active & Playing) -->
+
 <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#E5E7EB]">
-<!-- Active -->
+
 <div class="flex flex-col items-center justify-center">
 <div class="flex items-center gap-1.5">
 <span class="w-1.5 h-1.5 rounded-full bg-[#4f46e5]"></span>
@@ -771,7 +771,7 @@
 </div>
 <span id="ingest-active-count" class="text-sm font-bold text-[#111827] mt-0.5">0</span>
 </div>
-<!-- Playing -->
+
 <div class="flex flex-col items-center justify-center border-l border-[#E5E7EB]">
 <div class="flex items-center gap-1.5">
 <span class="w-1.5 h-1.5 rounded-full bg-[#F59E0B]"></span>
@@ -781,7 +781,7 @@
 </div>
 </div>
 </div>
-<!-- Recent Ingests Card -->
+
 <div class="bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-4 flex flex-col justify-between">
 <div class="flex items-center justify-between mb-3">
 <h2 class="text-sm font-semibold text-[#111827]">Recent Ingests</h2>
@@ -791,7 +791,7 @@
 </svg>
 </button>
 </div>
-<!-- Single Transaction Row -->
+
 <div id="recent-ingest-row" class="flex items-center justify-between bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-3">
 <div class="flex items-center gap-3">
 <div class="w-9 h-9 rounded-full bg-[#4f46e5] text-white flex items-center justify-center font-bold text-xs shrink-0">
@@ -815,7 +815,7 @@
 </div>
 </div>
 
-<!-- BEGIN  LogForce Necessary   only what prototype needs, styled exactly like Sports card -->
+
 <div class="col-span-12 bg-[#ffffff] border border-[#E0E7FF] rounded-2xl p-5 flex flex-col gap-4">
 <div class="flex items-center justify-between">
 <h2 class="text-sm font-semibold text-[#111827]">Perimeter Log Ingest — Live Pipeline</h2>
@@ -902,11 +902,11 @@ Drop log file here or paste below — live <span class="text-[#9CA3AF]">output/m
 <div class="text-[11px] text-[#9ca3af]">Try: paste a Palo Alto CEF line → watch it become <code>type=REQUEST category=success</code> with confidence, or a Cisco ASA line → <code>ERROR.connection_failure</code>. Use the drop zone above or POST <code>/api/ingest?format=</code>.</div>
 </div>
 
-<!-- END  GridContent -->
+
 </div>
-<!-- END  DashboardBody -->
+
 </main>
-<!-- END  MainDashboardContainer -->
+
 
 <script>
 // LogForce wire   drop + classify with real Go ONNX
