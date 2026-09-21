@@ -935,7 +935,7 @@ Docs
 
 <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-card space-y-3.5 transition-all duration-300" id="vendor-details-card">
 
-<div class="bg-white rounded-2xl px-3 py-2 flex items-center justify-between shadow-sm border border-emerald-200/80 overflow-hidden"><div class="flex items-center gap-2.5 min-w-0"><div aria-label="Streaming active" class="flex items-end gap-0.5 h-3.5 w-3 shrink-0"><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_1s_infinite_100ms] h-2"></span><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_1.2s_infinite_200ms] h-3.5"></span><span class="w-0.5 bg-emerald-500 rounded-full animate-[bounce_0.9s_infinite_300ms] h-1.5"></span></div><div class="min-w-0 flex flex-col"><div class="flex items-center gap-1.5"><span class="text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-full shrink-0">LIVE INGEST</span><span class="w-1 h-1 rounded-full bg-slate-400"></span><span class="text-xs font-bold text-slate-900 truncate" id="spotify-active-name">Palo Alto • Core Traffic</span></div><span class="text-[10px] font-mono text-slate-600 truncate mt-0.5" id="spotify-throughput">0 evt/s • 0.00 KB/s • 0% drop</span></div></div><div class="flex items-center gap-1 shrink-0 text-slate-700"><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" onclick="toggleStreamMute()" title="Toggle Stream Feed" type="button"><svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" id="spotify-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></button><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Stream settings" type="button"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle></svg></button></div></div>
+<div class="bg-white rounded-2xl px-3 py-2 flex items-center justify-between shadow-sm border border-emerald-200/80 overflow-hidden"><div class="flex items-center gap-2.5 min-w-0"><style>.lf-eq{display:flex;align-items:flex-end;gap:2px;height:14px;width:44px;flex-shrink:0;}.lf-eq>span{width:3px;height:3px;background:#10b981;border-radius:9999px;opacity:.35;animation:lf-sound 0ms -800ms linear infinite alternate;}.lf-eq>span:nth-child(1){animation-duration:474ms;}.lf-eq>span:nth-child(2){animation-duration:433ms;}.lf-eq>span:nth-child(3){animation-duration:407ms;}.lf-eq>span:nth-child(4){animation-duration:458ms;}.lf-eq>span:nth-child(5){animation-duration:400ms;}.lf-eq>span:nth-child(6){animation-duration:427ms;}.lf-eq>span:nth-child(7){animation-duration:441ms;}.lf-eq>span:nth-child(8){animation-duration:419ms;}.lf-eq>span:nth-child(9){animation-duration:487ms;}.lf-eq>span:nth-child(10){animation-duration:442ms;}@keyframes lf-sound{0%{opacity:.35;height:3px;}100%{opacity:1;height:14px;}}@media (prefers-reduced-motion: reduce){.lf-eq>span{animation:none;opacity:.7;height:8px;}}</style><div aria-label="Streaming active" class="lf-eq"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="min-w-0 flex flex-col"><div class="flex items-center gap-1.5"><span class="text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-full shrink-0">LIVE INGEST</span><span class="w-1 h-1 rounded-full bg-slate-400"></span><span class="text-xs font-bold text-slate-900 truncate" id="spotify-active-name">Palo Alto • Core Traffic</span></div><span class="text-[10px] font-mono text-slate-600 truncate mt-0.5" id="spotify-throughput">0 evt/s • 0.00 KB/s • 0% drop</span></div></div><div class="flex items-center gap-1 shrink-0 text-slate-700"><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" onclick="toggleStreamMute()" title="Toggle Stream Feed" type="button"><svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" id="spotify-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></button><button class="p-1 rounded-full hover:bg-slate-100 hover:text-slate-900 transition-colors" title="Stream settings" type="button"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle></svg></button></div></div>
 
 <div class="space-y-3.5" id="vendor-tab-content">
 
@@ -1227,9 +1227,9 @@ Docs
 </div>
 
 <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-card flex flex-col justify-between" data-purpose="ingest-activity-chart" id="ingest-activity-card">
-<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><h4 class="text-base font-bold text-slate-900 truncate">Ingest Activity</h4><span class="text-[10px] font-mono text-slate-400 hidden sm:inline-block" id="activity-stream-rate">~3.8k/s</span></div><div class="flex items-center gap-1.5 shrink-0"><button class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-600 border border-brand-100 hover:bg-brand-100 transition-colors cursor-pointer" id="chart-live-btn" onclick="toggleActivityLive()" title="Click to toggle live streaming"><span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse" id="chart-live-dot"></span><span id="chart-live-text" class="">live</span></button><button class="text-slate-400 hover:text-amber-600 hover:bg-amber-50 p-1.5 rounded-lg transition-colors cursor-pointer" onclick="simulateActivitySpike()" title="Simulate Traffic Spike Pulse" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><button class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg transition-colors cursor-pointer" onclick="resetActivityStream()" title="Reset chart stream" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div></div>
+<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><h4 class="text-base font-bold text-slate-900 truncate">Ingest Activity</h4><span class="text-[10px] font-mono text-slate-400 hidden sm:inline-block" id="activity-stream-rate">~3.8k/s</span></div><div class="flex items-center gap-1.5 shrink-0"><button class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-600 border border-brand-100 hover:bg-brand-100 transition-colors cursor-pointer" id="chart-live-btn" onclick="toggleActivityLive()" title="Click to toggle live streaming"><span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse" id="chart-live-dot"></span><span id="chart-live-text" class="">live</span></button><!-- demo spike button removed (feed runs demo ticks instead) --><!-- demo reset button removed --></div></div>
 
-<div class="relative w-full my-3"><data-chart aria-label="Ingest activity, normalized versus raw" id="chart-ingest" items-sm="6" items-xs="3" max="100" min="0" options="groups y-grid y-labels" role="figure" style="--data-chart-mih:9rem;--data-chart-y-axis-w:2.2rem" type="area"><table><caption>Ingest activity, normalized versus raw events per 2 hour bucket</caption><thead aria-hidden="true" id="chart-ingest-y"></thead><tbody id="chart-ingest-body"></tbody></table></data-chart></div>
+<div class="relative w-full my-3 lf-chart" id="chart-ingest-vue"><d3__chart :layout="layout" :chart-data="chartData" :axes="axes"></d3__chart></div>
 
 <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium px-2">
 <span class="">Sat</span>
@@ -1241,7 +1241,7 @@ Docs
 <span class="">Sat</span>
 </div>
 
-<div class="flex items-center justify-around border-t border-slate-100 pt-3 mt-3 text-center"><div class="flex flex-col items-center"><div class="flex items-center gap-1.5"><span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium"><span class="w-2 h-2 rounded-full bg-brand-600"></span> Normalized</span><button class="text-[10px] font-semibold text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-1.5 py-0.5 rounded-full transition-all cursor-pointer" onclick="bumpActivityValue('norm', 400)" title="Boost Normalized +400">+400</button></div><p class="text-base font-bold text-slate-900 mt-0.5 tabular-nums transition-colors" id="val-activity-norm">2,840</p></div><div class="w-px h-7 bg-slate-100"></div><div class="flex flex-col items-center"><div class="flex items-center gap-1.5"><span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Raw</span><button class="text-[10px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded-full transition-all cursor-pointer" onclick="bumpActivityValue('raw', 500)" title="Boost Raw +500">+500</button></div><p class="text-base font-bold text-slate-900 mt-0.5 tabular-nums transition-colors" id="val-activity-raw">3,920</p></div></div>
+<div class="flex items-center justify-around border-t border-slate-100 pt-3 mt-3 text-center"><div class="flex flex-col items-center"><div class="flex items-center gap-1.5"><span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium"><span class="w-2 h-2 rounded-full bg-brand-600"></span> Normalized</span><!-- +400 demo boost removed --></div><p class="text-base font-bold text-slate-900 mt-0.5 tabular-nums transition-colors" id="val-activity-norm">2,840</p></div><div class="w-px h-7 bg-slate-100"></div><div class="flex flex-col items-center"><div class="flex items-center gap-1.5"><span class="inline-flex items-center gap-1 text-xs text-slate-500 font-medium"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Raw</span><!-- +500 demo boost removed --></div><p class="text-base font-bold text-slate-900 mt-0.5 tabular-nums transition-colors" id="val-activity-raw">3,920</p></div></div>
 </div>
 
 <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-card flex flex-col justify-between" data-purpose="recent-ingests-card">
@@ -1694,10 +1694,8 @@ Docs
   }
 
   // Chart fns referenced by onclick that were dead
-  window.toggleActivityLive = function(){ chartLive=!chartLive; const t=$('#chart-live-text'); if(t) t.textContent=chartLive?'live':'paused'; };
-  window.resetActivityStream = function(){ refreshStats(); };
-  window.simulateActivitySpike = function(){ const n=$('#val-activity-norm'), r=$('#val-activity-raw'); if(n) n.textContent=(parseInt(n.textContent.replace(/\D/g,''))||2840)+400; if(r) r.textContent=(parseInt(r.textContent.replace(/\D/g,''))||3920)+500; setTimeout(refreshStats,1200); };
-  window.bumpActivityValue = function(which, amt){ const el=$(which==='norm'?'#val-activity-norm':'#val-activity-raw'); if(el) el.textContent=((parseInt(el.textContent.replace(/\D/g,''))||0)+amt).toLocaleString(); };
+  window.toggleActivityLive = function(){ chartLive=!chartLive; const t=$('#chart-live-text'); if(t) t.textContent=chartLive?'live':'paused'; if(window.__ingFeed) window.__ingFeed.setLive(chartLive); };
+  // demo spike/reset/bump controls removed; the live toggle below drives the feed.
 
   // Stats binding
   function setTrio(total, sources, latMs){
@@ -1787,6 +1785,7 @@ Docs
     if(r && br) r.textContent=br.toLocaleString();
     const sr=$('#activity-stream-rate'); if(sr) sr.textContent='~'+((bn+br)||'0')+'/s';
     try{ updateIngestChart(s.buckets_normalized||new Array(12).fill(0), s.buckets_raw||new Array(12).fill(0)); }catch(e){}
+    try{ if(window.__ingFeed) window.__ingFeed.ingestBuckets(s.buckets_normalized||[], s.buckets_raw||[]); }catch(e){}
   }
   function setRecent(){
     renderRecentStack(false);
@@ -2005,6 +2004,22 @@ import * as THREE from 'three';
     if (document.hidden && running) { running = false; cancelAnimationFrame(rafId); }
     else if (!document.hidden && !running && badge.getAttribute('data-failed') !== 'true') { running = true; frame(); }
   });
+})();
+</script>
+<!-- Vue + d3 chart libs (Ingest Activity card uses virtual-DOM rendering) -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@5.16.0/dist/d3.min.js"></script>
+<script src="logforce-feed.js"></script>
+<script>
+// Ingest Activity: Vue+d3 mount (2h buckets ending now). Feed runs demo ticks locally;
+// point it at a ws/poll/sse endpoint via __ingFeed.setMode() after approval.
+(function(){
+  if(typeof Vue==='undefined'||typeof d3==='undefined'||typeof mountLogforceChart==='undefined') return;
+  const m = mountLogforceChart('#chart-ingest-vue', {
+    bucketMs: 2*3600*1000, windowSize: 48,
+    endTime: function(){ return Date.now(); }
+  });
+  if(m) window.__ingFeed = m.feed;
 })();
 </script>
 
