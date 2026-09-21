@@ -5,3 +5,4 @@ __pycache__/
 models/*.onnx_data
 .vercel
 .DS_Store
+*.dylib
