@@ -715,7 +715,7 @@ Storage cap 200 events, FIFO
         setTimeout(()=>URL.revokeObjectURL(a.href),5000);
       }catch(e){}
     }
-    // ponytail: one shred driver for all three buttons; gesture sensitive work runs on click, rest on animationend
+    // one shred driver for all three buttons; gesture sensitive work runs on click, rest on animationend
     (function initShredButtons(){
       var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       function shred(id, opts){
