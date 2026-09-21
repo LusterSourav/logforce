@@ -126,7 +126,7 @@
   var timer = 0, requestID = null;
   function draw(){
     timer++;
-    // ponytail: flag loads the instant Act 1 freezes, no drift window.
+    // flag loads the instant Act 1 freezes, no drift window.
     if(timer >= 500) goo.classList.add('shown');
     context.setTransform(1, 0, 0, 1, 0, 0);
     var distanceX = canvas.width / 80;
@@ -143,7 +143,7 @@
         circulo.x = circulo.x - (distanceX * 0.02);
         circulo.size = circulo.size + (growthRate * 0.2);
       }
-      // ponytail: capped radius; uncapped dots fuse into one blob at
+      // capped radius; uncapped dots fuse into one blob at
       // desktop widths and swallow the message (caught by screenshot).
       context.arc(circulo.x, circulo.y, Math.min(Math.max(circulo.size, 0.1), 40), 0, Math.PI * 2);
       context.fill();
