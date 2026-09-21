@@ -30,6 +30,7 @@
     { "source": "/multimedia-specialist.jpeg", "destination": "/ui/multimedia-specialist.jpeg" },
     { "source": "/product-evangelist.jpeg", "destination": "/ui/product-evangelist.jpeg" },
     { "source": "/team-developer-profile.png", "destination": "/ui/team-developer-profile.png" },
+    { "source": "/logforce-feed.js", "destination": "/ui/logforce-feed.js" },
     { "source": "/analytics", "destination": "/ui/analytics.html" },
     { "source": "/analytics.html", "destination": "/ui/analytics.html" },
     { "source": "/events", "destination": "/ui/events.html" },
