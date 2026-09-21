@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!--
+  CREATER.HTML — LogForce team page (single file).
+  Live animation layers:
+    1) Portrait particle engine (Three.js, one WebGL context per photo) — shared script below.
+    2) Hyper Scroll world (Lenis smooth scroll, 3D cards + headings, endless 10s auto-play).
+    3) Star-system background (Three.js points, mouse parallax, backmost layer).
+  Removed on purpose (do not re-add without asking):
+    - HUD readout (FPS / velocity / coordinate).
+    - Static photo grid (replaced by the scroll world).
+-->
+<title>LOGFORCE</title>
+<script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #030303;
+  --card-bg: rgba(10, 10, 10, 0.4);
+  --text: #e0e0e0;
+  --accent: #ff003c;
+  --accent-2: #00f3ff;
+  --border: rgba(255, 255, 255, 0.1);
+  --font-display: 'Syncopate', sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-display); width: 100%; min-height: 100vh; cursor: crosshair; }
+.scanlines { position: fixed; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2)); background-size: 100% 4px; pointer-events: none; z-index: 10; }
+.vignette { position: fixed; inset: 0; background: radial-gradient(circle, transparent 40%, #000 120%); z-index: 11; pointer-events: none; }
+.noise { position: fixed; inset: 0; z-index: 12; opacity: 0.07; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
+.hud { position: fixed; inset: 2rem; z-index: 20; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--font-code); font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+.hud-top, .hud-bottom { display: flex; justify-content: space-between; align-items: center; }
+.hud strong { color: var(--accent-2); }
+.hud-line { flex: 1; height: 1px; background: rgba(255,255,255,0.2); margin: 0 1rem; position: relative; }
+.hud-line::after { content: ''; position: absolute; right: 0; top: -2px; width: 5px; height: 5px; background: var(--accent); }
+.center-nav { align-self: flex-start; margin-top: auto; margin-bottom: auto; writing-mode: vertical-rl; transform: rotate(180deg); }
+.viewport { position: fixed; inset: 0; perspective: 1000px; overflow: hidden; z-index: 1; }
+.world { position: absolute; top: 50%; left: 50%; transform-style: preserve-3d; will-change: transform; }
+.item { position: absolute; left: 0; top: 0; backface-visibility: hidden; transform-origin: center center; display: flex; align-items: center; justify-content: center; }
+.card { width: min(320px, 70vw); height: 460px; background: var(--card-bg); border: 1px solid var(--border); position: relative; padding: 1.25rem; display: flex; flex-direction: column; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 20px 50px rgba(0,0,0,0.5); transform: translate(-50%, -50%); }
+@media (hover: hover) {
+  .card:hover { border-color: var(--accent); box-shadow: 0 0 30px rgba(255,0,60,0.2); background: rgba(20,20,20,0.8); }
+}
+.card::before, .card::after { content: ''; position: absolute; width: 10px; height: 10px; border: 1px solid transparent; }
+.card::before { top: -1px; left: -1px; border-top-color: var(--text); border-left-color: var(--text); }
+.card::after { bottom: -1px; right: -1px; border-bottom-color: var(--text); border-right-color: var(--text); }
+.card-header { border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-code); font-size: 0.7rem; }
+.card-id { color: var(--accent); }
+.card-role { color: rgba(255,255,255,0.55); letter-spacing: 0.08em; }
+.frame { position: relative; width: 100%; height: 230px; overflow: hidden; background: #050505; border: 1px solid rgba(255,255,255,0.06); }
+.frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.card h2 { font-size: 1.9rem; line-height: 1; margin: 0.9rem 0 0; text-transform: uppercase; font-weight: 700; color: #fff; }
+.card-footer { margin-top: auto; font-family: var(--font-code); font-size: 0.65rem; color: rgba(255,255,255,0.4); display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.card-footer strong { color: var(--accent-2); }
+.big-text { font-size: 15vw; font-weight: 800; color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,0.15); text-transform: uppercase; white-space: nowrap; transform: translate(-50%, -50%); pointer-events: none; letter-spacing: -0.5rem; }
+.star { position: absolute; width: 2px; height: 2px; background: white; transform: translate(-50%, -50%); }
+.scroll-proxy { height: 100vh; position: absolute; width: 100%; z-index: -1; }
+.cursor { position: fixed; left: 0; top: 0; width: 50px; height: 50px; margin-left: -25px; margin-top: -25px; border: 1px solid rgba(255,255,255,0.7); border-radius: 50%; pointer-events: none; z-index: 100; transform: translate3d(-100px,-100px,0); will-change: transform; }
+.cursor-dot { position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin-left: -1.5px; margin-top: -1.5px; border-radius: 50%; background: rgba(255,255,255,0.9); }
+.loading { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 200; color: rgba(255,255,255,0.7); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; pointer-events: none; transition: opacity 0.5s ease, visibility 0.5s ease; font-family: var(--font-code); }
+.loading.hidden { opacity: 0; visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .cursor { display: none; } body { cursor: auto; } }
+</style>
+</head>
+<body>
+<!-- Overlays: scanlines / vignette / film grain (always on top, never interactive) -->
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="noise"></div>
+<!-- HUD removed -->
+<!-- Hyper Scroll 3D world (cards + headings + stars, built by script) -->
+<div class="viewport" id="viewport"><div class="world" id="world"></div></div>
+<!-- Scroll proxy: one full window scroll = one seamless world loop -->
+<div class="scroll-proxy" id="scrollProxy"></div>
+<!-- Custom cursor ring (follows the pointer) -->
+<div class="cursor"><div class="cursor-dot"></div></div>
+<!-- Loading veil (hides once all 6 portraits build) -->
+<div class="loading" id="loading"><span>Loading</span></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ===== 1) Portrait particle engine (donor — also drives the scroll-world cards) =====
+const easeOutSine = (t, b, c, d) => c * Math.sin(t / d * (Math.PI / 2)) + b;
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MAX_INSTANCES = 70000;
+const VERT = `
+#define TAU 6.28318530718
+precision highp float;
+attribute float pindex;
+attribute vec3 position;
+attribute vec3 offset;
+attribute vec2 uv;
+attribute float angle;
+uniform mat4 modelViewMatrix;
+uniform mat4 projectionMatrix;
+uniform float uTime;
+uniform float uRandom;
+uniform float uDepth;
+uniform float uSize;
+uniform float uBurst;
+uniform vec2 uTextureSize;
+uniform sampler2D uTexture;
+uniform sampler2D uTouch;
+varying vec2 vPUv;
+varying vec2 vUv;
+vec3 mod289_1_0(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec2 mod289_1_0(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec3 permute_1_1(vec3 x) { return mod289_1_0(((x*34.0)+1.0)*x); }
+float snoise_1_2(vec2 v) {
+  const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+  vec2 i = floor(v + dot(v, C.yy));
+  vec2 x0 = v - i + dot(i, C.xx);
+  vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+  i = mod289_1_0(i);
+  vec3 p = permute_1_1(permute_1_1(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+  m = m * m; m = m * m;
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+  m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
+  vec3 g;
+  g.x = a0.x * x0.x + h.x * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
+}
+float random(float n) { return fract(sin(n) * 43758.5453123); }
+void main() {
+  vUv = uv;
+  vec2 puv = offset.xy / uTextureSize;
+  vPUv = puv;
+  vec4 colA = texture2D(uTexture, puv);
+  float grey = dot(colA.rgb, vec3(0.299, 0.587, 0.114));
+  vec3 displaced = offset;
+  displaced.xy += vec2(random(pindex) - 0.5, random(offset.x + pindex) - 0.5) * uRandom;
+  float rndz = (random(pindex) + snoise_1_2(vec2(pindex * 0.5, uTime * 0.5)));
+  displaced.z += rndz * (random(pindex) * 2.0 * uDepth);
+  displaced.xy -= uTextureSize * 0.5;
+  float t = texture2D(uTouch, puv).r;
+  displaced.z += t * uBurst * rndz;
+  displaced.x += cos(angle) * t * uBurst * rndz;
+  displaced.y += sin(angle) * t * uBurst * rndz;
+  float psize = (snoise_1_2(vec2(uTime, pindex) * 0.5) + 2.0);
+  psize *= max(grey, 0.2);
+  psize *= uSize;
+  displaced += position * psize;
+  vec4 mvPosition = modelViewMatrix * vec4(displaced, 1.0);
+  gl_Position = projectionMatrix * mvPosition;
+}
+`;
+const FRAG = `
+precision highp float;
+uniform sampler2D uTexture;
+uniform float uExposure;
+varying vec2 vPUv;
+varying vec2 vUv;
+void main() {
+  vec4 color = vec4(0.0);
+  vec2 uv = vUv;
+  vec2 puv = vPUv;
+  vec4 colA = texture2D(uTexture, puv);
+  float grey = dot(colA.rgb, vec3(0.299, 0.587, 0.114));
+  vec4 colB = vec4(min(vec3(grey) * uExposure, vec3(1.0)), 1.0);
+  float border = 0.5;
+  float radius = 0.5;
+  float dist = 1. - distance(uv, vec2(0.5)) / radius;
+  float t = smoothstep(0.0, border, dist);
+  color = colB;
+  color.a = t;
+  gl_FragColor = color;
+}
+`;
+class TouchTexture {
+  constructor() {
+    this.size = 64; this.maxAge = 120; this.radius = 0.22; this.trail = [];
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = this.size; this.canvas.height = this.size;
+    this.ctx = this.canvas.getContext('2d');
+    this.ctx.fillStyle = 'black'; this.ctx.fillRect(0, 0, this.size, this.size);
+    this.texture = new THREE.Texture(this.canvas);
+  }
+  clear() { this.ctx.fillStyle = 'black'; this.ctx.fillRect(0, 0, this.size, this.size); }
+  addTouch(point) {
+    let force = 0;
+    const last = this.trail[this.trail.length - 1];
+    if (last) {
+      const dx = last.x - point.x, dy = last.y - point.y;
+      force = Math.min((dx * dx + dy * dy) * 10000, 1);
+    }
+    this.trail.push({ x: point.x, y: point.y, age: 0, force });
+  }
+  drawTouch(point) {
+    const pos = { x: point.x * this.size, y: (1 - point.y) * this.size };
+    let intensity;
+    if (point.age < this.maxAge * 0.3) intensity = easeOutSine(point.age / (this.maxAge * 0.3), 0, 1, 1);
+    else intensity = easeOutSine(1 - (point.age - this.maxAge * 0.3) / (this.maxAge * 0.7), 0, 1, 1);
+    intensity *= point.force;
+    const radius = this.size * this.radius * intensity;
+    const grd = this.ctx.createRadialGradient(pos.x, pos.y, radius * 0.25, pos.x, pos.y, radius);
+    grd.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+    grd.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+    this.ctx.beginPath();
+    this.ctx.fillStyle = grd;
+    this.ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    this.ctx.fill();
+  }
+  update() {
+    this.clear();
+    for (let i = this.trail.length - 1; i >= 0; i--) {
+      const p = this.trail[i];
+      p.age++;
+      if (p.age > this.maxAge) { this.trail.splice(i, 1); continue; }
+      this.drawTouch(p);
+    }
+    this.texture.needsUpdate = true;
+  }
+}
+const engines = [];
+let loadedCount = 0, loadedInstances = 0;
+function hideLoadingWhenReady(total, n) {
+  loadedCount++;
+  loadedInstances += n || 0;
+  if (loadedCount >= total) {
+    console.log('total instances across 6 portraits:', loadedInstances);
+    document.getElementById('loading').classList.add('hidden');
+  }
+}
+setTimeout(function () { document.getElementById('loading').classList.add('hidden'); }, 15000);
+class PortraitEngine {
+  constructor(frame, src, total) {
+    this.frame = frame; this.src = src; this.total = total;
+    this.visible = true; this.born = 0; this.dead = false;
+    this.raycaster = new THREE.Raycaster();
+    this.ndc = new THREE.Vector2();
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.camera = new THREE.PerspectiveCamera(45, 1, 0.1, 20000);
+    this.scene = new THREE.Scene();
+    this.touch = new TouchTexture();
+    frame.appendChild(this.renderer.domElement);
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    // frame level pointer, canvas never traps events
+    frame.addEventListener('pointermove', (e) => this.onMove(e));
+    frame.addEventListener('pointerleave', () => this.touch.trail.length = 0);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((en) => { this.visible = en[0].isIntersecting; }).observe(frame);
+    }
+    this._loadAttempts = 0;
+    const tryLoad = () => {
+      this._loadAttempts++;
+      new THREE.TextureLoader().load(src, (tex) => this.build(tex), undefined, () => {
+        if (this._loadAttempts < 2) { console.warn('[logforce] retrying image:', src); tryLoad(); return; }
+        console.error('Could not load image:', src); hideLoadingWhenReady(total); this.dead = true;
+      });
+    };
+    tryLoad();
+  }
+  resize() {
+    // layout size only, immune to transforms since grid has none
+    const w = Math.max(this.frame.clientWidth, 1);
+    const h = Math.max(this.frame.clientHeight, 1);
+    this.renderer.setSize(w, h, false);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+    if (this.mesh) this.fitCamera();
+  }
+  fitCamera() {
+    // distance derived from texture plus frame aspect, full state always
+    const texAspect = this.texW / this.texH;
+    const frameAspect = Math.max(this.frame.clientWidth, 1) / Math.max(this.frame.clientHeight, 1);
+    let worldH = this.texH, worldW = this.texW;
+    if (frameAspect > texAspect) { worldW = worldH * frameAspect; }
+    else { worldH = worldW / frameAspect; }
+    this.worldW = worldW; this.worldH = worldH;
+    const dist = (worldH / 2) / Math.tan(THREE.MathUtils.degToRad(45 / 2)) * 1.06;
+    this.camera.position.set(0, 0, dist);
+    this.camera.lookAt(0, 0, 0);
+  }
+  build(texture) {
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    const iw = texture.image.width, ih = texture.image.height;
+    this.texW = iw; this.texH = ih;
+    const cv = document.createElement('canvas');
+    cv.width = iw; cv.height = ih;
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(texture.image, 0, 0);
+    const img = ctx.getImageData(0, 0, iw, ih).data;
+    const stride = Math.max(1, Math.ceil(Math.sqrt((iw * ih) / MAX_INSTANCES)));
+    const lum = (o) => (img[o] * 0.299 + img[o + 1] * 0.587 + img[o + 2] * 0.114);
+    let mean = 0, meanN = 0;
+    for (let y = 0; y < ih; y += stride * 4) {
+      for (let x = 0; x < iw; x += stride * 4) {
+        const o = (y * iw + x) * 4;
+        if (img[o + 3] <= 10) continue;
+        mean += lum(o); meanN++;
+      }
+    }
+    mean = meanN ? mean / meanN : 128;
+    const exposure = Math.min(2.2, Math.max(1.0, 110 / Math.max(mean, 1)));
+    let cutoff = Math.max(1, Math.min(8, mean * 0.12)), offs = [];
+    while (true) {
+      offs = [];
+      for (let y = 0; y < ih; y += stride) {
+        for (let x = 0; x < iw; x += stride) {
+          const o = (y * iw + x) * 4;
+          if (img[o + 3] <= 10) continue;
+          if (lum(o) < cutoff) continue;
+          offs.push(x, y);
+        }
+      }
+      if (offs.length / 2 >= 2000 || cutoff <= 1) break;
+      cutoff = Math.max(1, cutoff / 2);
+    }
+    const n = offs.length / 2;
+    const offsets = new Float32Array(n * 3);
+    const indices = new Float32Array(n);
+    const angles = new Float32Array(n);
+    for (let j = 0; j < n; j++) {
+      offsets[j * 3] = offs[j * 2];
+      offsets[j * 3 + 1] = offs[j * 2 + 1];
+      offsets[j * 3 + 2] = 0;
+      indices[j] = j;
+      angles[j] = Math.random() * Math.PI;
+    }
+    const quad = new THREE.PlaneGeometry(1, 1);
+    const geo = new THREE.InstancedBufferGeometry();
+    geo.index = quad.index;
+    geo.attributes.position = quad.attributes.position;
+    geo.attributes.uv = quad.attributes.uv;
+    geo.setAttribute('pindex', new THREE.InstancedBufferAttribute(indices, 1, false));
+    geo.setAttribute('offset', new THREE.InstancedBufferAttribute(offsets, 3, false));
+    geo.setAttribute('angle', new THREE.InstancedBufferAttribute(angles, 1, false));
+    this.uniforms = {
+      uTime: { value: 0 },
+      uRandom: { value: 2.0 },
+      uDepth: { value: 4.0 },
+      uSize: { value: 0.0 },
+      uExposure: { value: exposure },
+      uBurst: { value: iw * 0.04 },
+      uTextureSize: { value: new THREE.Vector2(iw, ih) },
+      uTexture: { value: texture },
+      uTouch: { value: this.touch.texture }
+    };
+    const mat = new THREE.RawShaderMaterial({
+      uniforms: this.uniforms,
+      vertexShader: VERT, fragmentShader: FRAG,
+      depthTest: false, transparent: true, side: THREE.DoubleSide, blending: THREE.AdditiveBlending
+    });
+    this.mesh = new THREE.Mesh(geo, mat);
+    this.scene.add(this.mesh);
+    this.fitCamera();
+    this.hitPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(this.worldW, this.worldH),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false })
+    );
+    this.scene.add(this.hitPlane);
+    this.born = performance.now();
+    console.log(this.src, n + ' instances');
+    hideLoadingWhenReady(this.total, n);
+    this.resize();
+  }
+  onMove(e) {
+    if (!this.hitPlane) return;
+    const r = this.renderer.domElement.getBoundingClientRect();
+    this.ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    this.raycaster.setFromCamera(this.ndc, this.camera);
+    const hit = this.raycaster.intersectObject(this.hitPlane);
+    if (hit.length > 0) this.touch.addTouch(hit[0].uv);
+  }
+  tick(t) {
+    if (!this.mesh || !this.visible || this.dead) return;
+    const age = Math.min((performance.now() - this.born) / 1400, 1);
+    const eased = 1 - Math.pow(1 - age, 3);
+    this.uniforms.uTime.value = reduceMotion ? 0 : t * 0.5;
+    this.uniforms.uSize.value = eased * 3.2;
+    this.touch.update();
+    this.renderer.render(this.scene, this.camera);
+  }
+}
+const frames = Array.from(document.querySelectorAll('.frame'));
+frames.forEach((f) => engines.push(new PortraitEngine(f, f.getAttribute('data-src'), frames.length)));
+window.addEventListener('load', () => { for (const E of engines) E.resize(); });
+window.addEventListener('pointermove', (e) => {
+  const cur = document.querySelector('.cursor');
+  if (cur) cur.style.transform = 'translate3d(' + e.clientX + 'px,' + e.clientY + 'px,0)';
+});
+// --- LOGFORCE CONTENT ---
+const TEXTS = ["LOGFORCE","INGEST","PERIMETER","PIPELINE","DETECT","TELEMETRY","FORENSICS","SIGNAL","DEFENSE","PREPROCESS"];
+const TEAM = [
+  { src: './team-developer.png', role: 'DEVELOPER', meta: 'PREPROCESS' },
+  { src: './team-lead.png', role: 'TEAM LEAD', meta: 'LOGFORCE' },
+  { src: './system-designer.png', role: 'SYSTEM DESIGNER', meta: 'PIPELINE' },
+  { src: './product-evangelist.png', role: 'EVANGELIST', meta: 'SIGNAL' },
+  { src: './system-tester.png', role: 'SYSTEM TESTER', meta: 'FORENSICS' },
+  { src: './multimedia-specialist.png', role: 'MULTIMEDIA', meta: 'TELEMETRY' }
+];
+// content sequence: headings + all 6 member cards
+const SEQUENCE = [
+  { t: 'text', w: 'LOGFORCE' },
+  { t: 'card', m: 0 }, { t: 'card', m: 1 },
+  { t: 'text', w: 'PERIMETER' },
+  { t: 'card', m: 2 }, { t: 'card', m: 3 },
+  { t: 'text', w: 'DETECT' },
+  { t: 'card', m: 4 }, { t: 'card', m: 5 },
+  { t: 'text', w: 'DEFENSE' }
+];
+// --- CONFIGURATION ---
+const CONFIG = { itemCount: SEQUENCE.length, starCount: 150, zGap: 800, loopSize: 0, camSpeed: 2.5 };
+CONFIG.loopSize = CONFIG.itemCount * CONFIG.zGap;
+const PASS_PX = CONFIG.loopSize / CONFIG.camSpeed; // one full world pass in window-scroll px
+// --- STATE ---
+const state = { scroll: 0, velocity: 0, targetSpeed: 0, mouseX: 0, mouseY: 0 };
+const world = document.getElementById('world');
+const viewport = document.getElementById('viewport');
+const proxy = document.getElementById('scrollProxy');
+const items = [];
+const cardDefs = [];
+// --- BUILD WORLD ---
+(function buildWorld() {
+  SEQUENCE.forEach((entry, i) => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    if (entry.t === 'text') {
+      const txt = document.createElement('div');
+      txt.className = 'big-text';
+      txt.innerText = entry.w;
+      el.appendChild(txt);
+      items.push({ el, type: 'text', x: 0, y: 0, rot: 0, baseZ: -i * CONFIG.zGap });
+    } else {
+      const m = TEAM[entry.m];
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML =
+        '<div class="card-header"><span class="card-id">LF-0' + (entry.m + 1) + '</span>' +
+        '<span class="card-role">' + m.role + '</span></div>' +
+        '<div class="frame" data-src="' + m.src + '"></div>' +
+        '<h2>' + m.role + '</h2>' +
+        '<div class="card-footer"><span>LOGFORCE // UNIT</span><span><strong>' + m.meta + '</strong></span></div>';
+      el.appendChild(card);
+      const angle = (i / SEQUENCE.length) * Math.PI * 6;
+      const x = Math.cos(angle) * (window.innerWidth * 0.3);
+      const y = Math.sin(angle) * (window.innerHeight * 0.3);
+      const rot = (i - SEQUENCE.length / 2) * 1.5;
+      items.push({ el, type: 'card', x, y, rot, baseZ: -i * CONFIG.zGap, engIdx: cardDefs.length });
+      cardDefs.push({ frame: card.querySelector('.frame'), src: m.src });
+    }
+    world.appendChild(el);
+  });
+  for (let i = 0; i < CONFIG.starCount; i++) {
+    const el = document.createElement('div');
+    el.className = 'star';
+    world.appendChild(el);
+    items.push({ el, type: 'star', x: (Math.random() - 0.5) * 3000, y: (Math.random() - 0.5) * 3000, baseZ: -Math.random() * CONFIG.loopSize });
+  }
+})();
+// mount live particle portrait engines onto card frames (6 total)
+const portraitEngines = cardDefs.map((e) => new PortraitEngine(e.frame, e.src, cardDefs.length));
+window.addEventListener('load', () => { for (const E of portraitEngines) E.resize(); });
+// --- SCROLL RANGE: one window-scroll pass === one seamless world loop ---
+function maxScroll() { return Math.max(proxy.offsetHeight - window.innerHeight, 1); }
+function sizeProxy() { proxy.style.height = (PASS_PX + window.innerHeight) + 'px'; }
+sizeProxy();
+// --- LENIS (skip under reduced motion; native scroll still works) ---
+let lenis = null, driving = false;
+if (!reduceMotion && typeof Lenis !== 'undefined') {
+  try { lenis = new Lenis({ smooth: true, lerp: 0.08, direction: 'vertical', gestureDirection: 'vertical', smoothTouch: true }); }
+  catch (err) { console.warn('[logforce] Lenis init failed, native scroll fallback', err); lenis = null; }
+  lenis.on('scroll', ({ scroll, velocity }) => {
+    if (!driving && Math.abs(velocity) > 0.01) lastUserInput = performance.now();
+    state.scroll = scroll;
+    state.targetSpeed = velocity;
+    const mx = maxScroll();
+    if (scroll >= mx - 2) { driving = true; lenis.scrollTo(0, { immediate: true }); driving = false; }
+    else if (scroll <= 2 && velocity < -0.01) { driving = true; lenis.scrollTo(mx, { immediate: true }); driving = false; }
+  });
+} else {
+  window.addEventListener('scroll', () => { state.scroll = window.scrollY; }, { passive: true });
+}
+// --- AUTO-PLAY: endless ~10s passes, user input pauses for 8s ---
+let lastUserInput = -1e9, autoPos = 0;
+['wheel', 'touchstart', 'pointerdown'].forEach((ev) =>
+  window.addEventListener(ev, () => { lastUserInput = performance.now(); }, { passive: true }));
+window.addEventListener('mousemove', (e) => {
+  state.mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+  state.mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+});
+let resizeTimer;
+window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(sizeProxy, 150); });
+// --- RAF LOOP ---
+const feedbackVel = document.getElementById('vel-readout');
+const feedbackFPS = document.getElementById('fps');
+const feedbackCoord = document.getElementById('coord');
+let lastTime = 0, prevScroll = 0;
+function renderItems(time, tSec) {
+  const shake = state.velocity * 0.2;
+  const tiltX = state.mouseY * 5 - state.velocity * 0.5;
+  const tiltY = state.mouseX * 5;
+  world.style.transform = 'rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg)';
+  const fov = 1000 - Math.min(Math.abs(state.velocity) * 10, 600);
+  viewport.style.perspective = fov + 'px';
+  const cameraZ = state.scroll * CONFIG.camSpeed;
+  const modC = CONFIG.loopSize;
+  items.forEach((item) => {
+    const relZ = item.baseZ + cameraZ;
+    let vizZ = ((relZ % modC) + modC) % modC;
+    if (vizZ > 500) vizZ -= modC;
+    let alpha = 1;
+    if (vizZ < -3000) alpha = 0;
+    else if (vizZ < -2000) alpha = (vizZ + 3000) / 1000;
+    if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 400);
+    if (alpha < 0) alpha = 0;
+    item.el.style.opacity = alpha;
+    if (item.type === 'card' && item.engIdx !== undefined) {
+      const E = portraitEngines[item.engIdx];
+      if (E) E.visible = alpha > 0.02;
+    }
+    if (alpha > 0) {
+      let trans = 'translate3d(' + item.x + 'px,' + item.y + 'px,' + vizZ + 'px)';
+      if (item.type === 'star') {
+        const stretch = Math.max(1, Math.min(1 + Math.abs(state.velocity) * 0.1, 10));
+        trans += ' scale3d(1,1,' + stretch + ')';
+      } else if (item.type === 'text') {
+        trans += ' rotateZ(' + item.rot + 'deg)';
+        if (Math.abs(state.velocity) > 1) {
+          const offset = state.velocity * 2;
+          item.el.style.textShadow = offset + 'px 0 red,' + (-offset) + 'px 0 cyan';
+        } else item.el.style.textShadow = 'none';
+      } else {
+        const fl = Math.sin(tSec + item.x) * 10;
+        trans += ' rotateZ(' + item.rot + 'deg) rotateY(' + fl + 'deg)';
+      }
+      item.el.style.transform = trans;
+    }
+  });
+}
+function raf(time) {
+  requestAnimationFrame(raf);
+  if (lenis) lenis.raf(time);
+  const dt = lastTime ? Math.min((time - lastTime) / 1000, 0.05) : 0.016;
+  lastTime = time;
+  if (feedbackFPS && dt > 0 && time % 10 < 1) feedbackFPS.innerText = Math.round(1 / dt);
+  if (!lenis) state.scroll = window.scrollY;
+  else if (!driving) state.scroll = lenis.scroll;
+  state.velocity += (state.targetSpeed - state.velocity) * 0.1;
+  if (!reduceMotion && lenis && performance.now() - lastUserInput > 8000) {
+    autoPos += (maxScroll() / 10) * dt; // ~10s per endless pass
+    if (autoPos >= maxScroll()) autoPos -= maxScroll();
+    driving = true;
+    lenis.scrollTo(autoPos, { immediate: true });
+    driving = false;
+    state.scroll = autoPos;
+    prevScroll = autoPos;
+  } else if (lenis) {
+    autoPos = state.scroll;
+    prevScroll = state.scroll;
+  }
+  if (!lenis && Math.abs(window.scrollY - prevScroll) > 0.01) {
+    state.targetSpeed = (window.scrollY - prevScroll) / Math.max(dt, 0.001);
+    prevScroll = window.scrollY;
+  } else if (!lenis) state.targetSpeed *= 0.9;
+  if (feedbackVel) feedbackVel.innerText = Math.abs(state.velocity).toFixed(2);
+  if (feedbackCoord) feedbackCoord.innerText = String(Math.round(state.scroll)).padStart(3, '0');
+  renderItems(time, time / 1000);
+}
+// --- decoupled portrait driver (immune to scroll-loop fate) ---
+let burstLogged = false;
+portraitEngines.forEach((E) => {
+  const cardEl = E.frame && E.frame.closest ? E.frame.closest('.card') : null;
+  if (cardEl) cardEl.addEventListener('pointermove', (e) => {
+    E.onMove(e);
+    if (!burstLogged) { burstLogged = true; console.log('[logforce] pointer burst ok'); }
+  });
+});
+const portraitClock = new THREE.Clock();
+(function portraitLoop() {
+  requestAnimationFrame(portraitLoop);
+  const t = portraitClock.getElapsedTime();
+  for (const E of portraitEngines) E.tick(reduceMotion ? 0 : t);
+})();
+console.log('[logforce] portrait engines constructed: ' + portraitEngines.length + ', reduceMotion=' + reduceMotion + ', lenis=' + (lenis ? 'on' : 'off'));
+setTimeout(() => {
+  const ok = portraitEngines.filter((E) => E.mesh && !E.dead).length;
+  console.log('[logforce] portraits built: ' + ok + '/' + portraitEngines.length);
+  portraitEngines.forEach((E, i) => {
+    if (!E.mesh || E.dead) console.warn('[logforce] engine ' + i + ' src=' + E.frame.getAttribute('data-src') + ' mesh=' + !!E.mesh + ' dead=' + E.dead);
+  });
+  const probe = portraitEngines[0];
+  if (probe && probe.mesh && !probe.dead) {
+    const v0 = probe.uniforms.uTime.value;
+    setTimeout(() => {
+      const v1 = probe.uniforms.uTime.value;
+      if (!reduceMotion && v1 === v0) console.warn('[logforce] uTime frozen — portraits static despite loop running');
+      else console.log('[logforce] uTime advancing ok');
+    }, 2000);
+  }
+}, 4000);
+requestAnimationFrame(raf);
+// --- three.js star-system background (r128-adapted, self-contained, zero page-globals) ---
+(function(){
+var container = document.createElement('div');
+container.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;';
+document.body.insertBefore(container, document.body.firstChild);
+var HEIGHT = window.innerHeight,
+    WIDTH = window.innerWidth,
+    aspectRatio = WIDTH / HEIGHT,
+    fieldOfView = 75,
+    nearPlane = 1,
+    farPlane = 1000,
+    mouseX = 0, mouseY = 0,
+    windowHalfX = WIDTH / 2,
+    windowHalfY = HEIGHT / 2,
+    camera, scene, renderer, stars;
+var reduceBg = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+camera = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane);
+camera.position.z = farPlane / 2;
+scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x000000, 0.0003);
+starForge();
+renderer = new THREE.WebGLRenderer({ alpha: true });
+renderer.setClearColor(0x000000, 0);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(WIDTH, HEIGHT);
+renderer.domElement.style.display = 'block';
+container.appendChild(renderer.domElement);
+window.addEventListener('resize', onWindowResize, false);
+document.addEventListener('mousemove', onMouseMove, false);
+function render() {
+  camera.position.x += (mouseX - camera.position.x) * 0.005;
+  camera.position.y += (-mouseY - camera.position.y) * 0.005;
+  camera.lookAt(scene.position);
+  renderer.render(scene, camera);
+}
+if (!reduceBg) { (function bgAnimate(){ requestAnimationFrame(bgAnimate); render(); })(); }
+else render();
+console.log('[logforce] star-system background on');
+function onWindowResize() {
+  WIDTH = window.innerWidth;
+  HEIGHT = window.innerHeight;
+  aspectRatio = WIDTH / HEIGHT;
+  windowHalfX = WIDTH / 2;
+  windowHalfY = HEIGHT / 2;
+  camera.aspect = aspectRatio;
+  camera.updateProjectionMatrix();
+  renderer.setSize(WIDTH, HEIGHT);
+}
+function starForge() {
+  var starQty = 45000;
+  var positions = new Float32Array(starQty * 3);
+  for (var i = 0; i < starQty; i++) {
+    positions[i * 3] = Math.random() * 2000 - 1000;
+    positions[i * 3 + 1] = Math.random() * 2000 - 1000;
+    positions[i * 3 + 2] = Math.random() * 2000 - 1000;
+  }
+  var geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  var material = new THREE.PointsMaterial({ size: 1.0, transparent: true, opacity: 0.7, depthWrite: false, color: 0xffffff });
+  stars = new THREE.Points(geometry, material);
+  scene.add(stars);
+}
+function onMouseMove(e) {
+  mouseX = e.clientX - windowHalfX;
+  mouseY = e.clientY - windowHalfY;
+}
+})();
+</script>
+</body>
+</html>
