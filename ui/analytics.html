@@ -537,7 +537,7 @@
 </div>
 </div>
 </div>
-<div class="relative w-full my-3"><data-chart aria-label="Volume stream, normalized versus raw" id="chart-volume" items-sm="6" items-xs="3" max="100" min="0" options="groups y-grid y-labels" role="figure" style="--data-chart-mih:9rem;--data-chart-y-axis-w:2.2rem" type="area"><table><caption>Volume stream, normalized versus raw events per 2 hour bucket</caption><thead aria-hidden="true" id="chart-volume-y"></thead><tbody id="chart-volume-body"></tbody></table></data-chart></div>
+<div class="relative w-full my-3 lf-chart" id="chart-volume-vue"><d3__chart :layout="layout" :chart-data="chartData" :axes="axes"></d3__chart></div>
 <div class="flex justify-between text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-100">
 <span class="">00:00</span>
 <span class="">04:00</span>
@@ -1184,7 +1184,7 @@ STREAM
       if(!s) return;
       setAnlKPIs(s);
       setThreatMix(s);
-      updateAreaChart('chart-volume', s.buckets_normalized||new Array(12).fill(0), s.buckets_raw||new Array(12).fill(0), {n:document.getElementById('vol-norm-total'), r:document.getElementById('vol-raw-total')});
+      if(window.__volFeed) window.__volFeed.ingestBuckets(s.buckets_normalized||new Array(12).fill(0), s.buckets_raw||new Array(12).fill(0));
       setLeaderboard(s);
       try{
         const t0=performance.now();
@@ -1205,6 +1205,7 @@ STREAM
     const q=document.getElementById('queue-pause-text'); if(q) q.textContent=chartLive?'Pause Feed':'Resume Feed';
     const qs=document.getElementById('queue-sync-text'); if(qs){ qs.textContent=chartLive?'ON':'OFF'; qs.className='font-bold '+(chartLive?'text-emerald-600':'text-slate-400'); }
     const cs=document.getElementById('confidence-sync-label'); if(cs) cs.textContent=chartLive?'Live Sync':'Paused';
+    if(window.__volFeed) window.__volFeed.setLive(chartLive);
     if(chartLive) refreshAnalytics();
   }
   function wireAnalytics(){
@@ -1362,6 +1363,29 @@ import * as THREE from 'three';
     if (document.hidden && running) { running = false; cancelAnimationFrame(rafId); }
     else if (!document.hidden && !running && badge.getAttribute('data-failed') !== 'true') { running = true; frame(); }
   });
+})();
+</script>
+<!-- Vue + d3 chart libs (Volume Stream card uses virtual-DOM rendering) -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@5.16.0/dist/d3.min.js"></script>
+<script src="logforce-feed.js"></script>
+<script>
+// Volume Stream: Vue+d3 mount (2h buckets ending today 24:00). Feed runs demo ticks
+// locally; point it at a ws/poll/sse endpoint via __volFeed.setMode() after approval.
+(function(){
+  if(typeof Vue==='undefined'||typeof d3==='undefined'||typeof mountLogforceChart==='undefined') return;
+  function dayEnd(){ const d=new Date(); d.setHours(24,0,0,0); return d.getTime(); }
+  function sum(a){ return (a||[]).reduce(function(x,y){ return x+(y||0); },0); }
+  const m = mountLogforceChart('#chart-volume-vue', {
+    bucketMs: 2*3600*1000, windowSize: 48,
+    endTime: dayEnd,
+    onTotals: function(bn, br){
+      const n=document.getElementById('vol-norm-total'), r=document.getElementById('vol-raw-total');
+      if(n) n.textContent=sum(bn).toLocaleString();
+      if(r) r.textContent=sum(br).toLocaleString();
+    }
+  });
+  if(m) window.__volFeed = m.feed;
 })();
 </script>
 </body></html>
