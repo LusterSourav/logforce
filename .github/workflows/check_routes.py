@@ -25,6 +25,8 @@ for page in pages:
         link = m.group(1).strip().split('?')[0]
         if not link or link.startswith(('http://', 'https://', 'mailto:', 'data:', '//')):
             continue
+        if re.search(r'[\s+()\[\]]', link):  # dynamic JS-built src, not a static link
+            continue
         cands = [link] if link.startswith('/') else ['/' + link, '/ui/' + link]
         if not any(c in routes or c in static or c.startswith('/api/') for c in cands):
             errs.append(f'{page.name} links {link} with no vercel route or static file')
