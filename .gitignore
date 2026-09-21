@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 models/*.onnx_data
 .vercel
+.DS_Store
