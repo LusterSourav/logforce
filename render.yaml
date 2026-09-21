@@ -18,5 +18,8 @@ services:
         source: /bookmarks
         destination: /bookmarks.html
       - type: rewrite
+        source: /creater
+        destination: /creater.html
+      - type: rewrite
         source: /
         destination: /dashboard-v2.html
